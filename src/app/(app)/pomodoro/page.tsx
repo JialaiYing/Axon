@@ -20,7 +20,7 @@ import { remainingMinutes } from "@/lib/kanban-utils";
 import type { Objective, TimerDisplayMode, TimerSource } from "@/types";
 
 export default function PomodoroPage() {
-  const { objectives, hydrated, startObjectiveSession, logStudyTime, completeObjective } =
+  const { objectives, hydrated, addObjective, updateObjective, deleteObjective, startObjectiveSession, logStudyTime, completeObjective } =
     useObjectives();
   const { logSession, todaySessions, todayFocusMinutes } = usePomodoroSessions();
   const { timers, hydrated: timersHydrated, startTimer, pauseTimer, resumeTimer, stopTimer, removeTimer, extendTimer, markLogged } =
@@ -36,6 +36,8 @@ export default function PomodoroPage() {
   const [personalMinutes, setPersonalMinutes] = React.useState(25);
   const [celebrateKey, setCelebrateKey] = React.useState(0);
   const [finishQueue, setFinishQueue] = React.useState<string[]>([]);
+  const [addToKanban, setAddToKanban] = React.useState(false);
+  const [personalLinkedObjectiveId, setPersonalLinkedObjectiveId] = React.useState<string | null>(null);
 
   // Objectives already being timed (running or paused) can't be picked again.
   const activeObjectiveIds = React.useMemo(
@@ -56,6 +58,44 @@ export default function PomodoroPage() {
     () => eligibleObjectives.find((o) => o.id === selectedId) ?? null,
     [eligibleObjectives, selectedId]
   );
+
+  // Keep the queued card's title/estimated time in sync with the personal
+  // timer form while it's still sitting untouched in "todo". If it's been
+  // moved elsewhere (started via another path), leave it alone.
+  React.useEffect(() => {
+    if (!addToKanban || !personalLinkedObjectiveId) return;
+    const linked = objectives.find((o) => o.id === personalLinkedObjectiveId);
+    if (!linked || linked.status !== "todo") return;
+    const nextTitle = personalLabel.trim() || "Personal focus session";
+    if (linked.title === nextTitle && linked.estimatedStudyTime === personalMinutes) return;
+    updateObjective(personalLinkedObjectiveId, {
+      title: nextTitle,
+      estimatedStudyTime: personalMinutes,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [personalLabel, personalMinutes, addToKanban, personalLinkedObjectiveId, objectives]);
+
+  function handleAddToKanbanChange(next: boolean) {
+    setAddToKanban(next);
+    if (next) {
+      const created = addObjective({
+        title: personalLabel.trim() || "Personal focus session",
+        subject: "Personal",
+        priority: "medium",
+        estimatedStudyTime: personalMinutes,
+        progress: 0,
+        labels: [],
+        status: "todo",
+      });
+      setPersonalLinkedObjectiveId(created.id);
+    } else if (personalLinkedObjectiveId) {
+      const linked = objectives.find((o) => o.id === personalLinkedObjectiveId);
+      if (linked && linked.status === "todo") {
+        deleteObjective(personalLinkedObjectiveId);
+      }
+      setPersonalLinkedObjectiveId(null);
+    }
+  }
 
   // Log a finished timer's time exactly once, then (for objective-linked
   // timers) queue up the "are you finished?" dialog.
@@ -109,12 +149,27 @@ export default function PomodoroPage() {
       });
       setSelectedId(null);
     } else {
+      let objectiveId: string | undefined;
+      if (addToKanban && personalLinkedObjectiveId) {
+        const linked = objectives.find((o) => o.id === personalLinkedObjectiveId);
+        const alreadyActiveElsewhere = activeObjectiveIds.has(personalLinkedObjectiveId);
+        // If the linked card was already started/moved via some other path
+        // (e.g. picked from the Objective tab, or dragged on the board),
+        // it already has its own timer — don't attach a duplicate here.
+        if (linked && !alreadyActiveElsewhere) {
+          startObjectiveSession(personalLinkedObjectiveId);
+          objectiveId = personalLinkedObjectiveId;
+        }
+      }
       startTimer({
         source: "personal",
         label: personalLabel || "Personal focus session",
+        objectiveId,
         durationSeconds: personalMinutes * 60,
       });
       setPersonalLabel("");
+      setAddToKanban(false);
+      setPersonalLinkedObjectiveId(null);
     }
   }
 
@@ -263,6 +318,8 @@ export default function PomodoroPage() {
                   onLabelChange={setPersonalLabel}
                   minutes={personalMinutes}
                   onMinutesChange={setPersonalMinutes}
+                  addToKanban={addToKanban}
+                  onAddToKanbanChange={handleAddToKanbanChange}
                 />
               </TabsContent>
             </Tabs>

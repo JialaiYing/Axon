@@ -10,6 +10,8 @@ interface PersonalTimerFormProps {
   onLabelChange: (label: string) => void;
   minutes: number;
   onMinutesChange: (minutes: number) => void;
+  addToKanban: boolean;
+  onAddToKanbanChange: (value: boolean) => void;
 }
 
 export function PersonalTimerForm({
@@ -17,6 +19,8 @@ export function PersonalTimerForm({
   onLabelChange,
   minutes,
   onMinutesChange,
+  addToKanban,
+  onAddToKanbanChange,
 }: PersonalTimerFormProps) {
   return (
     <div className="w-full max-w-sm space-y-4">
@@ -60,6 +64,32 @@ export function PersonalTimerForm({
             className="h-[30px] w-20 px-2 text-xs"
           />
         </div>
+      </div>
+
+      <div className="flex items-center justify-between gap-3 rounded-md border border-border bg-surface px-3 py-2.5">
+        <div>
+          <p className="text-xs font-medium text-foreground">Add to Kanban board?</p>
+          <p className="text-[11px] text-muted-foreground">
+            Creates a queued objective card you can track alongside this timer.
+          </p>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={addToKanban}
+          onClick={() => onAddToKanbanChange(!addToKanban)}
+          className={cn(
+            "relative h-5 w-9 shrink-0 rounded-full transition-colors duration-200",
+            addToKanban ? "bg-accent" : "bg-card border border-border-strong"
+          )}
+        >
+          <span
+            className={cn(
+              "absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200",
+              addToKanban ? "translate-x-[18px]" : "translate-x-0.5"
+            )}
+          />
+        </button>
       </div>
     </div>
   );
