@@ -1,61 +1,43 @@
 "use client";
 
-import { Play, Pause, Square, RotateCcw } from "lucide-react";
+import { Play, Pause, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { TimerStatus } from "@/hooks/use-pomodoro-timer";
+import type { TimerRunStatus } from "@/types";
 
 interface TimerControlsProps {
-  status: TimerStatus;
-  canStart: boolean;
-  onStart: () => void;
+  status: TimerRunStatus;
   onPause: () => void;
   onResume: () => void;
   onStop: () => void;
 }
 
-export function TimerControls({
-  status,
-  canStart,
-  onStart,
-  onPause,
-  onResume,
-  onStop,
-}: TimerControlsProps) {
-  if (status === "idle" || status === "finished") {
-    return (
-      <Button size="lg" onClick={onStart} disabled={!canStart}>
-        <Play className="h-4 w-4" />
-        Start focus session
-      </Button>
-    );
+/**
+ * Per-instance controls for a single timer card in the multi-timer grid.
+ * Starting happens from the "new timer" config panel (an instance doesn't
+ * exist yet at that point), so this only ever handles running/paused/finished.
+ */
+export function TimerControls({ status, onPause, onResume, onStop }: TimerControlsProps) {
+  if (status === "finished") {
+    return null;
   }
 
   return (
     <div className="flex items-center gap-2">
       {status === "running" ? (
-        <Button size="lg" variant="secondary" onClick={onPause}>
-          <Pause className="h-4 w-4" />
+        <Button size="sm" variant="secondary" onClick={onPause}>
+          <Pause className="h-3.5 w-3.5" />
           Pause
         </Button>
       ) : (
-        <Button size="lg" onClick={onResume}>
-          <Play className="h-4 w-4" />
+        <Button size="sm" onClick={onResume}>
+          <Play className="h-3.5 w-3.5" />
           Resume
         </Button>
       )}
-      <Button size="lg" variant="outline" onClick={onStop}>
+      <Button size="sm" variant="outline" onClick={onStop}>
         <Square className="h-3.5 w-3.5" />
         Stop
       </Button>
     </div>
-  );
-}
-
-export function RestartButton({ onClick }: { onClick: () => void }) {
-  return (
-    <Button size="sm" variant="ghost" onClick={onClick}>
-      <RotateCcw className="h-3.5 w-3.5" />
-      Reset
-    </Button>
   );
 }

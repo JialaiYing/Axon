@@ -13,6 +13,8 @@ interface TimerDisplayProps {
   remainingSeconds: number;
   totalSeconds: number;
   label?: string;
+  /** Hide the digital/blob toggle — used inside a multi-timer grid card, where one shared toggle above the grid controls every card. */
+  hideModeToggle?: boolean;
 }
 
 export function TimerDisplay({
@@ -21,6 +23,7 @@ export function TimerDisplay({
   remainingSeconds,
   totalSeconds,
   label,
+  hideModeToggle,
 }: TimerDisplayProps) {
   return (
     <div className="flex flex-col items-center gap-5">
@@ -40,6 +43,7 @@ export function TimerDisplay({
         </motion.div>
       </AnimatePresence>
 
+      {!hideModeToggle && (
       <div className="inline-flex items-center gap-1 rounded-lg border border-border bg-surface p-1">
         <button
           type="button"
@@ -68,6 +72,7 @@ export function TimerDisplay({
           Blob
         </button>
       </div>
+      )}
     </div>
   );
 }

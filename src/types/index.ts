@@ -69,7 +69,39 @@ export interface PomodoroSession {
 export type TimerDisplayMode = "digital" | "blob";
 
 /** Which kind of focus session the Pomodoro section is currently set up for. */
+/** Which kind of focus session the Pomodoro section is currently set up for. */
 export type TimerSource = "objective" | "personal";
+
+/** Lifecycle of one running Pomodoro timer instance in the multi-timer list. */
+export type TimerRunStatus = "running" | "paused" | "finished";
+
+/**
+ * One entry in the multi-timer list. Countdown accuracy across reloads/
+ * backgrounding comes from `endAt` (an absolute epoch-ms timestamp) rather
+ * than a naive per-second counter — remaining time is always derived as
+ * `endAt - Date.now()` while running.
+ */
+export interface PomodoroTimerInstance {
+  id: string;
+  source: TimerSource;
+  /** Objective title, or the personal timer's label. */
+  label: string;
+  /** Present when this timer is tracking a kanban objective (source "objective",
+   *  or a personal timer whose "Add to Kanban board?" toggle created a card). */
+  objectiveId?: string;
+  /** The full configured duration of the current run, in seconds. Restart and
+   *  "keep working" extensions both operate against this value. */
+  durationSeconds: number;
+  /** Epoch ms when this run reaches zero. Null while paused or finished. */
+  endAt: number | null;
+  /** Snapshotted remaining seconds at the moment of pausing. Null while running or finished. */
+  pausedRemainingSeconds: number | null;
+  status: TimerRunStatus;
+  createdAt: string;
+  /** True once this timer's completion has already been logged, so the
+   *  reach-zero effect never double-logs across renders/ticks. */
+  loggedCompletion?: boolean;
+}
 
 export interface Goal {
   id: string;
