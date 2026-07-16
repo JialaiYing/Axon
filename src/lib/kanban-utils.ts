@@ -1,4 +1,5 @@
-import type { Priority } from "@/types";
+import { AUTO_RECYCLE_AFTER_DAYS, PRIORITY_WEIGHT, RECYCLE_BIN_RETENTION_DAYS } from "@/constants/kanban";
+import type { Objective, Priority } from "@/types";
 
 export function priorityBadgeVariant(priority: Priority) {
   switch (priority) {
@@ -43,4 +44,60 @@ export function parseLabels(raw: string): string[] {
     .split(",")
     .map((label) => label.trim())
     .filter(Boolean);
+}
+
+/**
+ * Sorts objectives so higher priority appears first, using each item's
+ * position in the incoming array as a stable tiebreaker — this lets manual
+ * drag-reordering still take effect *within* a priority tier.
+ */
+export function sortByPriority(objectives: Objective[]): Objective[] {
+  return objectives
+    .map((objective, index) => ({ objective, index }))
+    .sort((a, b) => {
+      const weightDiff = PRIORITY_WEIGHT[b.objective.priority] - PRIORITY_WEIGHT[a.objective.priority];
+      if (weightDiff !== 0) return weightDiff;
+      return a.index - b.index;
+    })
+    .map((entry) => entry.objective);
+}
+
+export function formatCreatedDate(createdAt?: string): string | null {
+  if (!createdAt) return null;
+  const date = new Date(createdAt);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+}
+
+export function daysSince(dateIso?: string): number | null {
+  if (!dateIso) return null;
+  const date = new Date(dateIso);
+  if (Number.isNaN(date.getTime())) return null;
+  const ms = Date.now() - date.getTime();
+  return Math.floor(ms / (1000 * 60 * 60 * 24));
+}
+
+/** Days remaining before a "done" card auto-moves to the recycle bin. */
+export function daysUntilAutoRecycle(completedAt?: string): number | null {
+  const elapsed = daysSince(completedAt);
+  if (elapsed === null) return null;
+  return Math.max(0, AUTO_RECYCLE_AFTER_DAYS - elapsed);
+}
+
+/** Days remaining before a recycled card is permanently deleted. */
+export function daysUntilPermanentDelete(recycledAt?: string): number | null {
+  const elapsed = daysSince(recycledAt);
+  if (elapsed === null) return null;
+  return Math.max(0, RECYCLE_BIN_RETENTION_DAYS - elapsed);
+}
+
+/** Total minutes already logged against an objective via focus sessions. */
+export function loggedMinutes(objective: Objective): number {
+  return (objective.studySessions ?? []).reduce((sum, session) => sum + session.minutes, 0);
+}
+
+/** Minutes remaining before an objective's estimated study time is used up (never negative). */
+export function remainingMinutes(objective: Objective): number | null {
+  if (!objective.estimatedStudyTime) return null;
+  return Math.max(0, objective.estimatedStudyTime - loggedMinutes(objective));
 }

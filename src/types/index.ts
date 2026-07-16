@@ -2,7 +2,11 @@ export * from "./navigation";
 
 export type Priority = "low" | "medium" | "high" | "urgent";
 
-export type ObjectiveStatus = "todo" | "in-progress" | "done";
+/** "recycled" objectives are excluded from the kanban board and live only in the recycle bin. */
+export type ObjectiveStatus = "todo" | "in-progress" | "done" | "recycled";
+
+/** The three statuses that are actually rendered/draggable as kanban columns. */
+export type KanbanStatus = "todo" | "in-progress" | "done";
 
 export interface Objective {
   id: string;
@@ -17,6 +21,10 @@ export interface Objective {
   status: ObjectiveStatus;
   createdAt: string;
   updatedAt: string;
+  /** Set when the objective is moved into the "done" column. Drives the 7-day auto-recycle. */
+  completedAt?: string;
+  /** Set when the objective is sent to the recycle bin. Drives the 30-day auto-delete. */
+  recycledAt?: string;
   color?: string;
   notes?: string;
   // Reserved for future phases
@@ -51,7 +59,17 @@ export interface PomodoroSession {
   durationMinutes: number;
   type: "work" | "short-break" | "long-break";
   completed: boolean;
+  /** Present when this session was focused on a specific kanban objective. */
+  objectiveId?: string;
+  /** Present when this was an ad-hoc timer not tied to any objective. */
+  label?: string;
 }
+
+/** How the running timer is visualized in the Pomodoro section. */
+export type TimerDisplayMode = "digital" | "blob";
+
+/** Which kind of focus session the Pomodoro section is currently set up for. */
+export type TimerSource = "objective" | "personal";
 
 export interface Goal {
   id: string;

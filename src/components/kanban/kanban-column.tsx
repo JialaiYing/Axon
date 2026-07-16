@@ -15,6 +15,7 @@ interface KanbanColumnProps {
   onEdit: (objective: Objective) => void;
   onDelete: (objective: Objective) => void;
   onAdd: (status: Objective["status"]) => void;
+  onSendToRecycleBin?: (objective: Objective) => void;
 }
 
 export function KanbanColumn({
@@ -23,6 +24,7 @@ export function KanbanColumn({
   onEdit,
   onDelete,
   onAdd,
+  onSendToRecycleBin,
 }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: column.id,
@@ -63,12 +65,13 @@ export function KanbanColumn({
         <SortableContext items={ids} strategy={verticalListSortingStrategy}>
           <AnimatePresence initial={false}>
             {objectives.map((objective) => (
-              <KanbanCard
-                key={objective.id}
-                objective={objective}
-                onEdit={onEdit}
-                onDelete={onDelete}
-              />
+             <KanbanCard
+             key={objective.id}
+             objective={objective}
+             onEdit={onEdit}
+             onDelete={onDelete}
+             onSendToRecycleBin={onSendToRecycleBin}
+           />
             ))}
           </AnimatePresence>
         </SortableContext>

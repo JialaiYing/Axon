@@ -14,15 +14,26 @@ import {
   type DragEndEvent,
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+import { RotateCcw } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { KanbanColumn } from "@/components/kanban/kanban-column";
 import { KanbanCard } from "@/components/kanban/kanban-card";
 import { KanbanToolbar } from "@/components/kanban/kanban-toolbar";
 import { ObjectiveDialog } from "@/components/kanban/objective-dialog";
+import { RecycleBinDialog } from "@/components/kanban/recycle-bin-dialog";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { Button } from "@/components/ui/button";
+import { KanbanBoardSkeleton } from "@/components/ui/skeleton";
+import { ConfettiBurst } from "@/components/ui/confetti";
 import { KANBAN_COLUMNS } from "@/constants/kanban";
+import { sortByPriority } from "@/lib/kanban-utils";
 import { useObjectives, type ObjectiveInput } from "@/hooks/use-objectives";
-import type { Objective, ObjectiveStatus } from "@/types";
+import type { Objective, ObjectiveStatus, KanbanStatus } from "@/types";
+
+type DialogState =
+  | { mode: "create"; status: ObjectiveStatus }
+  | { mode: "edit"; objective: Objective }
+  | null;
 
 export function KanbanBoard() {
   const {
@@ -33,27 +44,37 @@ export function KanbanBoard() {
     deleteObjective,
     moveObjective,
     reorderObjectives,
+    sendToRecycleBin,
+    restoreFromRecycleBin,
+    permanentlyDelete,
   } = useObjectives();
 
   const [search, setSearch] = React.useState("");
   const [priorityFilter, setPriorityFilter] = React.useState("all");
   const [activeId, setActiveId] = React.useState<string | null>(null);
+  const [recycleBinOpen, setRecycleBinOpen] = React.useState(false);
+  const [celebrateKey, setCelebrateKey] = React.useState(0);
 
-  const [dialogState, setDialogState] = React.useState<
-    | { mode: "create"; status: ObjectiveStatus }
-    | { mode: "edit"; objective: Objective }
-    | null
-  >(null);
-  const [deleteTarget, setDeleteTarget] = React.useState<Objective | null>(null);
+  const [dialogState, setDialogState] = React.useState<DialogState>(null);
+  const [deleteTarget, setDeleteTarget] = React.useState<Objective | null>(null); 
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
+  const boardObjectives = React.useMemo(
+    () => objectives.filter((o) => o.status !== "recycled"),
+    [objectives]
+  );
+  const recycledObjectives = React.useMemo(
+    () => objectives.filter((o) => o.status === "recycled"),
+    [objectives]
+  );
+
   const filtered = React.useMemo(() => {
     const query = search.trim().toLowerCase();
-    return objectives.filter((objective) => {
+    return boardObjectives.filter((objective) => {
       const matchesQuery =
         !query ||
         objective.title.toLowerCase().includes(query) ||
@@ -62,18 +83,23 @@ export function KanbanBoard() {
       const matchesPriority = priorityFilter === "all" || objective.priority === priorityFilter;
       return matchesQuery && matchesPriority;
     });
-  }, [objectives, search, priorityFilter]);
+  }, [boardObjectives, search, priorityFilter]);
 
   const grouped = React.useMemo(() => {
-    const map: Record<ObjectiveStatus, Objective[]> = {
+    const map: Record<KanbanStatus, Objective[]> = {
       todo: [],
       "in-progress": [],
       done: [],
     };
     for (const objective of filtered) {
+      if (objective.status === "recycled") continue;
       map[objective.status].push(objective);
     }
-    return map;
+    return {
+      todo: sortByPriority(map.todo),
+      "in-progress": sortByPriority(map["in-progress"]),
+      done: sortByPriority(map.done),
+    };
   }, [filtered]);
 
   const activeObjective = activeId ? objectives.find((o) => o.id === activeId) ?? null : null;
@@ -93,6 +119,7 @@ export function KanbanBoard() {
     const overColumn = KANBAN_COLUMNS.find((c) => c.id === over.id);
     if (overColumn && activeObjective.status !== overColumn.id) {
       moveObjective(activeObjective.id, overColumn.id);
+      if (overColumn.id === "done") setCelebrateKey((k) => k + 1);
       return;
     }
 
@@ -100,6 +127,7 @@ export function KanbanBoard() {
     const overObjective = objectives.find((o) => o.id === over.id);
     if (overObjective && overObjective.status !== activeObjective.status) {
       moveObjective(activeObjective.id, overObjective.status);
+      if (overObjective.status === "done") setCelebrateKey((k) => k + 1);
     }
   }
 
@@ -116,17 +144,30 @@ export function KanbanBoard() {
 
   function handleFormSubmit(input: ObjectiveInput) {
     if (dialogState?.mode === "edit") {
+      const wasDone = dialogState.objective.status === "done";
       updateObjective(dialogState.objective.id, input);
+      if (!wasDone && input.status === "done") setCelebrateKey((k) => k + 1);
     } else {
       addObjective(input);
     }
   }
 
   return (
-    <div>
+    <div className="relative">
       <PageHeader
         title="Kanban"
         description="Plan, track, and move your objectives through your study workflow."
+        actions={
+          <Button variant="outline" onClick={() => setRecycleBinOpen(true)}>
+            <RotateCcw className="h-4 w-4" />
+            Recycle bin
+            {recycledObjectives.length > 0 && (
+              <span className="ml-0.5 rounded-full bg-surface px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                {recycledObjectives.length}
+              </span>
+            )}
+          </Button>
+        }
       />
 
       <KanbanToolbar
@@ -138,9 +179,7 @@ export function KanbanBoard() {
       />
 
       {!hydrated ? (
-        <div className="flex min-h-[300px] items-center justify-center text-sm text-muted-foreground">
-          Loading your board...
-        </div>
+        <KanbanBoardSkeleton />
       ) : (
         <DndContext
           sensors={sensors}
@@ -158,6 +197,7 @@ export function KanbanBoard() {
                 onEdit={(objective) => setDialogState({ mode: "edit", objective })}
                 onDelete={(objective) => setDeleteTarget(objective)}
                 onAdd={(status) => setDialogState({ mode: "create", status })}
+                onSendToRecycleBin={(objective) => sendToRecycleBin(objective.id)}
               />
             ))}
           </div>
@@ -176,6 +216,8 @@ export function KanbanBoard() {
           </DragOverlay>
         </DndContext>
       )}
+
+      <ConfettiBurst triggerKey={celebrateKey} />
 
       <ObjectiveDialog
         open={dialogState !== null}
@@ -199,6 +241,14 @@ export function KanbanBoard() {
         onConfirm={() => {
           if (deleteTarget) deleteObjective(deleteTarget.id);
         }}
+      />
+
+      <RecycleBinDialog
+        open={recycleBinOpen}
+        onOpenChange={setRecycleBinOpen}
+        objectives={recycledObjectives}
+        onRestore={(objective) => restoreFromRecycleBin(objective.id)}
+        onDeleteForever={(objective) => permanentlyDelete(objective.id)}
       />
     </div>
   );

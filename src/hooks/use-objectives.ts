@@ -4,6 +4,8 @@ import * as React from "react";
 import { arrayMove } from "@dnd-kit/sortable";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { MOCK_OBJECTIVES } from "@/lib/mock-objectives";
+import { daysSince } from "@/lib/kanban-utils";
+import { AUTO_RECYCLE_AFTER_DAYS, RECYCLE_BIN_RETENTION_DAYS } from "@/constants/kanban";
 import type { Objective, ObjectiveStatus } from "@/types";
 
 const STORAGE_KEY = "axon:kanban:objectives";
@@ -51,6 +53,7 @@ export function useObjectives() {
         status: input.status,
         createdAt: now,
         updatedAt: now,
+        completedAt: input.status === "done" ? now : undefined,
         color: input.color,
         notes: input.notes,
       };
@@ -90,12 +93,16 @@ export function useObjectives() {
       setObjectives((prev) =>
         prev.map((objective) => {
           if (objective.id !== id) return objective;
+          const now = new Date().toISOString();
           const isNowDone = status === "done" && objective.status !== "done";
+          const isLeavingDone = objective.status === "done" && status !== "done";
           return {
             ...objective,
             status,
             progress: isNowDone ? 100 : objective.progress,
-            updatedAt: new Date().toISOString(),
+            completedAt: isNowDone ? now : isLeavingDone ? undefined : objective.completedAt,
+            recycledAt: status === "recycled" ? now : undefined,
+            updatedAt: now,
           };
         })
       );
@@ -117,6 +124,145 @@ export function useObjectives() {
     [setObjectives]
   );
 
+  /** Marks an objective as complete — used by both the board and the Pomodoro timer. */
+  const completeObjective = React.useCallback(
+    (id: string) => {
+      const now = new Date().toISOString();
+      setObjectives((prev) =>
+        prev.map((objective) =>
+          objective.id === id
+            ? { ...objective, status: "done", progress: 100, completedAt: now, updatedAt: now }
+            : objective
+        )
+      );
+    },
+    [setObjectives]
+  );
+
+  /** Moves a queued objective into "in-progress" — used when a focus session starts. */
+  const startObjectiveSession = React.useCallback(
+    (id: string) => {
+      setObjectives((prev) =>
+        prev.map((objective) =>
+          objective.id === id && objective.status === "todo"
+            ? { ...objective, status: "in-progress", updatedAt: new Date().toISOString() }
+            : objective
+        )
+      );
+    },
+    [setObjectives]
+  );
+
+  /**
+   * Logs focused minutes against an objective (from the Pomodoro timer) and
+   * recomputes its progress bar from estimatedStudyTime. Safe to call with
+   * partial time if the timer was stopped early.
+   */
+  const logStudyTime = React.useCallback(
+    (id: string, minutes: number) => {
+      if (minutes <= 0) return;
+      const now = new Date().toISOString();
+      setObjectives((prev) =>
+        prev.map((objective) => {
+          if (objective.id !== id) return objective;
+          const sessions = [
+            ...(objective.studySessions ?? []),
+            { id: createId(), date: now, minutes },
+          ];
+          const totalMinutes = sessions.reduce((sum, s) => sum + s.minutes, 0);
+          const nextProgress = objective.estimatedStudyTime
+            ? Math.min(100, Math.round((totalMinutes / objective.estimatedStudyTime) * 100))
+            : objective.progress;
+          return {
+            ...objective,
+            studySessions: sessions,
+            progress: nextProgress,
+            updatedAt: now,
+          };
+        })
+      );
+    },
+    [setObjectives]
+  );
+
+  const sendToRecycleBin = React.useCallback(
+    (id: string) => {
+      const now = new Date().toISOString();
+      setObjectives((prev) =>
+        prev.map((objective) =>
+          objective.id === id
+            ? { ...objective, status: "recycled", recycledAt: now, updatedAt: now }
+            : objective
+        )
+      );
+    },
+    [setObjectives]
+  );
+
+  const restoreFromRecycleBin = React.useCallback(
+    (id: string) => {
+      const now = new Date().toISOString();
+      setObjectives((prev) =>
+        prev.map((objective) =>
+          objective.id === id
+            ? {
+                ...objective,
+                status: "done",
+                recycledAt: undefined,
+                completedAt: now,
+                updatedAt: now,
+              }
+            : objective
+        )
+      );
+    },
+    [setObjectives]
+  );
+
+  const permanentlyDelete = deleteObjective;
+
+  /**
+   * Applies the two time-based lifecycle rules: a "done" card auto-recycles
+   * after AUTO_RECYCLE_AFTER_DAYS, and a recycled card is permanently
+   * deleted after RECYCLE_BIN_RETENTION_DAYS. Runs on hydration and then
+   * periodically so a long-open tab stays accurate.
+   */
+  const runHousekeeping = React.useCallback(() => {
+    setObjectives((prev) => {
+      let changed = false;
+      const now = new Date().toISOString();
+      const next = prev
+        .map((objective) => {
+          if (objective.status === "done") {
+            const elapsed = daysSince(objective.completedAt);
+            if (elapsed !== null && elapsed >= AUTO_RECYCLE_AFTER_DAYS) {
+              changed = true;
+              return { ...objective, status: "recycled" as const, recycledAt: now, updatedAt: now };
+            }
+          }
+          return objective;
+        })
+        .filter((objective) => {
+          if (objective.status === "recycled") {
+            const elapsed = daysSince(objective.recycledAt);
+            if (elapsed !== null && elapsed >= RECYCLE_BIN_RETENTION_DAYS) {
+              changed = true;
+              return false;
+            }
+          }
+          return true;
+        });
+      return changed ? next : prev;
+    });
+  }, [setObjectives]);
+
+  React.useEffect(() => {
+    if (!hydrated) return;
+    runHousekeeping();
+    const interval = setInterval(runHousekeeping, 60_000);
+    return () => clearInterval(interval);
+  }, [hydrated, runHousekeeping]);
+
   const columnCounts = React.useMemo(() => {
     return objectives.reduce<Record<string, number>>((acc, objective) => {
       acc[objective.status] = (acc[objective.status] ?? 0) + 1;
@@ -132,6 +278,12 @@ export function useObjectives() {
     deleteObjective,
     moveObjective,
     reorderObjectives,
+    completeObjective,
+    startObjectiveSession,
+    logStudyTime,
+    sendToRecycleBin,
+    restoreFromRecycleBin,
+    permanentlyDelete,
     columnCounts,
   };
 }

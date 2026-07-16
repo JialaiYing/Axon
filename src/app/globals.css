@@ -206,4 +206,21 @@
   .animate-accordion-up {
     animation: accordion-up 0.2s ease-out;
   }
+
+  @keyframes shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  @keyframes ripple {
+    to {
+      transform: scale(3.5);
+      opacity: 0;
+    }
+  }
+
+  .animate-ripple {
+    animation: ripple 600ms ease-out forwards;
+  }
 }
