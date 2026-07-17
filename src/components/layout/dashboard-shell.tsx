@@ -12,7 +12,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
 
   return (
-    <div className="relative h-screen w-full overflow-hidden">
+    <div className="relative h-screen w-full overflow-hidden text-white [--color-foreground:#ffffff] [--color-muted:#ffffff] [--color-muted-foreground:#ffffff]">
       <DashboardBackground />
       <Sidebar open={sidebarOpen} onOpenChange={setSidebarOpen} />
       <div
@@ -22,8 +22,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         )}
       >
         <Header />
-        <main className="flex-1 overflow-y-auto px-4 py-6 md:px-8 md:py-8">
-          <div className="mx-auto w-full max-w-[1400px]">
+        <main className="flex-1 overflow-y-auto px-4 py-6 text-white md:px-8 md:py-8">
+          <div className="mx-auto w-full max-w-[1400px] text-white [&_.text-muted]:text-white [&_.text-muted-foreground]:text-white [&_.text-foreground]:text-white">
             <PageTransition>{children}</PageTransition>
           </div>
         </main>

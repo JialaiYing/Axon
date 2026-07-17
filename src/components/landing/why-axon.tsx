@@ -44,7 +44,7 @@ export function WhyAxon() {
           </ScrollFloat>
           <TextType
             text="Built for students who don't need another feed to scroll — they need a reason to sit down and study."
-            typingSpeed={45}
+            typingSpeed={22}
             showCursor
             cursorCharacter="_"
             startOnVisible

@@ -59,7 +59,7 @@ export function Sidebar({ open, onOpenChange }: SidebarProps) {
               items={labels}
               defaultActive={activeIndex >= 0 ? activeIndex : null}
               accentColor="#3b82f6"
-              textColor="#9096a8"
+              textColor="#ffffff"
               markerColor="#6c6c6c"
               showIndex
               showMarker

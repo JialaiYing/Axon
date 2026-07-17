@@ -54,7 +54,7 @@ export function Hero() {
       <div className="mt-6 max-w-xl text-balance text-base leading-relaxed text-muted md:text-lg">
         <TextType
           text="Axon turns your objectives, flashcards, and focus sessions into one calm, local-first workspace — with statistics-driven insights instead of noisy AI guesses."
-          typingSpeed={40}
+          typingSpeed={20}
           showCursor
           cursorCharacter="_"
           startOnVisible
@@ -87,28 +87,27 @@ export function Hero() {
             className="rounded-[9px] border-0 shadow-none hover:shadow-none"
           >
             <Link href="/dashboard" className="inline-flex items-center gap-2">
-              <span className="relative inline-grid justify-items-center">
-                <span
-                  aria-hidden
-                  className="invisible col-start-1 row-start-1 whitespace-nowrap"
-                >
+              <span className="relative inline-block text-center">
+                <span aria-hidden className="invisible whitespace-nowrap">
                   Start Studying
                 </span>
-                <RotatingText
-                  texts={["Open Dashboard", "Start Studying", "Begin Focus"]}
-                  staggerFrom="last"
-                  initial={{ y: "100%" }}
-                  animate={{ y: 0 }}
-                  exit={{ y: "-120%" }}
-                  staggerDuration={0.025}
-                  splitLevelClassName="overflow-hidden"
-                  transition={{ type: "spring", damping: 30, stiffness: 400 }}
-                  rotationInterval={2500}
-                  splitBy="characters"
-                  auto
-                  loop
-                  mainClassName="col-start-1 row-start-1 justify-center overflow-hidden"
-                />
+                <span className="absolute inset-0 flex items-center justify-center overflow-hidden">
+                  <RotatingText
+                    texts={["Open Dashboard", "Start Studying", "Begin Focus"]}
+                    staggerFrom="last"
+                    initial={{ y: "100%" }}
+                    animate={{ y: 0 }}
+                    exit={{ y: "-120%" }}
+                    staggerDuration={0.025}
+                    splitLevelClassName="overflow-hidden"
+                    transition={{ type: "spring", damping: 30, stiffness: 400 }}
+                    rotationInterval={2500}
+                    splitBy="characters"
+                    auto
+                    loop
+                    mainClassName="justify-center overflow-hidden"
+                  />
+                </span>
               </span>
               <ArrowRight className="h-4 w-4 shrink-0 transition-transform duration-200 group-hover:translate-x-0.5" />
             </Link>

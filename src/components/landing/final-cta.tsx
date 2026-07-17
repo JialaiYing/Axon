@@ -34,7 +34,7 @@ export function FinalCTA() {
           </ScrollFloat>
           <TextType
             text="No signup, no setup, no AI subscription. Just open the dashboard and add your first objective."
-            typingSpeed={40}
+            typingSpeed={20}
             showCursor
             cursorCharacter="_"
             startOnVisible

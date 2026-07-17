@@ -58,7 +58,28 @@ export function LandingNav() {
           initialLoadAnimation={false}
         />
 
-        <div className="absolute right-6">
+        <div className="absolute right-6 flex items-center gap-2">
+          <BorderGlow
+            asButton
+            edgeSensitivity={28}
+            glowColor="270 80 75"
+            backgroundColor="#0f1115"
+            borderRadius={8}
+            glowRadius={22}
+            glowIntensity={0.9}
+            coneSpread={25}
+            colors={["#A6C8FF", "#5227FF", "#FF9FFC"]}
+            fillOpacity={0.35}
+          >
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="rounded-[7px] border-border/60 bg-transparent shadow-none hover:shadow-none"
+            >
+              Login
+            </Button>
+          </BorderGlow>
           <BorderGlow
             asButton
             edgeSensitivity={28}
@@ -74,7 +95,7 @@ export function LandingNav() {
             <Button
               size="sm"
               asChild
-              className="rounded-[7px] border-0 shadow-none hover:shadow-none"
+              className="min-w-[8.75rem] rounded-[7px] border-0 shadow-none hover:shadow-none"
             >
               <Link href="/dashboard">Open Dashboard</Link>
             </Button>

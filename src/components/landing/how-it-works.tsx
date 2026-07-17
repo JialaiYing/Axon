@@ -49,7 +49,7 @@ export function HowItWorks() {
           </ScrollFloat>
           <TextType
             text="Four tools, one loop: plan, focus, reinforce, review."
-            typingSpeed={45}
+            typingSpeed={22}
             showCursor
             cursorCharacter="_"
             startOnVisible
