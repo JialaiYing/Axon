@@ -6,12 +6,14 @@ import {
   BarChart3,
   Target,
   Settings,
+  CalendarDays,
 } from "lucide-react";
 import type { NavItem } from "@/types";
 
 export const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Kanban", href: "/kanban", icon: Kanban },
+  { label: "Calendar", href: "/calendar", icon: CalendarDays },
   { label: "Flashcards", href: "/flashcards", icon: Layers },
   { label: "Pomodoro", href: "/pomodoro", icon: Timer },
   { label: "Analytics", href: "/analytics", icon: BarChart3 },

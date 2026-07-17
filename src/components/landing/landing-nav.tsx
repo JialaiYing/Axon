@@ -35,19 +35,22 @@ export function LandingNav() {
           <span className="text-sm font-semibold tracking-tight">Axon</span>
         </div>
 
-        <nav className="hidden items-center gap-6 text-sm text-muted md:flex">
-          <Link href="#why-axon" className="transition-colors hover:text-foreground">
-            Why Axon
-          </Link>
-          <Link href="#features" className="transition-colors hover:text-foreground">
-            Features
-          </Link>
-          <Link href="#how-it-works" className="transition-colors hover:text-foreground">
-            How it works
-          </Link>
-          <Link href="#faq" className="transition-colors hover:text-foreground">
-            FAQ
-          </Link>
+        <nav className="hidden items-center gap-7 text-sm text-muted md:flex">
+          {[
+            { href: "#why-axon", label: "Why Axon" },
+            { href: "#features", label: "Features" },
+            { href: "#how-it-works", label: "How it works" },
+            { href: "#faq", label: "FAQ" },
+          ].map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="group relative py-1.5 transition-colors duration-200 hover:text-foreground"
+            >
+              {item.label}
+              <span className="absolute inset-x-0 -bottom-px h-px scale-x-0 bg-gradient-to-r from-accent to-secondary transition-transform duration-300 ease-out group-hover:scale-x-100" />
+            </Link>
+          ))}
         </nav>
 
         <Button size="sm" asChild>

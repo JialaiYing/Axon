@@ -1,6 +1,7 @@
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { PageTransition } from "@/components/layout/page-transition";
+import { TimerNotificationsWatcher } from "@/components/layout/timer-notifications-watcher";
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   return (
@@ -14,6 +15,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           </div>
         </main>
       </div>
+      <TimerNotificationsWatcher />
     </div>
   );
 }

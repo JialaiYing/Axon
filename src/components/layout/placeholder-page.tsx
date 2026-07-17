@@ -1,6 +1,5 @@
 import type { LucideIcon } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
-import { ScrollReveal } from "@/components/ui/scroll-reveal";
 
 interface PlaceholderPageProps {
   title: string;
@@ -18,17 +17,15 @@ export function PlaceholderPage({
   return (
     <div>
       <PageHeader title={title} description={description} />
-      <ScrollReveal>
-        <div className="flex min-h-[420px] flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-border bg-card/40 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-surface">
-            <Icon className="h-6 w-6 text-muted" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-foreground">{title} is coming soon</p>
-            <p className="mt-1 text-xs text-muted-foreground">{phaseLabel}</p>
-          </div>
+      <div className="flex min-h-[420px] flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-border bg-card/40 text-center">
+        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-surface">
+          <Icon className="h-6 w-6 text-muted" />
         </div>
-      </ScrollReveal>
+        <div>
+          <p className="text-sm font-medium text-foreground">{title} is coming soon</p>
+          <p className="mt-1 text-xs text-muted-foreground">{phaseLabel}</p>
+        </div>
+      </div>
     </div>
   );
 }

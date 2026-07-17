@@ -27,6 +27,16 @@ export interface Objective {
   recycledAt?: string;
   color?: string;
   notes?: string;
+  /**
+   * Scheduling metadata — when the user actually plans to work on this
+   * objective. Optional and intentionally separate from `dueDate` (the
+   * deadline) and `estimatedStudyTime` (the plan-level estimate). Lives
+   * directly on the objective so the Calendar has nothing of its own to
+   * duplicate: it only ever renders objectives that already exist.
+   */
+  scheduledStart?: string; // ISO datetime
+  /** Length of the scheduled block, in minutes. Independent of estimatedStudyTime. */
+  scheduledDurationMinutes?: number;
   // Reserved for future phases
   subtasks?: { id: string; title: string; done: boolean }[];
   attachments?: { id: string; name: string; url: string }[];
@@ -101,6 +111,19 @@ export interface PomodoroTimerInstance {
   /** True once this timer's completion has already been logged, so the
    *  reach-zero effect never double-logs across renders/ticks. */
   loggedCompletion?: boolean;
+  /** True once a "timer finished" notification has been raised for this run,
+   *  so the global watcher never double-notifies across renders/ticks. */
+  notified?: boolean;
+}
+
+/** A notification raised when a timer finishes, archived in the header's notification bell. */
+export interface TimerNotification {
+  id: string;
+  timerId: string;
+  title: string;
+  message: string;
+  createdAt: string;
+  read: boolean;
 }
 
 export interface Goal {

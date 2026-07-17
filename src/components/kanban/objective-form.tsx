@@ -23,7 +23,7 @@ import {
   OBJECTIVE_COLORS,
 } from "@/constants/kanban";
 import type { ObjectiveInput } from "@/hooks/use-objectives";
-import type { Objective } from "@/types";
+import type { KanbanStatus, Objective } from "@/types";
 
 const objectiveSchema = z.object({
   title: z.string().min(1, "Title is required").max(120, "Keep it under 120 characters"),
@@ -45,7 +45,7 @@ const objectiveSchema = z.object({
 type ObjectiveFormValues = z.infer<typeof objectiveSchema>;
 
 interface ObjectiveFormProps {
-  defaultStatus?: Objective["status"];
+  defaultStatus?: KanbanStatus;
   initialValues?: Objective;
   onSubmit: (input: ObjectiveInput) => void;
   onCancel: () => void;
@@ -73,7 +73,13 @@ export function ObjectiveForm({
       description: initialValues?.description ?? "",
       subject: initialValues?.subject ?? "",
       priority: initialValues?.priority ?? "medium",
-      status: initialValues?.status ?? defaultStatus,
+      // Recycled objectives are never edited through this form (the recycle
+      // bin has its own restore/delete actions), but the type is broader than
+      // the form's status field — fall back to "done" defensively.
+      status:
+        initialValues?.status && initialValues.status !== "recycled"
+          ? initialValues.status
+          : defaultStatus,
       dueDate: initialValues?.dueDate?.slice(0, 10) ?? "",
       estimatedStudyTime: initialValues?.estimatedStudyTime,
       progress: initialValues?.progress ?? 0,
@@ -97,7 +103,7 @@ export function ObjectiveForm({
       estimatedStudyTime: values.estimatedStudyTime,
       progress: values.progress,
       labels: values.labels
-        ? values.labels.split(",").map((l) => l.trim()).filter(Boolean)
+        ? values.labels.split(",").map((l: string) => l.trim()).filter(Boolean)
         : [],
       color: values.color,
       notes: values.notes?.trim() || undefined,

@@ -27,23 +27,24 @@ export function ProgressBar({
   const clamped = Math.min(100, Math.max(0, value));
 
   return (
-    <div className={cn("flex items-center gap-2", className)}>
+    <div className={cn("flex items-center gap-2.5", className)}>
       <div
         className={cn(
-          "relative w-full overflow-hidden rounded-full bg-surface",
+          "relative w-full overflow-hidden rounded-full bg-surface shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)]",
           sizeMap[size]
         )}
       >
         <div
           className={cn(
-            "h-full rounded-full bg-accent transition-all duration-500 ease-out",
+            "h-full rounded-full bg-gradient-to-r from-accent to-secondary transition-all duration-500 ease-out",
+            clamped > 0 && "shadow-[0_0_10px_-1px_rgba(59,130,246,0.55)]",
             barClassName
           )}
           style={{ width: `${clamped}%` }}
         />
       </div>
       {showLabel && (
-        <span className="text-xs font-medium text-muted tabular-nums">
+        <span className="text-xs font-medium tabular-nums text-muted">
           {Math.round(clamped)}%
         </span>
       )}

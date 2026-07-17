@@ -7,53 +7,77 @@ interface TimerBlobProps {
   remainingSeconds: number;
   totalSeconds: number;
   label?: string;
+  size?: number;
 }
 
 const BORDER_RADII = [
   "62% 38% 55% 45% / 55% 45% 55% 45%",
-  "45% 55% 40% 60% / 60% 40% 60% 40%",
-  "55% 45% 60% 40% / 45% 60% 40% 55%",
+  "48% 52% 42% 58% / 58% 42% 58% 42%",
+  "56% 44% 58% 42% / 46% 58% 42% 54%",
   "62% 38% 55% 45% / 55% 45% 55% 45%",
 ];
 
-export function TimerBlob({ remainingSeconds, totalSeconds, label }: TimerBlobProps) {
+export function TimerBlob({ remainingSeconds, totalSeconds, size = 260 }: TimerBlobProps) {
   const fraction = totalSeconds > 0 ? remainingSeconds / totalSeconds : 1;
   const isLow = totalSeconds > 0 && fraction <= 0.1;
   // Never fully vanish — floor the scale so the blob stays visible until 0.
   const scale = 0.28 + fraction * 0.72;
+  const blobSize = Math.round(size * (220 / 260));
 
   return (
-    <div className="relative flex h-[260px] w-[260px] items-center justify-center">
+    <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
+      {/* Ambient halo behind the blob, echoing the digital ring's glow for a consistent premium feel. */}
+      <motion.div
+        aria-hidden
+        className="absolute rounded-full blur-3xl"
+        animate={{
+          background: isLow
+            ? "radial-gradient(circle, rgba(239,68,68,0.2), transparent 70%)"
+            : "radial-gradient(circle, rgba(59,130,246,0.16), transparent 70%)",
+        }}
+        transition={{ duration: 0.9, ease: "easeOut" }}
+        style={{ width: size * 0.9, height: size * 0.9 }}
+      />
+
       <motion.div
         aria-hidden
         className="absolute"
-        animate={{ borderRadius: BORDER_RADII, rotate: [0, 8, -6, 0] }}
-        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-        style={{ width: 220, height: 220 }}
+        animate={{ borderRadius: BORDER_RADII, rotate: [0, 5, -4, 0] }}
+        transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
+        style={{ width: blobSize, height: blobSize }}
       >
         <motion.div
-          className="h-full w-full"
+          className="relative h-full w-full overflow-hidden"
           animate={{
             scale,
             background: isLow
-              ? "radial-gradient(circle at 35% 30%, #f87171, #dc2626)"
-              : "radial-gradient(circle at 35% 30%, #60a5fa, #3b82f6 55%, #a855f7)",
+              ? "radial-gradient(circle at 32% 28%, #fca5a5, #ef4444 55%, #b91c1c)"
+              : "radial-gradient(circle at 32% 28%, #93c5fd, #3b82f6 50%, #7c3aed)",
             boxShadow: isLow
-              ? "0 0 60px -8px rgba(239,68,68,0.55)"
-              : "0 0 60px -8px rgba(59,130,246,0.45)",
+              ? "inset 0 0 40px rgba(0,0,0,0.15), 0 0 70px -10px rgba(239,68,68,0.55)"
+              : "inset 0 0 40px rgba(0,0,0,0.12), 0 0 70px -10px rgba(59,130,246,0.45)",
           }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
           style={{ borderRadius: "inherit" }}
-        />
+        >
+          {/* Soft light-source glint for an organic, lit-from-above feel. */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute -left-[15%] -top-[20%] h-[60%] w-[60%] rounded-full bg-white/35 blur-2xl"
+          />
+        </motion.div>
       </motion.div>
 
       <div className="pointer-events-none absolute flex flex-col items-center justify-center text-center">
-        <span className="font-mono text-4xl font-semibold tabular-nums text-foreground drop-shadow-sm">
+        <span
+          className="font-mono font-semibold tabular-nums tracking-[0.01em] text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.35)]"
+          style={{ fontSize: size >= 400 ? "3.75rem" : "2.25rem" }}
+        >
           {formatClock(remainingSeconds)}
         </span>
-        {label && (
-          <span className="mt-2 max-w-[160px] truncate text-xs text-foreground/70">{label}</span>
-        )}
+        <span className="mt-1.5 text-[10px] font-medium uppercase tracking-[0.16em] text-white/70">
+          {isLow ? "Almost up" : "Remaining"}
+        </span>
       </div>
     </div>
   );

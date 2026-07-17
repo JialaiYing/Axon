@@ -42,24 +42,27 @@ export function Sidebar() {
           const content = (
             <span
               className={cn(
-                "group relative flex items-center gap-3 rounded-md px-2.5 py-2 text-sm font-medium transition-colors duration-150",
+                "group relative flex items-center gap-3 rounded-lg px-2.5 py-2.5 text-sm font-medium transition-all duration-200",
                 isActive
                   ? "bg-accent-muted text-accent-foreground"
-                  : "text-muted hover:bg-card hover:text-foreground",
-                item.disabled && "cursor-not-allowed opacity-40 hover:bg-transparent hover:text-muted"
+                  : "text-muted hover:translate-x-0.5 hover:bg-card hover:text-foreground",
+                item.disabled && "cursor-not-allowed opacity-40 hover:translate-x-0 hover:bg-transparent hover:text-muted"
               )}
             >
               {isActive && (
                 <motion.span
                   layoutId="sidebar-active-indicator"
-                  className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full bg-accent"
+                  className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full bg-accent shadow-[0_0_8px_rgba(59,130,246,0.6)]"
                   transition={{ type: "spring", stiffness: 400, damping: 30 }}
                 />
               )}
-              <Icon className="h-4 w-4 shrink-0" strokeWidth={2} />
+              <Icon
+                className="h-4 w-4 shrink-0 transition-transform duration-200 group-hover:scale-110"
+                strokeWidth={2}
+              />
               {!collapsed && <span className="truncate">{item.label}</span>}
               {!collapsed && item.disabled && (
-                <span className="ml-auto rounded-full bg-surface px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                <span className="ml-auto rounded-full border border-border bg-surface px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
                   Soon
                 </span>
               )}
@@ -85,10 +88,10 @@ export function Sidebar() {
       <div className="border-t border-border p-3">
         <button
           onClick={() => setCollapsed((prev) => !prev)}
-          className="flex w-full items-center justify-center gap-2 rounded-md px-2.5 py-2 text-sm text-muted transition-colors hover:bg-card hover:text-foreground"
+          className="flex w-full items-center justify-center gap-2 rounded-lg px-2.5 py-2.5 text-sm text-muted transition-all duration-200 hover:bg-card hover:text-foreground active:scale-[0.98]"
         >
           {collapsed ? (
-            <ChevronsRight className="h-4 w-4" />
+            <ChevronsRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
           ) : (
             <>
               <ChevronsLeft className="h-4 w-4" />

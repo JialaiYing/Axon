@@ -15,6 +15,8 @@ interface TimerDisplayProps {
   label?: string;
   /** Hide the digital/blob toggle — used inside a multi-timer grid card, where one shared toggle above the grid controls every card. */
   hideModeToggle?: boolean;
+  /** Diameter in px for the ring/blob — larger in the fullscreen overlay. */
+  size?: number;
 }
 
 export function TimerDisplay({
@@ -24,6 +26,7 @@ export function TimerDisplay({
   totalSeconds,
   label,
   hideModeToggle,
+  size,
 }: TimerDisplayProps) {
   return (
     <div className="flex flex-col items-center gap-5">
@@ -36,9 +39,9 @@ export function TimerDisplay({
           transition={{ duration: 0.25, ease: [0.21, 0.47, 0.32, 0.98] }}
         >
           {mode === "digital" ? (
-            <TimerRing remainingSeconds={remainingSeconds} totalSeconds={totalSeconds} label={label} />
+            <TimerRing remainingSeconds={remainingSeconds} totalSeconds={totalSeconds} label={label} size={size} />
           ) : (
-            <TimerBlob remainingSeconds={remainingSeconds} totalSeconds={totalSeconds} label={label} />
+            <TimerBlob remainingSeconds={remainingSeconds} totalSeconds={totalSeconds} label={label} size={size} />
           )}
         </motion.div>
       </AnimatePresence>

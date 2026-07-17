@@ -7,33 +7,33 @@ import { ScrollReveal, ScrollRevealGroup, ScrollRevealItem } from "@/components/
 
 export function Gamification() {
   return (
-    <section className="px-6 py-20">
-      <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-10 md:grid-cols-2">
+    <section className="px-6 py-24 md:py-28">
+      <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 md:grid-cols-2 md:gap-16">
         <ScrollReveal>
           <h2 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
             Progress you can actually see
           </h2>
-          <p className="mt-3 text-sm leading-relaxed text-muted md:text-base">
+          <p className="mt-4 text-sm leading-relaxed text-muted md:text-base">
             XP, ranks, and streaks aren&apos;t decoration — they&apos;re a
             direct readout of finished objectives, completed intervals, and
             reviewed flashcards. No made-up multipliers, no gambling
             mechanics, just a visible trail of what you got done.
           </p>
-          <ul className="mt-6 space-y-3 text-sm text-muted">
-            <li className="flex items-center gap-2">
+          <ul className="mt-7 space-y-3.5 text-sm text-muted">
+            <li className="flex items-center gap-2.5">
               <Star className="h-4 w-4 text-accent" /> XP earned per completed objective and session
             </li>
-            <li className="flex items-center gap-2">
+            <li className="flex items-center gap-2.5">
               <Flame className="h-4 w-4 text-warning" /> Daily and weekly streaks tracked automatically
             </li>
-            <li className="flex items-center gap-2">
+            <li className="flex items-center gap-2.5">
               <Trophy className="h-4 w-4 text-secondary" /> Ranks and milestones unlocked from real activity
             </li>
           </ul>
         </ScrollReveal>
 
         <ScrollReveal delay={0.1}>
-          <Card className="glass p-6">
+          <Card className="glass rounded-xl p-7">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground">Current rank</p>

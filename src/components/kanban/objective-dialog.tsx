@@ -9,13 +9,13 @@ import {
 } from "@/components/ui/dialog";
 import { ObjectiveForm } from "@/components/kanban/objective-form";
 import type { ObjectiveInput } from "@/hooks/use-objectives";
-import type { Objective, ObjectiveStatus } from "@/types";
+import type { KanbanStatus, Objective } from "@/types";
 
 interface ObjectiveDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   mode: "create" | "edit";
-  defaultStatus?: ObjectiveStatus;
+  defaultStatus?: KanbanStatus;
   objective?: Objective;
   onSubmit: (input: ObjectiveInput) => void;
 }

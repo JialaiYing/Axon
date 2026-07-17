@@ -6,17 +6,17 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { ConfettiBurst } from "@/components/ui/confetti";
 import { ObjectivePickerSkeleton } from "@/components/ui/skeleton";
 import { TimerCard } from "@/components/pomodoro/timer-card";
+import { TimerFullscreenOverlay } from "@/components/pomodoro/timer-fullscreen";
 import { ObjectivePicker } from "@/components/pomodoro/objective-picker";
 import { PersonalTimerForm } from "@/components/pomodoro/personal-timer-form";
 import { FinishSessionDialog } from "@/components/pomodoro/finish-session-dialog";
 import { useObjectives } from "@/hooks/use-objectives";
 import { usePomodoroTimers, remainingSecondsOf } from "@/hooks/use-pomodoro-timers";
 import { usePomodoroSessions } from "@/hooks/use-pomodoro-sessions";
-import { useLocalStorage } from "@/hooks/use-local-storage";
+import { useLocalStorage, asArray } from "@/hooks/use-local-storage";
 import { remainingMinutes } from "@/lib/kanban-utils";
 import type { Objective, TimerDisplayMode, TimerSource } from "@/types";
 
@@ -39,6 +39,12 @@ export default function PomodoroPage() {
   const [finishQueue, setFinishQueue] = React.useState<string[]>([]);
   const [addToKanban, setAddToKanban] = React.useState(false);
   const [personalLinkedObjectiveId, setPersonalLinkedObjectiveId] = React.useState<string | null>(null);
+  const [fullscreenTimerId, setFullscreenTimerId] = React.useState<string | null>(null);
+  const [hiddenObjectiveIds, setHiddenObjectiveIds] = useLocalStorage<string[]>(
+    "axon:pomodoro:hiddenObjectiveIds",
+    []
+  );
+  const [showHidden, setShowHidden] = React.useState(false);
 
   // Objectives already being timed (running or paused) can't be picked again.
   const activeObjectiveIds = React.useMemo(
@@ -59,6 +65,40 @@ export default function PomodoroPage() {
     () => eligibleObjectives.find((o) => o.id === selectedId) ?? null,
     [eligibleObjectives, selectedId]
   );
+  const hiddenIdSet = React.useMemo(
+    () => new Set(asArray<string>(hiddenObjectiveIds)),
+    [hiddenObjectiveIds]
+  );
+  const visibleEligibleObjectives = React.useMemo(
+    () => eligibleObjectives.filter((o) => !hiddenIdSet.has(o.id)),
+    [eligibleObjectives, hiddenIdSet]
+  );
+  const hiddenEligibleObjectives = React.useMemo(
+    () => eligibleObjectives.filter((o) => hiddenIdSet.has(o.id)),
+    [eligibleObjectives, hiddenIdSet]
+  );
+
+  function handleToggleHiddenObjective(objective: Objective) {
+    setHiddenObjectiveIds((prev) => {
+      const safePrev = asArray<string>(prev);
+      return safePrev.includes(objective.id)
+        ? safePrev.filter((id) => id !== objective.id)
+        : [...safePrev, objective.id];
+    });
+  }
+
+  const fullscreenTimer = React.useMemo(
+    () => timers.find((t) => t.id === fullscreenTimerId) ?? null,
+    [timers, fullscreenTimerId]
+  );
+
+  // If a fullscreened timer gets removed elsewhere (finish dialog, stop, or
+  // the objective-edit edge case below), fall back to the regular grid view.
+  React.useEffect(() => {
+    if (fullscreenTimerId && !timers.some((t) => t.id === fullscreenTimerId)) {
+      setFullscreenTimerId(null);
+    }
+  }, [timers, fullscreenTimerId]);
 
   // Keep the queued card's title/estimated time in sync with the personal
   // timer form while it's still sitting untouched in "todo". If it's been
@@ -212,6 +252,12 @@ export default function PomodoroPage() {
     dequeueFinish(activeFinishTimer.id);
   }
 
+  /** Dismisses a finished timer card (top-left close button, or the fullscreen overlay's close). */
+  function handleCloseTimer(id: string) {
+    removeTimer(id);
+    dequeueFinish(id);
+  }
+
   const canStart = source === "objective" ? Boolean(selectedObjective) : personalMinutes > 0;
 
   return (
@@ -221,7 +267,7 @@ export default function PomodoroPage() {
         description="Timed focus sessions — linked to your objectives, or entirely off the record. Run as many at once as you like."
       />
 
-      <ScrollReveal className="mb-6 grid grid-cols-2 gap-3 sm:max-w-sm">
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:max-w-sm">
         <Card className="p-4">
           <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-muted-foreground">
             <TimerIcon className="h-3 w-3" /> Focused today
@@ -234,10 +280,10 @@ export default function PomodoroPage() {
           </p>
           <p className="mt-1 text-lg font-semibold text-foreground">{todaySessions.length}</p>
         </Card>
-      </ScrollReveal>
+      </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <ScrollReveal>
+        <div>
           {timers.length === 0 ? (
             <Card className="glass flex flex-col items-center gap-2 p-10 text-center">
               <p className="text-sm font-medium text-foreground">No timers running yet</p>
@@ -282,58 +328,77 @@ export default function PomodoroPage() {
                     onPause={() => pauseTimer(timer.id)}
                     onResume={() => resumeTimer(timer.id)}
                     onStop={() => handleStop(timer.id)}
+                    onClose={() => handleCloseTimer(timer.id)}
+                    onFullscreen={() => setFullscreenTimerId(timer.id)}
                   />
                 ))}
               </div>
             </>
           )}
-        </ScrollReveal>
+        </div>
 
-        <ScrollReveal>
-          <Card className="p-5">
-            <Tabs value={source} onValueChange={(v) => setSource(v as TimerSource)}>
-              <TabsList className="mb-4 w-full">
-                <TabsTrigger value="objective" className="flex-1">
-                  Objective focus
-                </TabsTrigger>
-                <TabsTrigger value="personal" className="flex-1">
-                  Personal timer
-                </TabsTrigger>
-              </TabsList>
+        <Card className="p-5">
+          <Tabs value={source} onValueChange={(v) => setSource(v as TimerSource)}>
+            <TabsList className="mb-4 w-full">
+              <TabsTrigger value="objective" className="flex-1">
+                Objective focus
+              </TabsTrigger>
+              <TabsTrigger value="personal" className="flex-1">
+                Personal timer
+              </TabsTrigger>
+            </TabsList>
 
-              <TabsContent value="objective">
-                {!hydrated ? (
-                  <ObjectivePickerSkeleton />
-                ) : (
-                  <ObjectivePicker
-                    objectives={eligibleObjectives}
-                    selectedId={selectedId}
-                    onSelect={(o: Objective) => setSelectedId(o.id)}
-                  />
-                )}
-              </TabsContent>
-
-              <TabsContent value="personal">
-                <PersonalTimerForm
-                  label={personalLabel}
-                  onLabelChange={setPersonalLabel}
-                  minutes={personalMinutes}
-                  onMinutesChange={setPersonalMinutes}
-                  addToKanban={addToKanban}
-                  onAddToKanbanChange={handleAddToKanbanChange}
+            <TabsContent value="objective">
+              {!hydrated ? (
+                <ObjectivePickerSkeleton />
+              ) : (
+                <ObjectivePicker
+                  objectives={showHidden ? hiddenEligibleObjectives : visibleEligibleObjectives}
+                  selectedId={selectedId}
+                  onSelect={(o: Objective) => setSelectedId(o.id)}
+                  onHide={handleToggleHiddenObjective}
+                  hiddenCount={hiddenEligibleObjectives.length}
+                  showHidden={showHidden}
+                  onToggleShowHidden={() => setShowHidden((prev) => !prev)}
                 />
-              </TabsContent>
-            </Tabs>
+              )}
+            </TabsContent>
 
-            <Button className="mt-4 w-full" onClick={handleStartNewTimer} disabled={!canStart}>
-              <Play className="h-4 w-4" />
-              Start new timer
-            </Button>
-          </Card>
-        </ScrollReveal>
+            <TabsContent value="personal">
+              <PersonalTimerForm
+                label={personalLabel}
+                onLabelChange={setPersonalLabel}
+                minutes={personalMinutes}
+                onMinutesChange={setPersonalMinutes}
+                addToKanban={addToKanban}
+                onAddToKanbanChange={handleAddToKanbanChange}
+              />
+            </TabsContent>
+          </Tabs>
+
+          <Button className="mt-4 w-full" onClick={handleStartNewTimer} disabled={!canStart}>
+            <Play className="h-4 w-4" />
+            Start new timer
+          </Button>
+        </Card>
       </div>
 
       <ConfettiBurst triggerKey={celebrateKey} />
+
+      <TimerFullscreenOverlay
+        timer={fullscreenTimer}
+        remainingSeconds={fullscreenTimer ? remainingSecondsOf(fullscreenTimer) : 0}
+        displayMode={displayMode}
+        onPause={() => fullscreenTimer && pauseTimer(fullscreenTimer.id)}
+        onResume={() => fullscreenTimer && resumeTimer(fullscreenTimer.id)}
+        onStop={() => {
+          if (!fullscreenTimer) return;
+          handleStop(fullscreenTimer.id);
+          setFullscreenTimerId(null);
+        }}
+        onCloseTimer={() => fullscreenTimer && handleCloseTimer(fullscreenTimer.id)}
+        onExit={() => setFullscreenTimerId(null)}
+      />
 
       <FinishSessionDialog
         open={activeFinishId !== null}

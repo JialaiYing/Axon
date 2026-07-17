@@ -38,24 +38,24 @@ const FEATURES = [
 
 export function Features() {
   return (
-    <section id="features" className="px-6 py-20">
+    <section id="features" className="px-6 py-24 md:py-28">
       <div className="mx-auto max-w-6xl">
-        <ScrollReveal className="mb-12 text-center">
+        <ScrollReveal className="mb-14 text-center md:mb-16">
           <h2 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
             Everything you need. Nothing you don&apos;t.
           </h2>
-          <p className="mt-3 text-sm text-muted md:text-base">
+          <p className="mt-3.5 text-sm leading-relaxed text-muted md:text-base">
             Six focused tools, one consistent workspace.
           </p>
         </ScrollReveal>
 
-        <ScrollRevealGroup className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ScrollRevealGroup className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((feature) => (
             <ScrollRevealItem key={feature.title}>
               <TiltCard className="h-full">
-                <Card className="h-full transition-shadow duration-300 hover:bg-card-hover hover:border-border-strong hover:shadow-[0_20px_50px_-15px_rgba(0,0,0,0.6)]">
+                <Card className="h-full rounded-xl transition-[box-shadow,border-color,background-color] duration-300 hover:border-border-strong hover:bg-card-hover hover:shadow-[0_1px_2px_rgba(0,0,0,0.4),0_24px_56px_-20px_rgba(0,0,0,0.65)]">
                   <CardHeader>
-                    <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-md bg-accent-muted">
+                    <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-md bg-accent-muted transition-transform duration-300 group-hover:scale-105">
                       <feature.icon className="h-4.5 w-4.5 text-accent" />
                     </div>
                     <CardTitle className="text-sm text-foreground">{feature.title}</CardTitle>

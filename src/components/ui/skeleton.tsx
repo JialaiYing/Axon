@@ -20,14 +20,14 @@ export function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivEl
 
 export function KanbanColumnSkeleton() {
   return (
-    <div className="flex w-[300px] shrink-0 flex-col gap-3 md:w-[320px]">
-      <div className="flex items-center justify-between px-1">
+    <div className="flex w-[300px] shrink-0 flex-col gap-3.5 rounded-xl border border-border bg-surface/50 p-3 md:w-[320px]">
+      <div className="flex items-center justify-between px-1 pt-0.5">
         <Skeleton className="h-4 w-24" />
-        <Skeleton className="h-6 w-6 rounded-md" />
+        <Skeleton className="h-7 w-7 rounded-md" />
       </div>
       <div className="flex flex-col gap-2.5">
         {[0, 1, 2].map((i) => (
-          <div key={i} className="rounded-lg border border-border bg-card p-3.5">
+          <div key={i} className="rounded-xl border border-border bg-card p-4">
             <Skeleton className="h-4 w-3/4" />
             <Skeleton className="mt-2 h-3 w-full" />
             <div className="mt-3 flex gap-1.5">
@@ -44,7 +44,7 @@ export function KanbanColumnSkeleton() {
 
 export function KanbanBoardSkeleton() {
   return (
-    <div className="flex gap-4 overflow-x-auto pb-4">
+    <div className="flex gap-5 overflow-x-auto pb-4">
       <KanbanColumnSkeleton />
       <KanbanColumnSkeleton />
       <KanbanColumnSkeleton />

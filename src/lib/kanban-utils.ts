@@ -101,3 +101,22 @@ export function remainingMinutes(objective: Objective): number | null {
   if (!objective.estimatedStudyTime) return null;
   return Math.max(0, objective.estimatedStudyTime - loggedMinutes(objective));
 }
+
+/** Compact "Thu, Jan 8 · 2:30 PM" label for a scheduled objective — shared by the Kanban card and Calendar. */
+export function formatScheduledDateTime(scheduledStart?: string): string | null {
+  if (!scheduledStart) return null;
+  const date = new Date(scheduledStart);
+  if (Number.isNaN(date.getTime())) return null;
+  const datePart = date.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+  const timePart = date.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  return `${datePart} · ${timePart}`;
+}
+
+/** True once a scheduled block's end time has passed and the objective still isn't done. */
+export function isScheduleOverdue(objective: Objective): boolean {
+  if (!objective.scheduledStart || objective.status === "done") return false;
+  const start = new Date(objective.scheduledStart);
+  if (Number.isNaN(start.getTime())) return false;
+  const duration = objective.scheduledDurationMinutes ?? 30;
+  return start.getTime() + duration * 60000 < Date.now();
+}

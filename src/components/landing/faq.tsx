@@ -31,16 +31,20 @@ const FAQS = [
 
 export function FAQ() {
   return (
-    <section id="faq" className="px-6 py-20">
+    <section id="faq" className="px-6 py-24 md:py-28">
       <div className="mx-auto max-w-2xl">
-        <ScrollReveal className="mb-10 text-center">
+        <ScrollReveal className="mb-12 text-center md:mb-14">
           <h2 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
             Frequently asked
           </h2>
         </ScrollReveal>
 
         <ScrollReveal delay={0.05}>
-          <Accordion type="single" collapsible className="rounded-lg border border-border bg-card px-5">
+          <Accordion
+            type="single"
+            collapsible
+            className="rounded-xl border border-border bg-card px-5 shadow-[0_1px_2px_rgba(0,0,0,0.3)]"
+          >
             {FAQS.map((faq) => (
               <AccordionItem key={faq.question} value={faq.question}>
                 <AccordionTrigger>{faq.question}</AccordionTrigger>

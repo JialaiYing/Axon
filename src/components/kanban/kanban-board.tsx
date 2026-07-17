@@ -28,10 +28,10 @@ import { ConfettiBurst } from "@/components/ui/confetti";
 import { KANBAN_COLUMNS } from "@/constants/kanban";
 import { sortByPriority } from "@/lib/kanban-utils";
 import { useObjectives, type ObjectiveInput } from "@/hooks/use-objectives";
-import type { Objective, ObjectiveStatus, KanbanStatus } from "@/types";
+import type { Objective, KanbanStatus } from "@/types";
 
 type DialogState =
-  | { mode: "create"; status: ObjectiveStatus }
+  | { mode: "create"; status: KanbanStatus }
   | { mode: "edit"; objective: Objective }
   | null;
 
@@ -44,6 +44,8 @@ export function KanbanBoard() {
     deleteObjective,
     moveObjective,
     reorderObjectives,
+    scheduleObjective,
+    unscheduleObjective,
     sendToRecycleBin,
     restoreFromRecycleBin,
     permanentlyDelete,
@@ -188,7 +190,7 @@ export function KanbanBoard() {
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
-          <div className="flex gap-4 overflow-x-auto pb-4">
+          <div className="flex gap-5 overflow-x-auto pb-4">
             {KANBAN_COLUMNS.map((column) => (
               <KanbanColumn
                 key={column.id}
@@ -198,6 +200,8 @@ export function KanbanBoard() {
                 onDelete={(objective) => setDeleteTarget(objective)}
                 onAdd={(status) => setDialogState({ mode: "create", status })}
                 onSendToRecycleBin={(objective) => sendToRecycleBin(objective.id)}
+                onSchedule={(objective, input) => scheduleObjective(objective.id, input)}
+                onUnschedule={(objective) => unscheduleObjective(objective.id)}
               />
             ))}
           </div>
