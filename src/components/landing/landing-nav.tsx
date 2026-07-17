@@ -1,10 +1,32 @@
+"use client";
+
+import * as React from "react";
 import Link from "next/link";
 import { Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export function LandingNav() {
+  const [scrolled, setScrolled] = React.useState(false);
+
+  React.useEffect(() => {
+    function onScroll() {
+      setScrolled(window.scrollY > 8);
+    }
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <header className="sticky top-0 z-30 border-b border-border/60 bg-background/70 backdrop-blur-xl">
+    <header
+      className={cn(
+        "sticky top-0 z-30 border-b transition-all duration-300",
+        scrolled
+          ? "border-border/60 bg-background/80 shadow-[0_1px_0_rgba(255,255,255,0.04),0_12px_30px_-16px_rgba(0,0,0,0.6)] backdrop-blur-xl"
+          : "border-transparent bg-background/40 backdrop-blur-sm"
+      )}
+    >
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
         <div className="flex items-center gap-2">
           <div className="flex h-7 w-7 items-center justify-center rounded-md bg-accent">

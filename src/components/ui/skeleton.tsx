@@ -51,3 +51,22 @@ export function KanbanBoardSkeleton() {
     </div>
   );
 }
+
+export function ObjectivePickerSkeleton() {
+  return (
+    <div className="flex flex-col gap-2">
+      {[0, 1, 2].map((i) => (
+        <div key={i} className="flex items-start gap-3 rounded-lg border border-border bg-surface p-3">
+          <Skeleton className="mt-0.5 h-4 w-4 shrink-0 rounded-full" />
+          <div className="min-w-0 flex-1">
+            <Skeleton className="h-4 w-2/3" />
+            <div className="mt-2 flex gap-1.5">
+              <Skeleton className="h-5 w-14 rounded-full" />
+              <Skeleton className="h-5 w-16 rounded-full" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}

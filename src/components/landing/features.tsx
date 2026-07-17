@@ -1,6 +1,7 @@
 import { Kanban, Layers, Timer, BarChart3, Target, Trophy } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ScrollReveal, ScrollRevealGroup, ScrollRevealItem } from "@/components/ui/scroll-reveal";
+import { TiltCard } from "@/components/ui/tilt-card";
 
 const FEATURES = [
   {
@@ -51,16 +52,18 @@ export function Features() {
         <ScrollRevealGroup className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((feature) => (
             <ScrollRevealItem key={feature.title}>
-              <Card className="h-full hover:bg-card-hover hover:border-border-strong">
-                <CardHeader>
-                  <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-md bg-accent-muted">
-                    <feature.icon className="h-4.5 w-4.5 text-accent" />
-                  </div>
-                  <CardTitle className="text-sm text-foreground">{feature.title}</CardTitle>
-                  <CardDescription>{feature.description}</CardDescription>
-                </CardHeader>
-                <CardContent />
-              </Card>
+              <TiltCard className="h-full">
+                <Card className="h-full transition-shadow duration-300 hover:bg-card-hover hover:border-border-strong hover:shadow-[0_20px_50px_-15px_rgba(0,0,0,0.6)]">
+                  <CardHeader>
+                    <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-md bg-accent-muted">
+                      <feature.icon className="h-4.5 w-4.5 text-accent" />
+                    </div>
+                    <CardTitle className="text-sm text-foreground">{feature.title}</CardTitle>
+                    <CardDescription>{feature.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent />
+                </Card>
+              </TiltCard>
             </ScrollRevealItem>
           ))}
         </ScrollRevealGroup>

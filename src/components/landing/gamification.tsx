@@ -2,7 +2,8 @@ import { Flame, Trophy, Star } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ProgressBar } from "@/components/ui/progress-bar";
-import { ScrollReveal } from "@/components/ui/scroll-reveal";
+import { AnimatedCounter } from "@/components/ui/animated-counter";
+import { ScrollReveal, ScrollRevealGroup, ScrollRevealItem } from "@/components/ui/scroll-reveal";
 
 export function Gamification() {
   return (
@@ -49,23 +50,35 @@ export function Gamification() {
               <ProgressBar value={68} />
             </div>
 
-            <div className="mt-6 grid grid-cols-3 gap-3">
-              <div className="rounded-md border border-border bg-card p-3 text-center">
-                <Flame className="mx-auto h-4 w-4 text-warning" />
-                <p className="mt-1.5 text-sm font-semibold text-foreground">12</p>
-                <p className="text-[11px] text-muted-foreground">day streak</p>
-              </div>
-              <div className="rounded-md border border-border bg-card p-3 text-center">
-                <Trophy className="mx-auto h-4 w-4 text-secondary" />
-                <p className="mt-1.5 text-sm font-semibold text-foreground">9</p>
-                <p className="text-[11px] text-muted-foreground">milestones</p>
-              </div>
-              <div className="rounded-md border border-border bg-card p-3 text-center">
-                <Star className="mx-auto h-4 w-4 text-accent" />
-                <p className="mt-1.5 text-sm font-semibold text-foreground">340</p>
-                <p className="text-[11px] text-muted-foreground">objectives</p>
-              </div>
-            </div>
+            <ScrollRevealGroup className="mt-6 grid grid-cols-3 gap-3" stagger={0.1}>
+              <ScrollRevealItem>
+                <div className="rounded-md border border-border bg-card p-3 text-center">
+                  <Flame className="mx-auto h-4 w-4 text-warning" />
+                  <p className="mt-1.5 text-sm font-semibold text-foreground">
+                    <AnimatedCounter value={12} />
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">day streak</p>
+                </div>
+              </ScrollRevealItem>
+              <ScrollRevealItem>
+                <div className="rounded-md border border-border bg-card p-3 text-center">
+                  <Trophy className="mx-auto h-4 w-4 text-secondary" />
+                  <p className="mt-1.5 text-sm font-semibold text-foreground">
+                    <AnimatedCounter value={9} />
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">milestones</p>
+                </div>
+              </ScrollRevealItem>
+              <ScrollRevealItem>
+                <div className="rounded-md border border-border bg-card p-3 text-center">
+                  <Star className="mx-auto h-4 w-4 text-accent" />
+                  <p className="mt-1.5 text-sm font-semibold text-foreground">
+                    <AnimatedCounter value={340} />
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">objectives</p>
+                </div>
+              </ScrollRevealItem>
+            </ScrollRevealGroup>
           </Card>
         </ScrollReveal>
       </div>

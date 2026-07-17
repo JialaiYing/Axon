@@ -1,5 +1,6 @@
 import { CheckCircle2 } from "lucide-react";
 import { ScrollReveal, ScrollRevealGroup, ScrollRevealItem } from "@/components/ui/scroll-reveal";
+import { TiltCard } from "@/components/ui/tilt-card";
 
 const BENEFITS = [
   "Everything runs locally — no account required to start",
@@ -23,10 +24,12 @@ export function Benefits() {
         <ScrollRevealGroup className="mx-auto grid max-w-4xl grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
           {BENEFITS.map((benefit) => (
             <ScrollRevealItem key={benefit}>
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success" />
-                <p className="text-sm text-muted">{benefit}</p>
-              </div>
+              <TiltCard maxTilt={4}>
+                <div className="flex items-start gap-3 rounded-md border border-border bg-card p-3.5 transition-shadow duration-300 hover:shadow-[0_16px_40px_-18px_rgba(0,0,0,0.6)]">
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success" />
+                  <p className="text-sm text-muted">{benefit}</p>
+                </div>
+              </TiltCard>
             </ScrollRevealItem>
           ))}
         </ScrollRevealGroup>

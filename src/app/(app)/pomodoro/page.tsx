@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { ConfettiBurst } from "@/components/ui/confetti";
+import { ObjectivePickerSkeleton } from "@/components/ui/skeleton";
 import { TimerCard } from "@/components/pomodoro/timer-card";
 import { ObjectivePicker } from "@/components/pomodoro/objective-picker";
 import { PersonalTimerForm } from "@/components/pomodoro/personal-timer-form";
@@ -302,7 +303,7 @@ export default function PomodoroPage() {
 
               <TabsContent value="objective">
                 {!hydrated ? (
-                  <p className="text-sm text-muted-foreground">Loading your objectives...</p>
+                  <ObjectivePickerSkeleton />
                 ) : (
                   <ObjectivePicker
                     objectives={eligibleObjectives}

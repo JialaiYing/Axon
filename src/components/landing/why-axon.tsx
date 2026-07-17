@@ -1,5 +1,6 @@
 import { Brain, Compass, ShieldOff } from "lucide-react";
 import { ScrollReveal, ScrollRevealGroup, ScrollRevealItem } from "@/components/ui/scroll-reveal";
+import { TiltCard } from "@/components/ui/tilt-card";
 
 const POINTS = [
   {
@@ -39,13 +40,15 @@ export function WhyAxon() {
         <ScrollRevealGroup className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {POINTS.map((point) => (
             <ScrollRevealItem key={point.title}>
-              <div className="h-full rounded-lg border border-border bg-card p-6">
-                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-md bg-accent-muted">
-                  <point.icon className="h-5 w-5 text-accent" />
+              <TiltCard className="h-full">
+                <div className="h-full rounded-lg border border-border bg-card p-6 transition-shadow duration-300 hover:shadow-[0_20px_50px_-15px_rgba(0,0,0,0.6)]">
+                  <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-md bg-accent-muted">
+                    <point.icon className="h-5 w-5 text-accent" />
+                  </div>
+                  <h3 className="text-sm font-semibold text-foreground">{point.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted">{point.description}</p>
                 </div>
-                <h3 className="text-sm font-semibold text-foreground">{point.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted">{point.description}</p>
-              </div>
+              </TiltCard>
             </ScrollRevealItem>
           ))}
         </ScrollRevealGroup>
