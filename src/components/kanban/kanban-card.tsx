@@ -19,6 +19,7 @@ import {
   isScheduleOverdue,
 } from "@/lib/kanban-utils";
 import { SchedulePopover, type ScheduleInput } from "@/components/calendar/schedule-popover";
+import MagicCard from "@/components/effects/magic-card";
 import type { Objective } from "@/types";
 
 interface KanbanCardProps {
@@ -65,6 +66,17 @@ export function KanbanCard({
   const scheduleOverdue = isScheduleOverdue(objective);
 
   return (
+    <MagicCard
+      className="rounded-xl"
+      enableStars
+      enableBorderGlow
+      enableTilt={false}
+      enableMagnetism={false}
+      clickEffect
+      particleCount={8}
+      glowColor="168, 85, 247"
+      disableAnimations={isOverlay || isDragging}
+    >
     <motion.div
       ref={setNodeRef}
       style={style}
@@ -78,7 +90,7 @@ export function KanbanCard({
       {...(isOverlay ? {} : attributes)}
       {...(isOverlay ? {} : listeners)}
       className={cn(
-        "group relative touch-none rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgba(0,0,0,0.3)]",
+        "group relative touch-none rounded-xl border border-border bg-card/80 p-4 shadow-[0_1px_2px_rgba(0,0,0,0.3)] backdrop-blur-sm",
         "hover:border-border-strong hover:bg-card-hover hover:shadow-[0_1px_2px_rgba(0,0,0,0.4),0_16px_36px_-12px_rgba(0,0,0,0.55)] transition-[background-color,border-color,box-shadow] duration-200",
         !isOverlay && "cursor-grab active:cursor-grabbing",
         isDragging && !isOverlay && "opacity-40",
@@ -245,5 +257,6 @@ export function KanbanCard({
         </p>
       )}
     </motion.div>
+    </MagicCard>
   );
 }

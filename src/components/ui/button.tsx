@@ -11,14 +11,14 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-accent text-accent-foreground hover:bg-accent/90 shadow-[0_0_0_1px_rgba(59,130,246,0.15),0_8px_30px_-10px_rgba(59,130,246,0.35)] hover:shadow-[0_0_0_1px_rgba(59,130,246,0.25),0_14px_40px_-10px_rgba(59,130,246,0.55)]",
+          "bg-accent/80 text-accent-foreground hover:bg-accent/90 shadow-[0_0_0_1px_rgba(59,130,246,0.15),0_8px_30px_-10px_rgba(59,130,246,0.35)] hover:shadow-[0_0_0_1px_rgba(59,130,246,0.25),0_14px_40px_-10px_rgba(59,130,246,0.55)] backdrop-blur-sm",
         secondary:
-          "bg-secondary text-secondary-foreground shadow-[0_1px_2px_rgba(0,0,0,0.2)] hover:bg-secondary/90 hover:shadow-[0_10px_28px_-10px_rgba(168,85,247,0.45)]",
+          "bg-secondary/80 text-secondary-foreground shadow-[0_1px_2px_rgba(0,0,0,0.2)] hover:bg-secondary/90 hover:shadow-[0_10px_28px_-10px_rgba(168,85,247,0.45)] backdrop-blur-sm",
         outline:
-          "border border-border bg-transparent text-foreground hover:border-border-strong hover:bg-card hover:shadow-[0_8px_20px_-12px_rgba(0,0,0,0.5)]",
-        ghost: "bg-transparent text-foreground hover:bg-card",
+          "border border-border/50 bg-card/20 text-foreground hover:border-border-strong hover:bg-card/40 hover:shadow-[0_8px_20px_-12px_rgba(0,0,0,0.5)] backdrop-blur-sm",
+        ghost: "bg-transparent text-foreground hover:bg-card/35",
         destructive:
-          "bg-danger text-white shadow-[0_1px_2px_rgba(0,0,0,0.2)] hover:bg-danger/90 hover:shadow-[0_10px_28px_-10px_rgba(239,68,68,0.5)]",
+          "bg-danger/85 text-white shadow-[0_1px_2px_rgba(0,0,0,0.2)] hover:bg-danger/95 hover:shadow-[0_10px_28px_-10px_rgba(239,68,68,0.5)] backdrop-blur-sm",
         link: "text-accent underline-offset-4 hover:underline p-0 h-auto hover:translate-y-0 hover:scale-100",
       },
       size: {

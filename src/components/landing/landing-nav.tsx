@@ -2,16 +2,35 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Zap } from "lucide-react";
+import PillNav from "@/components/effects/pill-nav";
 import { Button } from "@/components/ui/button";
+import BorderGlow from "@/components/effects/border-glow";
 import { cn } from "@/lib/utils";
+
+const NAV_ITEMS = [
+  { label: "Why Axon", href: "#why-axon" },
+  { label: "Features", href: "#features" },
+  { label: "How it works", href: "#how-it-works" },
+  { label: "FAQ", href: "#faq" },
+];
 
 export function LandingNav() {
   const [scrolled, setScrolled] = React.useState(false);
+  const [activeHref, setActiveHref] = React.useState("#why-axon");
 
   React.useEffect(() => {
     function onScroll() {
       setScrolled(window.scrollY > 8);
+      const sections = NAV_ITEMS.map((item) => item.href.slice(1));
+      let current = NAV_ITEMS[0]!.href;
+      for (const id of sections) {
+        const el = document.getElementById(id);
+        if (!el) continue;
+        if (el.getBoundingClientRect().top <= 120) {
+          current = `#${id}`;
+        }
+      }
+      setActiveHref(current);
     }
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -23,39 +42,44 @@ export function LandingNav() {
       className={cn(
         "sticky top-0 z-30 border-b transition-all duration-300",
         scrolled
-          ? "border-border/60 bg-background/80 shadow-[0_1px_0_rgba(255,255,255,0.04),0_12px_30px_-16px_rgba(0,0,0,0.6)] backdrop-blur-xl"
-          : "border-transparent bg-background/40 backdrop-blur-sm"
+          ? "border-border/60 bg-background/70 shadow-[0_1px_0_rgba(255,255,255,0.04),0_12px_30px_-16px_rgba(0,0,0,0.6)] backdrop-blur-xl"
+          : "border-transparent bg-transparent"
       )}
     >
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
-        <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-accent">
-            <Zap className="h-4 w-4 text-accent-foreground" strokeWidth={2.5} />
-          </div>
-          <span className="text-sm font-semibold tracking-tight">Axon</span>
-        </div>
+      <div className="relative mx-auto flex h-16 max-w-6xl items-center justify-center px-6">
+        <PillNav
+          items={NAV_ITEMS}
+          activeHref={activeHref}
+          ease="power2.easeOut"
+          baseColor="rgba(15, 17, 21, 0.85)"
+          pillColor="rgba(19, 22, 32, 0.9)"
+          pillTextColor="#9096a8"
+          hoveredPillTextColor="#f4f5f7"
+          initialLoadAnimation={false}
+        />
 
-        <nav className="hidden items-center gap-7 text-sm text-muted md:flex">
-          {[
-            { href: "#why-axon", label: "Why Axon" },
-            { href: "#features", label: "Features" },
-            { href: "#how-it-works", label: "How it works" },
-            { href: "#faq", label: "FAQ" },
-          ].map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="group relative py-1.5 transition-colors duration-200 hover:text-foreground"
+        <div className="absolute right-6">
+          <BorderGlow
+            asButton
+            edgeSensitivity={28}
+            glowColor="210 90 75"
+            backgroundColor="#1d3a66"
+            borderRadius={8}
+            glowRadius={22}
+            glowIntensity={1}
+            coneSpread={25}
+            colors={["#A6C8FF", "#5227FF", "#FF9FFC"]}
+            fillOpacity={0.4}
+          >
+            <Button
+              size="sm"
+              asChild
+              className="rounded-[7px] border-0 shadow-none hover:shadow-none"
             >
-              {item.label}
-              <span className="absolute inset-x-0 -bottom-px h-px scale-x-0 bg-gradient-to-r from-accent to-secondary transition-transform duration-300 ease-out group-hover:scale-x-100" />
-            </Link>
-          ))}
-        </nav>
-
-        <Button size="sm" asChild>
-          <Link href="/dashboard">Open Dashboard</Link>
-        </Button>
+              <Link href="/dashboard">Open Dashboard</Link>
+            </Button>
+          </BorderGlow>
+        </div>
       </div>
     </header>
   );

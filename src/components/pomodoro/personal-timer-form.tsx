@@ -2,6 +2,7 @@
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import Counter from "@/components/effects/counter";
 import { cn } from "@/lib/utils";
 import { PERSONAL_TIMER_PRESETS } from "@/lib/pomodoro-utils";
 
@@ -23,7 +24,7 @@ export function PersonalTimerForm({
   onAddToKanbanChange,
 }: PersonalTimerFormProps) {
   return (
-    <div className="w-full max-w-sm space-y-4">
+    <div className="w-full space-y-4">
       <div className="space-y-1.5">
         <Label htmlFor="personal-timer-label">What are you working on?</Label>
         <Input
@@ -33,20 +34,21 @@ export function PersonalTimerForm({
           onChange={(e) => onLabelChange(e.target.value)}
         />
         <p className="text-[11px] text-muted-foreground">
-          Optional — this session won&apos;t be recorded against any kanban objective.
+          Optional — this session won&apos;t be recorded against any kanban objective
+          unless you add it below.
         </p>
       </div>
 
       <div className="space-y-1.5">
         <Label>Duration</Label>
-        <div className="flex flex-wrap gap-2">
+        <div className="grid w-full grid-cols-3 gap-2">
           {PERSONAL_TIMER_PRESETS.map((preset) => (
             <button
               key={preset.minutes}
               type="button"
               onClick={() => onMinutesChange(preset.minutes)}
               className={cn(
-                "rounded-md border px-3 py-1.5 text-xs font-medium transition-all duration-200",
+                "w-full rounded-md border px-3 py-2 text-xs font-medium transition-all duration-200",
                 minutes === preset.minutes
                   ? "border-accent/60 bg-accent-muted/40 text-accent-foreground"
                   : "border-border bg-surface text-muted hover:border-border-strong hover:text-foreground"
@@ -55,14 +57,21 @@ export function PersonalTimerForm({
               {preset.label}
             </button>
           ))}
-          <Input
-            type="number"
-            min={1}
-            max={240}
+        </div>
+
+        <div className="mt-4 flex w-full items-baseline justify-center gap-2 text-foreground">
+          <Counter
             value={minutes}
-            onChange={(e) => onMinutesChange(Math.max(1, Math.min(240, Number(e.target.value) || 1)))}
-            className="h-[30px] w-20 px-2 text-xs"
+            fontSize={28}
+            padding={3}
+            gap={3}
+            horizontalPadding={0}
+            textColor="#f4f5f7"
+            fontWeight={600}
+            gradientFrom="transparent"
+            gradientTo="transparent"
           />
+          <span className="text-sm font-medium text-muted-foreground">min</span>
         </div>
       </div>
 
@@ -79,14 +88,14 @@ export function PersonalTimerForm({
           aria-checked={addToKanban}
           onClick={() => onAddToKanbanChange(!addToKanban)}
           className={cn(
-            "relative h-5 w-9 shrink-0 rounded-full transition-colors duration-200",
-            addToKanban ? "bg-accent" : "bg-card border border-border-strong"
+            "relative h-6 w-11 shrink-0 rounded-full transition-colors duration-200",
+            addToKanban ? "bg-accent" : "bg-border"
           )}
         >
           <span
             className={cn(
-              "absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200",
-              addToKanban ? "translate-x-[18px]" : "translate-x-0.5"
+              "absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white transition-transform duration-200",
+              addToKanban && "translate-x-5"
             )}
           />
         </button>

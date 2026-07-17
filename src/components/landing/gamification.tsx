@@ -4,21 +4,32 @@ import { Badge } from "@/components/ui/badge";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
 import { ScrollReveal, ScrollRevealGroup, ScrollRevealItem } from "@/components/ui/scroll-reveal";
+import ScrollFloat from "@/components/effects/scroll-float";
+import BlurText from "@/components/effects/blur-text";
 
 export function Gamification() {
   return (
     <section className="px-6 py-24 md:py-28">
       <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 md:grid-cols-2 md:gap-16">
         <ScrollReveal>
-          <h2 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
+          <ScrollFloat
+            animationDuration={1}
+            ease="back.inOut(2)"
+            scrollStart="center bottom+=50%"
+            scrollEnd="bottom bottom-=40%"
+            stagger={0.03}
+            textClassName="text-2xl font-semibold tracking-tight text-foreground md:text-3xl"
+          >
             Progress you can actually see
-          </h2>
-          <p className="mt-4 text-sm leading-relaxed text-muted md:text-base">
-            XP, ranks, and streaks aren&apos;t decoration — they&apos;re a
-            direct readout of finished objectives, completed intervals, and
-            reviewed flashcards. No made-up multipliers, no gambling
-            mechanics, just a visible trail of what you got done.
-          </p>
+          </ScrollFloat>
+          <BlurText
+            text="XP, ranks, and streaks aren't decoration — they're a direct readout of finished objectives, completed intervals, and reviewed flashcards."
+            delay={40}
+            animateBy="words"
+            direction="bottom"
+            as="p"
+            className="mt-4 text-sm leading-relaxed text-muted md:text-base"
+          />
           <ul className="mt-7 space-y-3.5 text-sm text-muted">
             <li className="flex items-center gap-2.5">
               <Star className="h-4 w-4 text-accent" /> XP earned per completed objective and session

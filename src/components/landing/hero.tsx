@@ -4,27 +4,17 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowRight, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import BorderGlow from "@/components/effects/border-glow";
+import GradientText from "@/components/effects/gradient-text";
+import RotatingText from "@/components/effects/rotating-text";
+import BlurText from "@/components/effects/blur-text";
+import TextType from "@/components/effects/text-type";
+
+const GLOW_COLORS = ["#A6C8FF", "#5227FF", "#FF9FFC"];
 
 export function Hero() {
   return (
     <section className="relative flex flex-col items-center overflow-hidden px-6 pb-28 pt-32 text-center md:pt-44">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[620px] bg-[radial-gradient(ellipse_60%_50%_at_50%_0%,rgba(59,130,246,0.18),transparent)]"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -right-24 top-24 -z-10 h-[380px] w-[380px] rounded-full bg-[radial-gradient(circle,rgba(168,85,247,0.14),transparent_70%)] blur-2xl"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -left-24 top-40 -z-10 h-[320px] w-[320px] rounded-full bg-[radial-gradient(circle,rgba(59,130,246,0.12),transparent_70%)] blur-2xl"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-px bg-gradient-to-r from-transparent via-border-strong/60 to-transparent"
-      />
-
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -32,47 +22,119 @@ export function Hero() {
         className="mb-7 flex items-center gap-2 rounded-full border border-border bg-surface/80 px-3.5 py-1.5 text-xs font-medium text-muted shadow-[0_1px_2px_rgba(0,0,0,0.3)] backdrop-blur-sm"
       >
         <Zap className="h-3.5 w-3.5 text-accent" />
-        Built for focus, not features
+        <BlurText
+          text="Built for focus, not features"
+          delay={80}
+          animateBy="words"
+          direction="top"
+          className="justify-center text-xs font-medium text-muted"
+          as="span"
+        />
       </motion.div>
 
-      <motion.h1
-        initial={{ opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.55, delay: 0.06, ease: [0.21, 0.47, 0.32, 0.98] }}
-        className="max-w-4xl text-balance text-5xl font-semibold leading-[1.08] tracking-tight text-foreground md:text-7xl"
-      >
-        The study dashboard for staying{" "}
-        <span className="bg-gradient-to-r from-accent via-accent to-secondary bg-clip-text text-transparent">
+      <h1 className="max-w-4xl text-balance text-5xl font-semibold leading-[1.08] tracking-tight text-foreground md:text-7xl">
+        <BlurText
+          text="The study dashboard for staying"
+          delay={60}
+          animateBy="words"
+          direction="top"
+          className="justify-center text-5xl font-semibold leading-[1.08] tracking-tight text-foreground md:text-7xl"
+          as="span"
+        />{" "}
+        <GradientText
+          colors={["#5227FF", "#FF9FFC", "#B497CF"]}
+          animationSpeed={8}
+          showBorder={false}
+          className="align-baseline text-5xl font-semibold md:text-7xl"
+        >
           consistent
-        </span>
-      </motion.h1>
+        </GradientText>
+      </h1>
 
-      <motion.p
-        initial={{ opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.55, delay: 0.14, ease: [0.21, 0.47, 0.32, 0.98] }}
-        className="mt-6 max-w-xl text-balance text-base leading-relaxed text-muted md:text-lg"
-      >
-        Axon turns your objectives, flashcards, and focus sessions into one
-        calm, local-first workspace — with statistics-driven insights instead
-        of noisy AI guesses.
-      </motion.p>
+      <div className="mt-6 max-w-xl text-balance text-base leading-relaxed text-muted md:text-lg">
+        <TextType
+          text="Axon turns your objectives, flashcards, and focus sessions into one calm, local-first workspace — with statistics-driven insights instead of noisy AI guesses."
+          typingSpeed={40}
+          showCursor
+          cursorCharacter="_"
+          startOnVisible
+          className="text-base leading-relaxed text-muted md:text-lg"
+          as="p"
+        />
+      </div>
 
       <motion.div
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.55, delay: 0.22, ease: [0.21, 0.47, 0.32, 0.98] }}
-        className="mt-10 flex items-center gap-3"
+        className="mt-10 flex flex-wrap items-center justify-center gap-3"
       >
-        <Button size="lg" asChild>
-          <Link href="/dashboard">
-            Open Dashboard
-            <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
-          </Link>
-        </Button>
-        <Button size="lg" variant="outline" asChild>
-          <Link href="#features">See features</Link>
-        </Button>
+        <BorderGlow
+          asButton
+          edgeSensitivity={28}
+          glowColor="210 90 75"
+          backgroundColor="#1d3a66"
+          borderRadius={10}
+          glowRadius={28}
+          glowIntensity={1}
+          coneSpread={25}
+          colors={GLOW_COLORS}
+          fillOpacity={0.45}
+        >
+          <Button
+            size="lg"
+            asChild
+            className="rounded-[9px] border-0 shadow-none hover:shadow-none"
+          >
+            <Link href="/dashboard" className="inline-flex items-center gap-2">
+              <span className="relative inline-grid justify-items-center">
+                <span
+                  aria-hidden
+                  className="invisible col-start-1 row-start-1 whitespace-nowrap"
+                >
+                  Start Studying
+                </span>
+                <RotatingText
+                  texts={["Open Dashboard", "Start Studying", "Begin Focus"]}
+                  staggerFrom="last"
+                  initial={{ y: "100%" }}
+                  animate={{ y: 0 }}
+                  exit={{ y: "-120%" }}
+                  staggerDuration={0.025}
+                  splitLevelClassName="overflow-hidden"
+                  transition={{ type: "spring", damping: 30, stiffness: 400 }}
+                  rotationInterval={2500}
+                  splitBy="characters"
+                  auto
+                  loop
+                  mainClassName="col-start-1 row-start-1 justify-center overflow-hidden"
+                />
+              </span>
+              <ArrowRight className="h-4 w-4 shrink-0 transition-transform duration-200 group-hover:translate-x-0.5" />
+            </Link>
+          </Button>
+        </BorderGlow>
+        <BorderGlow
+          asButton
+          edgeSensitivity={28}
+          glowColor="270 80 75"
+          backgroundColor="#0f1115"
+          borderRadius={10}
+          glowRadius={28}
+          glowIntensity={0.9}
+          coneSpread={25}
+          colors={GLOW_COLORS}
+          fillOpacity={0.35}
+        >
+          <Button
+            size="lg"
+            variant="outline"
+            asChild
+            className="rounded-[9px] border-border/60 bg-transparent shadow-none hover:shadow-none"
+          >
+            <Link href="#features">See features</Link>
+          </Button>
+        </BorderGlow>
       </motion.div>
     </section>
   );

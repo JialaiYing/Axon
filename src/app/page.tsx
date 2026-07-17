@@ -1,4 +1,5 @@
 import { LandingNav } from "@/components/landing/landing-nav";
+import { LandingBackground } from "@/components/landing/landing-background";
 import { Hero } from "@/components/landing/hero";
 import { WhyAxon } from "@/components/landing/why-axon";
 import { Features } from "@/components/landing/features";
@@ -13,20 +14,23 @@ import { PageTransition } from "@/components/layout/page-transition";
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-background">
-      <LandingNav />
-      <PageTransition>
-        <Hero />
-        <WhyAxon />
-        <Features />
-        <DashboardPreview />
-        <HowItWorks />
-        <Gamification />
-        <Benefits />
-        <FAQ />
-        <FinalCTA />
-        <Footer />
-      </PageTransition>
+    <div className="relative min-h-screen bg-background">
+      <LandingBackground />
+      <div className="relative z-10">
+        <LandingNav />
+        <PageTransition>
+          <Hero />
+          <WhyAxon />
+          <Features />
+          <DashboardPreview />
+          <HowItWorks />
+          <Gamification />
+          <Benefits />
+          <FAQ />
+          <FinalCTA />
+          <Footer />
+        </PageTransition>
+      </div>
     </div>
   );
 }

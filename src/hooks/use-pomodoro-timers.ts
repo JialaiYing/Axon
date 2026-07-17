@@ -213,6 +213,32 @@ export function usePomodoroTimers() {
     );
   }, []);
 
+  /** Adjust remaining time on a running/paused timer by deltaSeconds (clamped to 1 min … 8 h remaining). */
+  const adjustTimerBy = React.useCallback((id: string, deltaSeconds: number) => {
+    write((prev) =>
+      prev.map((t) => {
+        if (t.id !== id || t.status === "finished") return t;
+        const remaining = remainingSecondsOf(t);
+        const nextRemaining = Math.max(60, Math.min(remaining + deltaSeconds, 8 * 3600));
+        const delta = nextRemaining - remaining;
+        if (delta === 0) return t;
+        const durationSeconds = Math.max(60, t.durationSeconds + delta);
+        if (t.status === "running") {
+          return {
+            ...t,
+            durationSeconds,
+            endAt: Date.now() + nextRemaining * 1000,
+          };
+        }
+        return {
+          ...t,
+          durationSeconds,
+          pausedRemainingSeconds: nextRemaining,
+        };
+      })
+    );
+  }, []);
+
   const markLogged = React.useCallback((id: string) => {
     write((prev) => prev.map((t) => (t.id === id ? { ...t, loggedCompletion: true } : t)));
   }, []);
@@ -230,6 +256,7 @@ export function usePomodoroTimers() {
     stopTimer,
     removeTimer,
     extendTimer,
+    adjustTimerBy,
     markLogged,
     markNotified,
   };

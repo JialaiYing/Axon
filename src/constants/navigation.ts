@@ -18,5 +18,5 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Pomodoro", href: "/pomodoro", icon: Timer },
   { label: "Analytics", href: "/analytics", icon: BarChart3 },
   { label: "Goals", href: "/goals", icon: Target },
-  { label: "Settings", href: "/settings", icon: Settings, disabled: true },
+  { label: "Settings", href: "/settings", icon: Settings },
 ];
