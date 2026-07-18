@@ -58,7 +58,9 @@ export function LandingNav() {
           initialLoadAnimation={false}
         />
 
-        <div className="absolute right-6 flex items-center gap-2">
+        {/* z-[100] keeps these clickable above .pill-nav-container (z-99), whose
+            full-width box otherwise swallows clicks on this side of the header. */}
+        <div className="absolute right-6 z-[100] flex items-center gap-2">
           <BorderGlow
             asButton
             edgeSensitivity={28}

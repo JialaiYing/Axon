@@ -13,10 +13,11 @@ const LiquidEther = dynamic(() => import("@/components/effects/liquid-ether"), {
 export function LandingBackground() {
   return (
     <>
-      {/* Full-page fluid layer beneath Lightfall */}
+      {/* Keep the fluid simulation viewport-sized. A document-height WebGL
+          drawing buffer becomes extremely expensive on long landing pages. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 z-0 overflow-hidden"
+        className="pointer-events-none fixed inset-0 z-0 overflow-hidden"
       >
         <LiquidEther
           className="h-full w-full"
@@ -26,9 +27,9 @@ export function LandingBackground() {
           cursorSize={100}
           isViscous
           viscous={30}
-          iterationsViscous={32}
-          iterationsPoisson={32}
-          resolution={0.5}
+          iterationsViscous={16}
+          iterationsPoisson={16}
+          resolution={0.4}
           isBounce={false}
           autoDemo
           autoSpeed={0.5}
@@ -39,12 +40,21 @@ export function LandingBackground() {
         />
       </div>
 
+      {/* Mask the bottom of Lightfall to transparent so it dissolves into the
+          LiquidEther layer underneath instead of fading to a solid color band. */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-0 z-[1] h-[min(100vh,920px)] overflow-hidden"
+        style={{
+          maskImage:
+            "linear-gradient(to bottom, black 0%, black 55%, rgba(0,0,0,0.6) 78%, transparent 100%)",
+          WebkitMaskImage:
+            "linear-gradient(to bottom, black 0%, black 55%, rgba(0,0,0,0.6) 78%, transparent 100%)",
+        }}
       >
         <Lightfall
           className="h-full w-full"
+          dpr={1.25}
           colors={["#A6C8FF", "#5227FF", "#FF9FFC"]}
           backgroundColor="#0A29FF"
           speed={0.5}
@@ -62,8 +72,6 @@ export function LandingBackground() {
           mouseRadius={1}
           trackWindowPointer
         />
-        {/* Fade Lightfall out so LiquidEther reads underneath on lower sections */}
-        <div className="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-t from-background via-background/50 to-transparent" />
       </div>
     </>
   );

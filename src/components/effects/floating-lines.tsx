@@ -325,7 +325,7 @@ export default function FloatingLines({
     camera.position.z = 1;
 
     const renderer = new WebGLRenderer({ antialias: true, alpha: false });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
     renderer.domElement.style.width = "100%";
     renderer.domElement.style.height = "100%";
     container.appendChild(renderer.domElement);
@@ -464,7 +464,8 @@ export default function FloatingLines({
 
     let raf = 0;
     const renderLoop = () => {
-      if (!active) return;
+      raf = 0;
+      if (!active || document.hidden) return;
 
       uniforms.iTime.value = clock.getElapsedTime();
 
@@ -485,12 +486,23 @@ export default function FloatingLines({
       renderer.render(scene, camera);
       raf = requestAnimationFrame(renderLoop);
     };
-    renderLoop();
+
+    const syncLoop = () => {
+      if (active && !document.hidden) {
+        if (!raf) raf = requestAnimationFrame(renderLoop);
+      } else if (raf) {
+        cancelAnimationFrame(raf);
+        raf = 0;
+      }
+    };
+    document.addEventListener("visibilitychange", syncLoop);
+    syncLoop();
 
     return () => {
       active = false;
 
-      cancelAnimationFrame(raf);
+      if (raf) cancelAnimationFrame(raf);
+      document.removeEventListener("visibilitychange", syncLoop);
 
       if (ro) ro.disconnect();
 

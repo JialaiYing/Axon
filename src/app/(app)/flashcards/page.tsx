@@ -1,13 +1,14 @@
-import { Layers } from "lucide-react";
-import { PlaceholderPage } from "@/components/layout/placeholder-page";
+import { PageHeader } from "@/components/layout/page-header";
+import { FlashcardsSection } from "@/components/flashcards/flashcards-section";
 
 export default function FlashcardsPage() {
   return (
-    <PlaceholderPage
-      title="Flashcards"
-      description="Build sets, review, and track mastery across every subject."
-      icon={Layers}
-      phaseLabel="Arriving in Phase 4"
-    />
+    <div>
+      <PageHeader
+        title="Flashcards"
+        description="Build sets, review, and track mastery across every subject."
+      />
+      <FlashcardsSection />
+    </div>
   );
 }

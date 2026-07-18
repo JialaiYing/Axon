@@ -9,7 +9,7 @@ import { DashboardBackground } from "@/components/layout/dashboard-background";
 import { cn } from "@/lib/utils";
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
-  const [sidebarOpen, setSidebarOpen] = React.useState(false);
+  const [sidebarOpen, setSidebarOpen] = React.useState(true);
 
   return (
     <div className="relative h-screen w-full overflow-hidden text-white [--color-foreground:#ffffff] [--color-muted:#ffffff] [--color-muted-foreground:#ffffff]">
@@ -18,7 +18,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       <div
         className={cn(
           "relative z-10 flex h-full w-full flex-col transition-[padding-left] duration-300 ease-out",
-          sidebarOpen && "md:pl-[200px]"
+          sidebarOpen ? "md:pl-[200px]" : "md:pl-16"
         )}
       >
         <Header />

@@ -1,4 +1,13 @@
-import { Kanban, Layers, Timer, BarChart3, Target, Trophy } from "lucide-react";
+import {
+  BarChart3,
+  CalendarDays,
+  Kanban,
+  Layers,
+  LayoutDashboard,
+  Target,
+  Timer,
+  Trophy,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ScrollReveal, ScrollRevealGroup, ScrollRevealItem } from "@/components/ui/scroll-reveal";
 import { TiltCard } from "@/components/ui/tilt-card";
@@ -8,9 +17,19 @@ import MagicCard from "@/components/effects/magic-card";
 
 const FEATURES = [
   {
+    icon: LayoutDashboard,
+    title: "Dashboard",
+    description: "One home view for streaks, focus time, and what's up next today.",
+  },
+  {
     icon: Kanban,
     title: "Kanban Workspace",
     description: "Move objectives from queued to finished with drag-and-drop clarity.",
+  },
+  {
+    icon: CalendarDays,
+    title: "Calendar",
+    description: "Schedule objectives into your week and see every session in context.",
   },
   {
     icon: Layers,
@@ -56,7 +75,7 @@ export function Features() {
             {"Everything you need. Nothing you don't."}
           </ScrollFloat>
           <BlurText
-            text="Six focused tools, one consistent workspace."
+            text="Eight focused tools, one consistent workspace."
             delay={80}
             animateBy="words"
             direction="bottom"
@@ -65,7 +84,7 @@ export function Features() {
           />
         </ScrollReveal>
 
-        <ScrollRevealGroup className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <ScrollRevealGroup className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {FEATURES.map((feature) => (
             <ScrollRevealItem key={feature.title}>
               <TiltCard className="h-full">

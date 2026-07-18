@@ -44,13 +44,38 @@ export interface Objective {
   dependencies?: string[];
 }
 
+export interface FlashcardFolder {
+  id: string;
+  title: string;
+  /** Optional user-uploaded thumbnail (data URL) shown on the folder icon. */
+  imageDataUrl?: string;
+  /** Accent color for the folder icon. */
+  color: string;
+  createdAt: string;
+  /** Bumped whenever the folder is opened — drives the "Recents" list. */
+  lastOpenedAt?: string;
+  /**
+   * Whether this folder appears as a column in the dome gallery.
+   * Defaults to true when missing (single source of truth: omit = visible).
+   */
+  showInDome?: boolean;
+  /** Whether this folder appears in the home "Pinned" list. */
+  pinned?: boolean;
+}
+
 export interface FlashcardSet {
   id: string;
   title: string;
   description?: string;
   subject: string;
+  /** Folder this set lives in; undefined = unfiled. */
+  folderId?: string;
   createdAt: string;
   updatedAt: string;
+  /** Bumped whenever the set is opened — drives "Jump right back in". */
+  lastOpenedAt?: string;
+  /** Whether this set appears in the home "Pinned" list. */
+  pinned?: boolean;
   cards: Flashcard[];
 }
 

@@ -237,7 +237,10 @@ export default function Lightfall({
     if (!container) return;
 
     const renderer = new Renderer({
-      dpr: dpr ?? (typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1),
+      dpr: Math.min(
+        dpr ?? (typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1),
+        1.5
+      ),
       alpha: true,
       antialias: true,
     });
@@ -319,8 +322,14 @@ export default function Lightfall({
       }
     }
 
+    let inViewport = true;
+    let disposed = false;
+
+    const shouldRender = () => !disposed && !paused && inViewport && !document.hidden;
+
     const loop = (t: number) => {
-      rafRef.current = requestAnimationFrame(loop);
+      rafRef.current = null;
+      if (!shouldRender()) return;
       uniforms.iTime.value = t * 0.001;
       if (mouseDampening > 0) {
         if (!lastTimeRef.current) lastTimeRef.current = t;
@@ -336,18 +345,45 @@ export default function Lightfall({
       } else {
         lastTimeRef.current = t;
       }
-      if (!paused && programRef.current && meshRef.current) {
+      if (programRef.current && meshRef.current) {
         try {
           renderer.render({ scene: meshRef.current });
         } catch (err) {
           console.error(err);
         }
       }
+      rafRef.current = requestAnimationFrame(loop);
     };
-    rafRef.current = requestAnimationFrame(loop);
+
+    const syncLoop = () => {
+      if (shouldRender()) {
+        if (rafRef.current === null) {
+          lastTimeRef.current = 0;
+          rafRef.current = requestAnimationFrame(loop);
+        }
+      } else if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+    };
+
+    const visibilityObserver = new IntersectionObserver(
+      ([entry]) => {
+        inViewport = entry?.isIntersecting ?? false;
+        syncLoop();
+      },
+      { threshold: 0 }
+    );
+    visibilityObserver.observe(container);
+    document.addEventListener("visibilitychange", syncLoop);
+    syncLoop();
 
     return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      disposed = true;
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+      visibilityObserver.disconnect();
+      document.removeEventListener("visibilitychange", syncLoop);
       if (mouseInteraction) {
         if (trackWindowPointer) {
           window.removeEventListener("pointermove", onPointerMove);

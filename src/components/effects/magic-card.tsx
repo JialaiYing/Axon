@@ -193,6 +193,30 @@ export default function MagicCard({
     if (shouldDisableAnimations || !cardRef.current) return;
 
     const element = cardRef.current;
+    const rotateXTo = enableTilt
+      ? gsap.quickTo(element, "rotateX", {
+          duration: 0.1,
+          ease: "power2.out",
+        })
+      : null;
+    const rotateYTo = enableTilt
+      ? gsap.quickTo(element, "rotateY", {
+          duration: 0.1,
+          ease: "power2.out",
+        })
+      : null;
+    const magnetXTo = enableMagnetism
+      ? gsap.quickTo(element, "x", {
+          duration: 0.3,
+          ease: "power2.out",
+        })
+      : null;
+    const magnetYTo = enableMagnetism
+      ? gsap.quickTo(element, "y", {
+          duration: 0.3,
+          ease: "power2.out",
+        })
+      : null;
 
     const handleMouseEnter = () => {
       isHoveredRef.current = true;
@@ -268,25 +292,16 @@ export default function MagicCard({
         const rotateX = ((y - centerY) / centerY) * -10;
         const rotateY = ((x - centerX) / centerX) * 10;
 
-        gsap.to(element, {
-          rotateX,
-          rotateY,
-          duration: 0.1,
-          ease: "power2.out",
-          transformPerspective: 1000,
-        });
+        rotateXTo?.(rotateX);
+        rotateYTo?.(rotateY);
       }
 
       if (enableMagnetism) {
         const magnetX = (x - centerX) * 0.05;
         const magnetY = (y - centerY) * 0.05;
 
-        magnetismAnimationRef.current = gsap.to(element, {
-          x: magnetX,
-          y: magnetY,
-          duration: 0.3,
-          ease: "power2.out",
-        });
+        magnetXTo?.(magnetX);
+        magnetYTo?.(magnetY);
       }
     };
 
