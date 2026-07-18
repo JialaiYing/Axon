@@ -68,6 +68,16 @@ export function asArray<T>(value: unknown): T[] {
   return Array.isArray(value) ? (value as T[]) : [];
 }
 
+/**
+ * One-off read of a localStorage key from outside a mounted useLocalStorage
+ * instance — e.g. the XP engine reading Pomodoro sessions to compute a
+ * streak bonus when awarding XP for a completed objective. Prefer
+ * useLocalStorage inside components; this is for cross-module reads only.
+ */
+export function readLocalStorage<T>(key: string, fallback: T): T {
+  return readStorage(key, fallback);
+}
+
 export function useLocalStorage<T>(key: string, initialValue: T) {
   const [storedValue, setStoredValue] = useState<T>(initialValue);
   const [hydrated, setHydrated] = useState(false);

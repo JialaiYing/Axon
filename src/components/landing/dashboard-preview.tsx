@@ -64,7 +64,7 @@ export function DashboardPreview() {
               <div className="mt-3.5 rounded-lg border border-border bg-card p-4">
                 <div className="mb-2.5 flex items-center justify-between">
                   <p className="text-xs text-muted">Weekly XP Progress</p>
-                  <p className="text-xs text-muted-foreground">Level 7</p>
+                  <p className="text-xs text-muted-foreground">Level 8</p>
                 </div>
                 <ProgressBar value={68} showLabel />
               </div>

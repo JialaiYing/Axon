@@ -13,7 +13,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { AnimatedList } from "@/components/ui/animated-list";
 import type { FlashcardSet } from "@/types";
+import { cn } from "@/lib/utils";
 
 interface SetViewDialogProps {
   set: FlashcardSet | null;
@@ -92,11 +94,20 @@ export function SetViewDialog({
           </form>
 
           {set.cards.length > 0 && (
-            <ul className="mt-4 max-h-60 space-y-2 overflow-y-auto pr-1">
-              {set.cards.map((card) => (
-                <li
-                  key={card.id}
-                  className="group flex items-start justify-between gap-3 rounded-lg border border-border bg-surface/60 p-3.5"
+            <AnimatedList
+              className="mt-4"
+              listClassName="max-h-60 space-y-2"
+              gradientFromClassName="from-card"
+              items={set.cards}
+              getItemKey={(card) => card.id}
+              renderItem={(card, _index, selected) => (
+                <div
+                  className={cn(
+                    "group flex items-start justify-between gap-3 rounded-lg border p-3.5 transition-colors duration-150",
+                    selected
+                      ? "border-white/16 bg-surface"
+                      : "border-border bg-surface/60"
+                  )}
                 >
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-foreground">{card.front}</p>
@@ -110,9 +121,9 @@ export function SetViewDialog({
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
-                </li>
-              ))}
-            </ul>
+                </div>
+              )}
+            />
           )}
 
           <div className="mt-4 flex justify-start">

@@ -578,6 +578,7 @@ export function FlashcardsSection() {
         onOpenChange={setCreateSetOpen}
         folders={folders}
         defaultFolderId={createSetFolderId}
+        onCreateFolder={(title) => addFolder({ title })}
         onCreate={(input) => {
           const set = addSet(input);
           touchSet(set.id);

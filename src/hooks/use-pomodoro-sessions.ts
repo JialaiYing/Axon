@@ -2,9 +2,11 @@
 
 import * as React from "react";
 import { asArray, dedupeById, useLocalStorage } from "@/hooks/use-local-storage";
+import { awardFocusSessionXp } from "@/lib/progress/store";
 import type { PomodoroSession } from "@/types";
 
-const STORAGE_KEY = "axon:pomodoro:sessions";
+export const POMODORO_SESSIONS_STORAGE_KEY = "axon:pomodoro:sessions";
+const STORAGE_KEY = POMODORO_SESSIONS_STORAGE_KEY;
 const SESSION_TYPES = new Set(["work", "short-break", "long-break"]);
 
 function createId() {
@@ -61,6 +63,12 @@ export function usePomodoroSessions() {
           ...normalizeSessions(prev),
         ])
       );
+      // Only fully-completed work sessions earn XP — abandoned/partial
+      // sessions and breaks don't. Runs after the write above so the streak
+      // bonus the XP engine computes already reflects this session.
+      if (input.completed && input.type === "work" && input.durationMinutes > 0) {
+        awardFocusSessionXp(input.durationMinutes);
+      }
     },
     [setRawSessions]
   );

@@ -50,13 +50,13 @@ export function Gamification() {
                 <p className="text-xs text-muted-foreground">Current rank</p>
                 <p className="text-lg font-semibold text-foreground">Scholar II</p>
               </div>
-              <Badge variant="accent">Level 7</Badge>
+              <Badge variant="accent">Level 8</Badge>
             </div>
 
             <div className="mt-5">
               <div className="mb-1.5 flex items-center justify-between text-xs text-muted">
                 <span>XP to next level</span>
-                <span>1,240 / 1,800</span>
+                <span>415 / 611</span>
               </div>
               <ProgressBar value={68} />
             </div>

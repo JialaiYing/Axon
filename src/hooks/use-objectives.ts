@@ -4,6 +4,7 @@ import * as React from "react";
 import { arrayMove } from "@dnd-kit/sortable";
 import { useLocalStorage, asArray, dedupeById } from "@/hooks/use-local-storage";
 import { removeActiveTimersForObjective } from "@/hooks/use-pomodoro-timers";
+import { awardObjectiveCompletionXp } from "@/lib/progress/store";
 import { MOCK_OBJECTIVES } from "@/lib/mock-objectives";
 import { daysSince } from "@/lib/kanban-utils";
 import { AUTO_RECYCLE_AFTER_DAYS, RECYCLE_BIN_RETENTION_DAYS } from "@/constants/kanban";
@@ -157,17 +158,23 @@ export function useObjectives() {
       ) {
         removeActiveTimersForObjective(id);
       }
+      const now = new Date().toISOString();
+      const isNowDone = Boolean(current && current.status !== "done" && patch.status === "done");
       setObjectives((prev) =>
         prev.map((objective) =>
           objective.id === id
             ? {
                 ...objective,
                 ...patch,
-                updatedAt: new Date().toISOString(),
+                completedAt: isNowDone ? now : objective.completedAt,
+                updatedAt: now,
               }
             : objective
         )
       );
+      if (isNowDone && current) {
+        awardObjectiveCompletionXp({ ...current, ...patch, completedAt: now });
+      }
     },
     [objectives, setObjectives]
   );
@@ -182,13 +189,14 @@ export function useObjectives() {
   /** Moves a card to a different column, optionally at a specific position. */
   const moveObjective = React.useCallback(
     (id: string, status: ObjectiveStatus) => {
+      let completedObjective: Objective | null = null;
       setObjectives((prev) =>
         prev.map((objective) => {
           if (objective.id !== id) return objective;
           const now = new Date().toISOString();
           const isNowDone = status === "done" && objective.status !== "done";
           const isLeavingDone = objective.status === "done" && status !== "done";
-          return {
+          const next = {
             ...objective,
             status,
             progress: isNowDone ? 100 : objective.progress,
@@ -196,8 +204,11 @@ export function useObjectives() {
             recycledAt: status === "recycled" ? now : undefined,
             updatedAt: now,
           };
+          if (isNowDone) completedObjective = next;
+          return next;
         })
       );
+      if (completedObjective) awardObjectiveCompletionXp(completedObjective);
     },
     [setObjectives]
   );
@@ -220,13 +231,16 @@ export function useObjectives() {
   const completeObjective = React.useCallback(
     (id: string) => {
       const now = new Date().toISOString();
+      let completedObjective: Objective | null = null;
       setObjectives((prev) =>
-        prev.map((objective) =>
-          objective.id === id
-            ? { ...objective, status: "done", progress: 100, completedAt: now, updatedAt: now }
-            : objective
-        )
+        prev.map((objective) => {
+          if (objective.id !== id) return objective;
+          const next: Objective = { ...objective, status: "done", progress: 100, completedAt: now, updatedAt: now };
+          completedObjective = next;
+          return next;
+        })
       );
+      if (completedObjective) awardObjectiveCompletionXp(completedObjective);
     },
     [setObjectives]
   );

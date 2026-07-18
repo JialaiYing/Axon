@@ -5,7 +5,8 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, ChevronLeft, ChevronRight, Pencil, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProgressBar } from "@/components/ui/progress-bar";
-import { ScrollReveal, ScrollRevealGroup, ScrollRevealItem } from "@/components/ui/scroll-reveal";
+import { ScrollReveal } from "@/components/ui/scroll-reveal";
+import { AnimatedList } from "@/components/ui/animated-list";
 import type { FlashcardSet } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -199,30 +200,33 @@ export function StudyView({ set, onBack, onEdit }: StudyViewProps) {
             <h3 className="mb-4 text-xs font-semibold uppercase tracking-[0.14em] text-white/55">
               All cards ({cards.length})
             </h3>
-            <ScrollRevealGroup className="space-y-2.5" stagger={0.05}>
-              {cards.map((c, i) => (
-                <ScrollRevealItem key={c.id}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      goTo(i, i > index ? 1 : -1);
-                      topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-                    }}
-                    className={cn(
-                      "grid w-full cursor-pointer grid-cols-1 gap-3 rounded-xl border p-4 text-left transition-all duration-200 sm:grid-cols-2",
-                      i === index
-                        ? "border-accent/40 bg-accent-muted/30"
-                        : "border-white/8 bg-white/[0.04] hover:border-white/16 hover:bg-white/[0.07]"
-                    )}
-                  >
-                    <p className="text-sm font-medium text-white sm:border-r sm:border-white/8 sm:pr-3">
-                      {c.front}
-                    </p>
-                    <p className="text-sm text-white/60">{c.back}</p>
-                  </button>
-                </ScrollRevealItem>
-              ))}
-            </ScrollRevealGroup>
+            <AnimatedList
+              items={cards}
+              getItemKey={(c) => c.id}
+              listClassName="max-h-[26rem] space-y-2.5"
+              gradientFromClassName="from-background"
+              onItemSelect={(_c, i) => {
+                goTo(i, i > index ? 1 : -1);
+                topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+              renderItem={(c, i, hovered) => (
+                <div
+                  className={cn(
+                    "grid w-full cursor-pointer grid-cols-1 gap-3 rounded-xl border p-4 text-left transition-all duration-200 sm:grid-cols-2",
+                    i === index
+                      ? "border-accent/40 bg-accent-muted/30"
+                      : hovered
+                        ? "border-white/16 bg-white/[0.07]"
+                        : "border-white/8 bg-white/[0.04]"
+                  )}
+                >
+                  <p className="text-sm font-medium text-white sm:border-r sm:border-white/8 sm:pr-3">
+                    {c.front}
+                  </p>
+                  <p className="text-sm text-white/60">{c.back}</p>
+                </div>
+              )}
+            />
           </ScrollReveal>
         </>
       )}

@@ -20,9 +20,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Plus } from "lucide-react";
 import type { FlashcardFolder } from "@/types";
 
 const NO_FOLDER = "__none__";
+const CREATE_FOLDER = "__create__";
 
 interface CreateSetDialogProps {
   open: boolean;
@@ -36,6 +38,8 @@ interface CreateSetDialogProps {
     description?: string;
     folderId?: string;
   }) => void;
+  /** Creates a folder inline from the dropdown and returns it so it can be selected. */
+  onCreateFolder: (title: string) => FlashcardFolder;
 }
 
 export function CreateSetDialog({
@@ -44,14 +48,22 @@ export function CreateSetDialog({
   folders,
   defaultFolderId,
   onCreate,
+  onCreateFolder,
 }: CreateSetDialogProps) {
   const [title, setTitle] = React.useState("");
   const [subject, setSubject] = React.useState("");
   const [description, setDescription] = React.useState("");
   const [folderId, setFolderId] = React.useState<string>(defaultFolderId ?? NO_FOLDER);
+  const [creatingFolder, setCreatingFolder] = React.useState(false);
+  const [newFolderName, setNewFolderName] = React.useState("");
+  const newFolderInputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
-    if (open) setFolderId(defaultFolderId ?? NO_FOLDER);
+    if (open) {
+      setFolderId(defaultFolderId ?? NO_FOLDER);
+      setCreatingFolder(false);
+      setNewFolderName("");
+    }
   }, [open, defaultFolderId]);
 
   function reset() {
@@ -59,6 +71,17 @@ export function CreateSetDialog({
     setSubject("");
     setDescription("");
     setFolderId(defaultFolderId ?? NO_FOLDER);
+    setCreatingFolder(false);
+    setNewFolderName("");
+  }
+
+  function handleCreateFolder() {
+    const name = newFolderName.trim();
+    if (!name) return;
+    const folder = onCreateFolder(name);
+    setFolderId(folder.id);
+    setCreatingFolder(false);
+    setNewFolderName("");
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -114,7 +137,18 @@ export function CreateSetDialog({
 
           <div className="space-y-2">
             <Label>Folder</Label>
-            <Select value={folderId} onValueChange={setFolderId}>
+            <Select
+              value={folderId}
+              onValueChange={(value) => {
+                if (value === CREATE_FOLDER) {
+                  // Keep the current selection; open the inline creation row instead.
+                  setCreatingFolder(true);
+                  requestAnimationFrame(() => newFolderInputRef.current?.focus());
+                  return;
+                }
+                setFolderId(value);
+              }}
+            >
               <SelectTrigger className="cursor-pointer">
                 <SelectValue placeholder="No folder" />
               </SelectTrigger>
@@ -125,8 +159,58 @@ export function CreateSetDialog({
                     {folder.title}
                   </SelectItem>
                 ))}
+                <div className="my-1 border-t border-border" />
+                <SelectItem value={CREATE_FOLDER} className="text-accent focus:text-accent">
+                  <span className="flex items-center gap-1.5">
+                    <Plus className="h-3.5 w-3.5" /> New folder
+                  </span>
+                </SelectItem>
               </SelectContent>
             </Select>
+
+            {creatingFolder && (
+              <div className="flex items-center gap-2 rounded-lg border border-border bg-surface/50 p-2">
+                <Input
+                  ref={newFolderInputRef}
+                  value={newFolderName}
+                  onChange={(e) => setNewFolderName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleCreateFolder();
+                    } else if (e.key === "Escape") {
+                      e.preventDefault();
+                      setCreatingFolder(false);
+                      setNewFolderName("");
+                    }
+                  }}
+                  placeholder="Folder name"
+                  maxLength={60}
+                  className="h-8"
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  disabled={!newFolderName.trim()}
+                  className="shrink-0 cursor-pointer"
+                  onClick={handleCreateFolder}
+                >
+                  <Plus className="h-3.5 w-3.5" /> Add
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  className="shrink-0 cursor-pointer"
+                  onClick={() => {
+                    setCreatingFolder(false);
+                    setNewFolderName("");
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
