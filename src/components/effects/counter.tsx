@@ -50,9 +50,9 @@ function getValueRoundedToPlace(value: number, place: number): number {
   return Math.floor(normalizeNearInteger(scaled));
 }
 
-function defaultPlaces(value: number): PlaceValue[] {
+function defaultPlaces(value: number, minDigits = 1): PlaceValue[] {
   const abs = Math.abs(Math.floor(value));
-  const digits = Math.max(1, String(abs).length);
+  const digits = Math.max(minDigits, String(abs).length);
   return Array.from({ length: digits }, (_, i) => 10 ** (digits - i - 1));
 }
 
@@ -101,6 +101,7 @@ export interface CounterProps {
   fontSize?: number;
   padding?: number;
   places?: PlaceValue[];
+  minDigits?: number;
   gap?: number;
   borderRadius?: number;
   horizontalPadding?: number;
@@ -122,6 +123,7 @@ export default function Counter({
   fontSize = 100,
   padding = 0,
   places,
+  minDigits = 1,
   gap = 8,
   borderRadius = 4,
   horizontalPadding = 8,
@@ -136,7 +138,7 @@ export default function Counter({
   topGradientStyle,
   bottomGradientStyle,
 }: CounterProps) {
-  const resolvedPlaces = places ?? defaultPlaces(value);
+  const resolvedPlaces = places ?? defaultPlaces(value, minDigits);
   const height = fontSize + padding;
 
   const defaultCounterStyle: CSSProperties = {

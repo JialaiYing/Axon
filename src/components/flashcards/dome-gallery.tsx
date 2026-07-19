@@ -274,7 +274,8 @@ export default function DomeGallery({
     const root = rootRef.current;
     if (!root) return;
     const ro = new ResizeObserver((entries) => {
-      const cr = entries[0].contentRect;
+      const cr = entries[0]?.contentRect;
+      if (!cr) return;
       sizeRef.current = { w: cr.width, h: cr.height };
       applyLayout(rotationRef.current);
     });
@@ -606,7 +607,7 @@ export default function DomeGallery({
     if (!root) return;
 
     let raf = 0;
-    let timer: ReturnType<typeof window.setTimeout> | null = null;
+    let timer: number | null = null;
     let visible = true;
     let disposed = false;
 

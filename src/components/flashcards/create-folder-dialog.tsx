@@ -27,14 +27,14 @@ interface CreateFolderDialogProps {
 
 export function CreateFolderDialog({ open, onOpenChange, onCreate }: CreateFolderDialogProps) {
   const [title, setTitle] = React.useState("");
-  const [color, setColor] = React.useState(FOLDER_COLORS[0]);
+  const [color, setColor] = React.useState(FOLDER_COLORS[0] ?? "#5227FF");
   const [imageDataUrl, setImageDataUrl] = React.useState<string | undefined>(undefined);
   const [imageError, setImageError] = React.useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   function reset() {
     setTitle("");
-    setColor(FOLDER_COLORS[0]);
+    setColor(FOLDER_COLORS[0] ?? "#5227FF");
     setImageDataUrl(undefined);
     setImageError(null);
   }

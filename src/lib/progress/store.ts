@@ -1,5 +1,6 @@
 import { asArray, readLocalStorage, writeLocalStorage } from "@/hooks/use-local-storage";
 import { POMODORO_SESSIONS_STORAGE_KEY } from "@/hooks/use-pomodoro-sessions";
+import { localDateKey } from "@/lib/goals-utils";
 import type { Objective, PomodoroSession } from "@/types";
 import { computeCurrentStreak } from "./streak";
 import { DAILY_ACTIVITY_BONUS_XP, focusSessionXp, objectiveCompletionXp } from "./xp-rules";
@@ -46,17 +47,19 @@ export function normalizeProgressState(value: unknown): ProgressState {
   };
 }
 
-function todayKey(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
 function readSessions(): PomodoroSession[] {
   return asArray<PomodoroSession>(readLocalStorage(POMODORO_SESSIONS_STORAGE_KEY, []));
 }
 
-/** Pays the once-per-day activity bonus if it hasn't already gone out today. */
+/**
+ * Pays the once-per-day activity bonus if it hasn't already gone out today.
+ * Uses the local calendar day (matching every other "is this today?" check
+ * in the app — dashboard, goals, streak) rather than UTC, so the bonus
+ * can't desync from what the dashboard's "+XP today" badge displays for
+ * users outside UTC.
+ */
 function withDailyBonus(state: ProgressState): ProgressState {
-  const key = todayKey();
+  const key = localDateKey();
   if (state.lastBonusDate === key) return state;
   return { ...state, xp: state.xp + DAILY_ACTIVITY_BONUS_XP, lastBonusDate: key };
 }

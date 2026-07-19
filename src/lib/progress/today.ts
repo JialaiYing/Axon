@@ -1,17 +1,6 @@
+import { isToday } from "@/lib/goals-utils";
 import type { Objective, PomodoroSession } from "@/types";
 import { objectiveCompletionXp, focusSessionXp, DAILY_ACTIVITY_BONUS_XP } from "./xp-rules";
-
-function isToday(iso?: string): boolean {
-  if (!iso) return false;
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return false;
-  const now = new Date();
-  return (
-    d.getFullYear() === now.getFullYear() &&
-    d.getMonth() === now.getMonth() &&
-    d.getDate() === now.getDate()
-  );
-}
 
 /**
  * Live readout of XP earned today, recomputed straight from today's
@@ -38,6 +27,10 @@ export function computeTodayXp(
       0
     );
 
+  // Only fully-completed sessions actually pay XP (see awardFocusSessionXp),
+  // so this stays `completed`-only even though streak/consistency now count
+  // partial sessions too — otherwise this live readout would show XP that
+  // was never actually credited to the persisted total.
   const sessionXp = sessions
     .filter((s) => s.completed && s.type === "work" && isToday(s.date))
     .reduce((sum, s) => sum + focusSessionXp(s.durationMinutes), 0);

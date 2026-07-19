@@ -22,6 +22,7 @@ export function DashboardBackground() {
         interactive={false}
         parallax={false}
         animationSpeed={1}
+        maxFps={30}
         linesGradient={["#e945f5", "#6f6f6f", "#6a6a6a"]}
         mixBlendMode="normal"
       />

@@ -37,8 +37,10 @@
   --radius-lg: 1rem;
   --radius-xl: 1.25rem;
 
-  /* Fonts */
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  /* Fonts — set as CSS variables by next/font in layout.tsx; fall back
+     gracefully if the variable isn't present (e.g. isolated component previews). */
+  --font-sans: var(--font-sans, "Inter"), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-display, "Sora"), var(--font-sans, "Inter"), ui-sans-serif, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
   /* Shadows */
@@ -150,6 +152,13 @@
     text-wrap: balance;
   }
 
+  /* Display face for hero/section headings — distinct from body Inter so
+     typography itself reads as a deliberate hierarchy, not one weight repeated. */
+  .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+
   .scrollbar-none {
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -215,5 +224,27 @@
 
   .animate-pulse-glow {
     animation: pulse-glow 2.4s ease-in-out infinite;
+  }
+
+  /* Soft grain — a single fixed noise layer that keeps large flat surfaces
+     (#08090c backgrounds, glass panels) from reading as dead-flat color.
+     Deliberately faint: it should never be consciously noticed. */
+  .grain-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.035;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* Vignette — very subtle depth cue at the viewport edges. */
+  .vignette-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: radial-gradient(120% 100% at 50% 0%, transparent 55%, rgba(0, 0, 0, 0.35) 100%);
   }
 }

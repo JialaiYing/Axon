@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { formatClock } from "@/lib/pomodoro-utils";
 
 interface TimerBlobProps {
@@ -18,7 +18,8 @@ const BORDER_RADII = [
 ];
 
 export function TimerBlob({ remainingSeconds, totalSeconds, size = 260 }: TimerBlobProps) {
-  const fraction = totalSeconds > 0 ? remainingSeconds / totalSeconds : 1;
+  const prefersReducedMotion = useReducedMotion();
+  const fraction = totalSeconds > 0 ? Math.min(1, Math.max(0, remainingSeconds / totalSeconds)) : 1;
   const isLow = totalSeconds > 0 && fraction <= 0.1;
   // Never fully vanish — floor the scale so the blob stays visible until 0.
   const scale = 0.28 + fraction * 0.72;
@@ -41,9 +42,13 @@ export function TimerBlob({ remainingSeconds, totalSeconds, size = 260 }: TimerB
 
       <motion.div
         aria-hidden
-        className="absolute"
-        animate={{ borderRadius: BORDER_RADII, rotate: [0, 5, -4, 0] }}
-        transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute rounded-[inherit] border border-white/15 bg-white/[0.025] p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]"
+        animate={
+          prefersReducedMotion
+            ? { borderRadius: BORDER_RADII[0], rotate: 0 }
+            : { borderRadius: BORDER_RADII, rotate: [0, 5, -4, 0] }
+        }
+        transition={{ duration: 16, repeat: prefersReducedMotion ? 0 : Infinity, ease: "easeInOut" }}
         style={{ width: blobSize, height: blobSize }}
       >
         <motion.div
@@ -65,12 +70,16 @@ export function TimerBlob({ remainingSeconds, totalSeconds, size = 260 }: TimerB
             aria-hidden
             className="pointer-events-none absolute -left-[15%] -top-[20%] h-[60%] w-[60%] rounded-full bg-white/35 blur-2xl"
           />
+          <span
+            aria-hidden
+            className="pointer-events-none absolute bottom-[12%] right-[10%] h-[22%] w-[22%] rounded-full border border-white/15 bg-white/10 blur-[1px]"
+          />
         </motion.div>
       </motion.div>
 
       <div className="pointer-events-none absolute flex flex-col items-center justify-center text-center">
         <span
-          className="font-mono font-semibold tabular-nums tracking-[0.01em] text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.35)]"
+          className="font-mono font-semibold tabular-nums tracking-[-0.04em] text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.45)]"
           style={{ fontSize: size >= 400 ? "3.75rem" : "2.25rem" }}
         >
           {formatClock(remainingSeconds)}

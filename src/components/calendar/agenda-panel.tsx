@@ -11,7 +11,7 @@ import {
   Sunrise,
   Timer as TimerIcon,
 } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { Panel } from "@/components/ui/panel";
 import { Badge } from "@/components/ui/badge";
 import { TimerControls } from "@/components/pomodoro/timer-controls";
 import { cn } from "@/lib/utils";
@@ -171,8 +171,8 @@ export function AgendaPanel({
     upcomingDeadlines.length === 0;
 
   return (
-    <Card className="flex max-h-[calc(100vh-9.5rem)] flex-col overflow-hidden">
-      <div className="border-b border-border px-4 py-3.5">
+    <Panel variant="interactive" className="flex max-h-[calc(100vh-9.5rem)] flex-col overflow-hidden">
+      <div className="border-b border-white/8 px-4 py-3.5">
         <p className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
           <Sparkles className="h-3.5 w-3.5 text-accent" />
           Agenda
@@ -289,6 +289,6 @@ export function AgendaPanel({
           </div>
         )}
       </div>
-    </Card>
+    </Panel>
   );
 }

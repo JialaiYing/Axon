@@ -25,7 +25,7 @@ export function Benefits() {
             scrollEnd="bottom bottom-=40%"
             stagger={0.03}
             containerClassName="flex justify-center"
-            textClassName="text-2xl font-semibold tracking-tight text-foreground md:text-3xl"
+            textClassName="font-display text-2xl font-semibold tracking-tight text-foreground md:text-3xl"
           >
             Why students stick with it
           </ScrollFloat>

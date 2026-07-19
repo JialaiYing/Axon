@@ -5,14 +5,17 @@ function dayKey(date: Date) {
 }
 
 /**
- * Consecutive days (ending today or yesterday) with at least one completed
- * work session. Shared by the dashboard and the XP engine so "streak" only
- * ever means one thing across the app.
+ * Consecutive days (ending today or yesterday) with at least some focused
+ * work time logged. Shared by the dashboard and the XP engine so "streak"
+ * only ever means one thing across the app. Counts a stopped-early session
+ * just like a fully-finished one — the same real minutes already count
+ * toward "Focus today"/goals, so a day with only partial sessions
+ * shouldn't silently look inactive here.
  */
 export function computeCurrentStreak(sessions: PomodoroSession[]): number {
   const activeDays = new Set(
     sessions
-      .filter((s) => s.completed && s.type === "work")
+      .filter((s) => s.type === "work" && s.durationMinutes > 0)
       .map((s) => dayKey(new Date(s.date)))
   );
   let streak = 0;

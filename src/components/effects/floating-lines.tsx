@@ -233,6 +233,8 @@ export interface FloatingLinesProps {
   mixBlendMode?: CSSProperties["mixBlendMode"];
   /** Track pointer on window so the effect works behind UI content. */
   trackWindowPointer?: boolean;
+  /** Cap the render loop's frame rate (0 = uncapped). Ambient, non-interactive backgrounds look identical at 30fps for half the GPU cost. */
+  maxFps?: number;
   className?: string;
 }
 
@@ -277,6 +279,7 @@ export default function FloatingLines({
   parallaxStrength = 0.2,
       mixBlendMode = "normal",
   trackWindowPointer = false,
+  maxFps = 0,
   className,
 }: FloatingLinesProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -463,9 +466,17 @@ export default function FloatingLines({
     }
 
     let raf = 0;
-    const renderLoop = () => {
+    let lastFrameAt = 0;
+    const frameIntervalMs = maxFps > 0 ? 1000 / maxFps : 0;
+    const renderLoop = (now: number) => {
       raf = 0;
       if (!active || document.hidden) return;
+
+      if (frameIntervalMs > 0 && now - lastFrameAt < frameIntervalMs) {
+        raf = requestAnimationFrame(renderLoop);
+        return;
+      }
+      lastFrameAt = now;
 
       uniforms.iTime.value = clock.getElapsedTime();
 
@@ -540,6 +551,7 @@ export default function FloatingLines({
     parallax,
     parallaxStrength,
     trackWindowPointer,
+    maxFps,
   ]);
 
   return (

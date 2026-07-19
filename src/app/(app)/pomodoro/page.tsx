@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { Flame, Timer as TimerIcon, Play } from "lucide-react";
-import { PageHeader } from "@/components/layout/page-header";
-import { Card } from "@/components/ui/card";
+import { AppPage } from "@/components/layout/app-page";
+import { Panel } from "@/components/ui/panel";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ConfettiBurst } from "@/components/ui/confetti";
@@ -17,14 +17,14 @@ import { useObjectives } from "@/hooks/use-objectives";
 import { usePomodoroTimers, remainingSecondsOf } from "@/hooks/use-pomodoro-timers";
 import { usePomodoroSessions } from "@/hooks/use-pomodoro-sessions";
 import { useLocalStorage, asArray } from "@/hooks/use-local-storage";
-import { remainingMinutes } from "@/lib/kanban-utils";
+import { clampPersonalMinutes, startFocusSession } from "@/lib/pomodoro-utils";
 import type { Objective, TimerDisplayMode, TimerSource } from "@/types";
 
 export default function PomodoroPage() {
   const { objectives, hydrated, addObjective, updateObjective, deleteObjective, startObjectiveSession, logStudyTime, completeObjective } =
     useObjectives();
   const { logSession, todaySessions, todayFocusMinutes } = usePomodoroSessions();
-  const { timers, hydrated: timersHydrated, startTimer, pauseTimer, resumeTimer, stopTimer, removeTimer, extendTimer, markLogged } =
+  const { timers, hydrated: timersHydrated, startTimer, pauseTimer, resumeTimer, stopTimer, removeTimer, extendTimer } =
     usePomodoroTimers();
   const [displayMode, setDisplayMode] = useLocalStorage<TimerDisplayMode>(
     "axon:pomodoro:displayMode",
@@ -57,7 +57,10 @@ export default function PomodoroPage() {
   const eligibleObjectives = React.useMemo(
     () =>
       objectives.filter(
-        (o) => (o.status === "todo" || o.status === "in-progress") && !activeObjectiveIds.has(o.id)
+        (o) =>
+          (o.status === "todo" || o.status === "in-progress") &&
+          o.showOnKanban !== false &&
+          !activeObjectiveIds.has(o.id)
       ),
     [objectives, activeObjectiveIds]
   );
@@ -108,10 +111,11 @@ export default function PomodoroPage() {
     const linked = objectives.find((o) => o.id === personalLinkedObjectiveId);
     if (!linked || linked.status !== "todo") return;
     const nextTitle = personalLabel.trim() || "Personal focus session";
-    if (linked.title === nextTitle && linked.estimatedStudyTime === personalMinutes) return;
+    const nextMinutes = clampPersonalMinutes(personalMinutes);
+    if (linked.title === nextTitle && linked.estimatedStudyTime === nextMinutes) return;
     updateObjective(personalLinkedObjectiveId, {
       title: nextTitle,
-      estimatedStudyTime: personalMinutes,
+      estimatedStudyTime: nextMinutes,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [personalLabel, personalMinutes, addToKanban, personalLinkedObjectiveId, objectives]);
@@ -123,7 +127,7 @@ export default function PomodoroPage() {
         title: personalLabel.trim() || "Personal focus session",
         subject: "Personal",
         priority: "medium",
-        estimatedStudyTime: personalMinutes,
+        estimatedStudyTime: clampPersonalMinutes(personalMinutes),
         progress: 0,
         labels: [],
         status: "todo",
@@ -138,29 +142,15 @@ export default function PomodoroPage() {
     }
   }
 
-  // Log a finished timer's time exactly once, then (for objective-linked
-  // timers) queue up the "are you finished?" dialog.
+  // Completion logging is handled by the always-mounted shell watcher.
+  // This page only owns the objective-specific follow-up question.
   React.useEffect(() => {
     if (!timersHydrated) return;
     timers.forEach((t) => {
-      if (t.status !== "finished" || t.loggedCompletion) return;
-      const minutes = Math.round(t.durationSeconds / 60);
-      if (t.source === "objective" && t.objectiveId) {
-        if (minutes > 0) logStudyTime(t.objectiveId, minutes);
-        markLogged(t.id);
-        setFinishQueue((q) => (q.includes(t.id) ? q : [...q, t.id]));
-      } else {
-        logSession({
-          durationMinutes: minutes,
-          type: "work",
-          completed: true,
-          label: t.label || "Personal focus session",
-        });
-        markLogged(t.id);
-        setCelebrateKey((k) => k + 1);
-      }
+      if (t.status !== "finished" || t.source !== "objective" || !t.objectiveId) return;
+      setFinishQueue((q) => (q.includes(t.id) ? q : [...q, t.id]));
     });
-  }, [timers, timersHydrated, logStudyTime, logSession, markLogged]);
+  }, [timers, timersHydrated]);
 
   const activeFinishId = finishQueue[0] ?? null;
   const activeFinishTimer = React.useMemo(
@@ -179,14 +169,11 @@ export default function PomodoroPage() {
   function handleStartNewTimer() {
     if (source === "objective") {
       if (!selectedObjective) return;
-      startObjectiveSession(selectedObjective.id);
-      const remaining = remainingMinutes(selectedObjective);
-      const minutes = remaining && remaining > 0 ? remaining : selectedObjective.estimatedStudyTime || 25;
-      startTimer({
-        source: "objective",
-        label: selectedObjective.title,
-        objectiveId: selectedObjective.id,
-        durationSeconds: minutes * 60,
+      startFocusSession(selectedObjective, {
+        timers,
+        startObjectiveSession,
+        startTimer,
+        resumeTimer,
       });
       setSelectedId(null);
     } else {
@@ -206,7 +193,7 @@ export default function PomodoroPage() {
         source: "personal",
         label: personalLabel || "Personal focus session",
         objectiveId,
-        durationSeconds: personalMinutes * 60,
+        durationSeconds: clampPersonalMinutes(personalMinutes) * 60,
       });
       setPersonalLabel("");
       setAddToKanban(false);
@@ -220,6 +207,13 @@ export default function PomodoroPage() {
     if (!timer || elapsedMinutes <= 0) return;
     if (timer.source === "objective" && timer.objectiveId) {
       logStudyTime(timer.objectiveId, elapsedMinutes);
+      logSession({
+        durationMinutes: elapsedMinutes,
+        type: "work",
+        completed: false,
+        objectiveId: timer.objectiveId,
+        label: timer.label,
+      });
     } else {
       logSession({
         durationMinutes: elapsedMinutes,
@@ -258,40 +252,41 @@ export default function PomodoroPage() {
     dequeueFinish(id);
   }
 
-  const canStart = source === "objective" ? Boolean(selectedObjective) : personalMinutes > 0;
+  const canStart =
+    source === "objective"
+      ? Boolean(selectedObjective)
+      : clampPersonalMinutes(personalMinutes) > 0;
 
   return (
-    <div className="relative">
-      <PageHeader
-        title="Pomodoro"
-        description="Timed focus sessions — linked to your objectives, or entirely off the record. Run as many at once as you like."
-      />
-
+    <AppPage
+      title="Pomodoro"
+      description="Timed focus sessions — linked to your objectives, or entirely off the record. Run as many at once as you like."
+    >
       <div className="mb-6 grid grid-cols-2 gap-3 sm:max-w-sm">
-        <Card className="p-4">
+        <Panel variant="interactive" className="p-4">
           <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-muted-foreground">
             <TimerIcon className="h-3 w-3" /> Focused today
           </p>
           <p className="mt-1 text-lg font-semibold text-foreground">{todayFocusMinutes}m</p>
-        </Card>
-        <Card className="p-4">
+        </Panel>
+        <Panel variant="interactive" className="p-4">
           <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-muted-foreground">
             <Flame className="h-3 w-3 text-warning" /> Sessions today
           </p>
           <p className="mt-1 text-lg font-semibold text-foreground">{todaySessions.length}</p>
-        </Card>
+        </Panel>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div>
           {timers.length === 0 ? (
-            <Card className="glass flex flex-col items-center gap-2 p-10 text-center">
+            <Panel variant="glass" className="flex flex-col items-center gap-2 p-10 text-center">
               <p className="text-sm font-medium text-foreground">No timers running yet</p>
               <p className="max-w-xs text-xs text-muted-foreground">
                 Configure a focus session on the right, then start it — you can stack up as many
                 as you like.
               </p>
-            </Card>
+            </Panel>
           ) : (
             <>
               <div className="mb-3 inline-flex items-center gap-1 rounded-lg border border-border bg-surface p-1">
@@ -337,7 +332,7 @@ export default function PomodoroPage() {
           )}
         </div>
 
-        <Card className="p-5">
+        <Panel variant="interactive" className="p-5">
           <Tabs value={source} onValueChange={(v) => setSource(v as TimerSource)}>
             <TabsList className="mb-4 w-full">
               <TabsTrigger value="objective" className="flex-1">
@@ -380,7 +375,7 @@ export default function PomodoroPage() {
             <Play className="h-4 w-4" />
             Start new timer
           </Button>
-        </Card>
+        </Panel>
       </div>
 
       <ConfettiBurst triggerKey={celebrateKey} />
@@ -410,6 +405,6 @@ export default function PomodoroPage() {
         onKeepWorking={handleKeepWorking}
         onNotYet={handleNotYet}
       />
-    </div>
+    </AppPage>
   );
 }

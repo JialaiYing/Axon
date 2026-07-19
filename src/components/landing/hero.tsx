@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight, ChevronDown, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Magnetic } from "@/components/ui/magnetic";
 import BorderGlow from "@/components/effects/border-glow";
 import GradientText from "@/components/effects/gradient-text";
 import RotatingText from "@/components/effects/rotating-text";
@@ -92,20 +93,20 @@ export function Hero() {
           />
         </motion.div>
 
-        <h1 className="max-w-4xl text-balance text-5xl font-semibold leading-[1.08] tracking-tight text-foreground md:text-7xl">
+        <h1 className="font-display max-w-4xl text-balance text-5xl font-semibold leading-[1.08] tracking-tight text-foreground md:text-7xl">
           <BlurText
             text="The study dashboard for staying"
             delay={60}
             animateBy="words"
             direction="top"
-            className="justify-center text-5xl font-semibold leading-[1.08] tracking-tight text-foreground md:text-7xl"
+            className="font-display justify-center text-5xl font-semibold leading-[1.08] tracking-tight text-foreground md:text-7xl"
             as="span"
           />{" "}
           <GradientText
             colors={["#5227FF", "#FF9FFC", "#B497CF"]}
             animationSpeed={8}
             showBorder={false}
-            className="align-baseline text-5xl font-semibold md:text-7xl"
+            className="font-display align-baseline text-5xl font-semibold md:text-7xl"
           >
             consistent
           </GradientText>
@@ -129,49 +130,51 @@ export function Hero() {
           transition={{ duration: 0.55, delay: 0.22, ease: [0.21, 0.47, 0.32, 0.98] }}
           className="mt-10 flex flex-wrap items-center justify-center gap-3"
         >
-          <BorderGlow
-            asButton
-            edgeSensitivity={28}
-            glowColor="210 90 75"
-            backgroundColor="#1d3a66"
-            borderRadius={10}
-            glowRadius={28}
-            glowIntensity={1}
-            coneSpread={25}
-            colors={GLOW_COLORS}
-            fillOpacity={0.45}
-          >
-            <Button
-              size="lg"
-              asChild
-              className="h-11 min-w-[13.25rem] rounded-[9px] border-0 shadow-none hover:shadow-none"
+          <Magnetic strength={12} range={80}>
+            <BorderGlow
+              asButton
+              edgeSensitivity={28}
+              glowColor="210 90 75"
+              backgroundColor="#1d3a66"
+              borderRadius={10}
+              glowRadius={28}
+              glowIntensity={1}
+              coneSpread={25}
+              colors={GLOW_COLORS}
+              fillOpacity={0.45}
             >
-              <Link
-                href="/dashboard"
-                className="inline-flex items-center justify-center gap-2 whitespace-nowrap"
+              <Button
+                size="lg"
+                asChild
+                className="h-11 min-w-[13.25rem] rounded-[9px] border-0 shadow-none hover:shadow-none"
               >
-                {/* Fixed-width slot so rotating phrases never reflow the button. */}
-                <span className="relative inline-flex h-5 w-[9.75rem] shrink-0 items-center justify-center overflow-hidden">
-                  <RotatingText
-                    texts={["Open Dashboard", "Start Studying", "Begin Focus"]}
-                    staggerFrom="last"
-                    initial={{ y: "100%" }}
-                    animate={{ y: 0 }}
-                    exit={{ y: "-120%" }}
-                    staggerDuration={0.025}
-                    splitLevelClassName="overflow-hidden"
-                    transition={{ type: "spring", damping: 30, stiffness: 400 }}
-                    rotationInterval={2500}
-                    splitBy="characters"
-                    auto
-                    loop
-                    mainClassName="justify-center overflow-hidden"
-                  />
-                </span>
-                <ArrowRight className="h-4 w-4 shrink-0 transition-transform duration-200 group-hover:translate-x-0.5" />
-              </Link>
-            </Button>
-          </BorderGlow>
+                <Link
+                  href="/dashboard"
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap"
+                >
+                  {/* Fixed-width slot so rotating phrases never reflow the button. */}
+                  <span className="relative inline-flex h-5 w-[9.75rem] shrink-0 items-center justify-center overflow-hidden">
+                    <RotatingText
+                      texts={["Open Dashboard", "Start Studying", "Begin Focus"]}
+                      staggerFrom="last"
+                      initial={{ y: "100%" }}
+                      animate={{ y: 0 }}
+                      exit={{ y: "-120%" }}
+                      staggerDuration={0.025}
+                      splitLevelClassName="overflow-hidden"
+                      transition={{ type: "spring", damping: 30, stiffness: 400 }}
+                      rotationInterval={2500}
+                      splitBy="characters"
+                      auto
+                      loop
+                      mainClassName="justify-center overflow-hidden"
+                    />
+                  </span>
+                  <ArrowRight className="h-4 w-4 shrink-0 transition-transform duration-200 group-hover:translate-x-0.5" />
+                </Link>
+              </Button>
+            </BorderGlow>
+          </Magnetic>
           <BorderGlow
             asButton
             edgeSensitivity={28}

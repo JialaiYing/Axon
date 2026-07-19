@@ -11,9 +11,10 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { CalendarRange } from "lucide-react";
 import { KanbanBoardSkeleton } from "@/components/ui/skeleton";
+import { EASE } from "@/lib/motion";
 import { ObjectiveDialog } from "@/components/kanban/objective-dialog";
 import { useObjectives } from "@/hooks/use-objectives";
 import { usePomodoroTimers } from "@/hooks/use-pomodoro-timers";
@@ -50,6 +51,7 @@ export function CalendarPage() {
   const {
     objectives,
     hydrated,
+    addObjective,
     updateObjective,
     scheduleObjective,
     unscheduleObjective,
@@ -58,6 +60,7 @@ export function CalendarPage() {
   const { timers, hydrated: timersHydrated, startTimer, pauseTimer, resumeTimer, stopTimer, removeTimer } =
     usePomodoroTimers();
   const { view, setView, currentDate, setCurrentDate, goToday, goPrev, goNext } = useCalendarState();
+  const prefersReducedMotion = useReducedMotion();
 
   const [hoveredId, setHoveredId] = React.useState<string | null>(null);
   const [editTarget, setEditTarget] = React.useState<Objective | null>(null);
@@ -151,7 +154,12 @@ export function CalendarPage() {
         <KanbanBoardSkeleton />
       ) : (
         <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <motion.div
+            initial={prefersReducedMotion ? undefined : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55, ease: EASE }}
+            className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]"
+          >
             <div className="min-w-0">
               <AnimatePresence mode="wait">
                 <motion.div key={view}>
@@ -222,7 +230,7 @@ export function CalendarPage() {
                 onSchedule={handleReschedule}
               />
             </div>
-          </div>
+          </motion.div>
 
           <DragOverlay>
             {activeDrag ? (
@@ -256,8 +264,28 @@ export function CalendarPage() {
           onPick={(objective) => {
             const duration =
               objective.scheduledDurationMinutes ??
-              (objective.estimatedStudyTime && objective.estimatedStudyTime > 0 ? objective.estimatedStudyTime : 30);
-            scheduleObjective(objective.id, { start: addTarget.toISOString(), durationMinutes: duration });
+              (objective.estimatedStudyTime && objective.estimatedStudyTime > 0
+                ? objective.estimatedStudyTime
+                : 30);
+            scheduleObjective(objective.id, {
+              start: addTarget.toISOString(),
+              durationMinutes: duration,
+            });
+            setAddTarget(null);
+          }}
+          onCreateEvent={(input) => {
+            addObjective({
+              title: input.title,
+              subject: input.subject,
+              priority: input.priority,
+              progress: 0,
+              labels: [],
+              status: "todo",
+              estimatedStudyTime: input.durationMinutes,
+              scheduledStart: addTarget.toISOString(),
+              scheduledDurationMinutes: input.durationMinutes,
+              showOnKanban: input.showOnKanban,
+            });
             setAddTarget(null);
           }}
         />

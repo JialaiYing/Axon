@@ -7,12 +7,14 @@ import {
   ArrowRight,
   BookOpen,
   CalendarClock,
+  CheckCircle2,
+  Circle,
   Flame,
   Gauge,
   History,
-  Kanban,
   ListTodo,
   Plus,
+  Repeat,
   Sparkles,
   Target,
   Timer,
@@ -38,6 +40,14 @@ import { usePomodoroSessions } from "@/hooks/use-pomodoro-sessions";
 import { useFlashcards } from "@/hooks/use-flashcards";
 import { useUserStats } from "@/hooks/use-user-stats";
 import { useGoals } from "@/hooks/use-goals";
+import {
+  dayElapsedFraction,
+  goalPaceStatus,
+  isToday as isTodayDate,
+  PACE_LABEL,
+  weekElapsedFraction,
+  type GoalPaceStatus,
+} from "@/lib/goals-utils";
 import { computeCurrentStreak } from "@/lib/progress/streak";
 import { formatRelativeTime } from "@/lib/time";
 import type { Goal, Objective, PomodoroSession } from "@/types";
@@ -63,7 +73,7 @@ function buildWeekData(sessions: PomodoroSession[]) {
   const days: { label: string; minutes: number }[] = [];
   const byDay = new Map<string, number>();
   for (const s of sessions) {
-    if (!s.completed || s.type !== "work") continue;
+    if (s.type !== "work" || s.durationMinutes <= 0) continue;
     const key = dayKey(new Date(s.date));
     byDay.set(key, (byDay.get(key) ?? 0) + s.durationMinutes);
   }
@@ -85,16 +95,12 @@ const PRIORITY_ORDER: Record<Objective["priority"], number> = {
   low: 3,
 };
 
-const PRIORITY_BADGE: Record<Objective["priority"], "danger" | "warning" | "accent" | "default"> = {
-  urgent: "danger",
-  high: "warning",
-  medium: "accent",
-  low: "default",
-};
-
 function upNext(objectives: Objective[]) {
   return objectives
-    .filter((o) => o.status === "todo" || o.status === "in-progress")
+    .filter(
+      (o) =>
+        (o.status === "todo" || o.status === "in-progress") && o.showOnKanban !== false
+    )
     .sort((a, b) => {
       const aTime = a.scheduledStart ?? a.dueDate;
       const bTime = b.scheduledStart ?? b.dueDate;
@@ -104,6 +110,62 @@ function upNext(objectives: Objective[]) {
       return PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority];
     })
     .slice(0, 5);
+}
+
+interface TodayBarEntry {
+  label: string;
+  time: string;
+  href: string;
+  /** True when this scheduled item was already completed today. */
+  done: boolean;
+  /** Count of other items scheduled today in this same bucket, not shown. */
+  extraCount: number;
+}
+
+interface TodayBars {
+  focus: TodayBarEntry | null;
+  calendarEvent: TodayBarEntry | null;
+}
+
+/**
+ * Always three Today bars: focus session, calendar-only event, streak. A
+ * completed item stays visible (marked done) rather than disappearing —
+ * finishing today's only scheduled thing shouldn't make the dashboard look
+ * like nothing was ever planned. If more than one thing is scheduled in a
+ * bucket, the soonest surfaces and the rest count toward "+N more" so a
+ * busy day doesn't look identical to a day with exactly one thing on it.
+ */
+function buildTodayBars(objectives: Objective[]): TodayBars {
+  const todayScheduled = objectives
+    .filter((o) => o.status !== "recycled" && o.scheduledStart && isTodayDate(o.scheduledStart))
+    .sort(
+      (a, b) =>
+        new Date(a.scheduledStart!).getTime() - new Date(b.scheduledStart!).getTime()
+    );
+
+  const focusItems = todayScheduled.filter((o) => o.showOnKanban !== false);
+  const calendarItems = todayScheduled.filter((o) => o.showOnKanban === false);
+
+  function pickPrimary(items: Objective[], labelFor: (o: Objective) => string, href: string): TodayBarEntry | null {
+    if (items.length === 0) return null;
+    const primary = items.find((o) => o.status !== "done") ?? items[0]!;
+    const time = new Date(primary.scheduledStart!).toLocaleTimeString(undefined, {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+    return {
+      label: labelFor(primary),
+      time,
+      href,
+      done: primary.status === "done",
+      extraCount: items.length - 1,
+    };
+  }
+
+  return {
+    focus: pickPrimary(focusItems, (o) => `Focus session — ${o.title}`, "/pomodoro"),
+    calendarEvent: pickPrimary(calendarItems, (o) => o.title, "/calendar"),
+  };
 }
 
 interface RecentEntry {
@@ -135,7 +197,7 @@ function buildRecentEntries(
   }
 
   const lastSession = sessions
-    .filter((s) => s.completed && s.type === "work")
+    .filter((s) => s.type === "work" && s.durationMinutes > 0)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
   if (lastSession) {
     entries.push({
@@ -219,15 +281,27 @@ function StatCard({
   );
 }
 
-function GoalRow({ goal }: { goal: Goal }) {
+function GoalRow({ goal, status }: { goal: Goal; status: GoalPaceStatus }) {
   const percent = goal.target > 0 ? (goal.progress / goal.target) * 100 : 0;
   return (
     <div>
-      <div className="flex items-center justify-between text-[11px] text-white/55">
+      <div className="flex items-center justify-between gap-2 text-[11px] text-white/55">
         <span className="truncate">{goal.title}</span>
-        <span className="tabular-nums text-white/70">
-          {goal.progress}/{goal.target}
-          {goal.unit ? ` ${goal.unit}` : ""}
+        <span className="flex shrink-0 items-center gap-2">
+          <span
+            className={cn(
+              "text-[10px] font-medium uppercase tracking-[0.08em]",
+              status === "done" && "text-success",
+              status === "on-track" && "text-white/50",
+              status === "behind" && "text-warning"
+            )}
+          >
+            {PACE_LABEL[status]}
+          </span>
+          <span className="tabular-nums text-white/70">
+            {goal.progress}/{goal.target}
+            {goal.unit ? ` ${goal.unit}` : ""}
+          </span>
         </span>
       </div>
       <ProgressBar value={percent} size="sm" className="mt-1.5" />
@@ -235,7 +309,24 @@ function GoalRow({ goal }: { goal: Goal }) {
   );
 }
 
-function GoalsPulseCard({ dailyGoal, weeklyGoal }: { dailyGoal: Goal | null; weeklyGoal: Goal | null }) {
+function GoalsPulseCard({
+  dailyGoal,
+  weeklyGoal,
+}: {
+  dailyGoal: Goal | null;
+  weeklyGoal: Goal | null;
+}) {
+  const now = new Date();
+  const dailyStatus = dailyGoal ? goalPaceStatus(dailyGoal, dayElapsedFraction(now)) : null;
+  const weeklyStatus = weeklyGoal ? goalPaceStatus(weeklyGoal, weekElapsedFraction(now)) : null;
+
+  const contextualCta =
+    dailyStatus === "behind"
+      ? { href: "/pomodoro" as const, label: "Start focus" }
+      : weeklyStatus === "behind"
+        ? { href: "/kanban" as const, label: "Open board" }
+        : null;
+
   return (
     <TiltCard maxTilt={5} className="h-full">
       <GlassPanel className="flex h-full flex-col justify-between p-5">
@@ -246,15 +337,25 @@ function GoalsPulseCard({ dailyGoal, weeklyGoal }: { dailyGoal: Goal | null; wee
           </span>
         </div>
         <div className="mt-4 space-y-3">
-          {dailyGoal && <GoalRow goal={dailyGoal} />}
-          {weeklyGoal && <GoalRow goal={weeklyGoal} />}
+          {dailyGoal && dailyStatus && <GoalRow goal={dailyGoal} status={dailyStatus} />}
+          {weeklyGoal && weeklyStatus && <GoalRow goal={weeklyGoal} status={weeklyStatus} />}
         </div>
-        <Link
-          href="/goals"
-          className="mt-3 inline-flex cursor-pointer items-center gap-1 text-[11px] text-white/45 transition-colors duration-200 hover:text-white"
-        >
-          Manage goals <ArrowRight className="h-3 w-3" />
-        </Link>
+        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1">
+          {contextualCta && (
+            <Link
+              href={contextualCta.href}
+              className="inline-flex cursor-pointer items-center gap-1 text-[11px] text-white/70 transition-colors duration-200 hover:text-white"
+            >
+              {contextualCta.label} <ArrowRight className="h-3 w-3" />
+            </Link>
+          )}
+          <Link
+            href="/goals"
+            className="inline-flex cursor-pointer items-center gap-1 text-[11px] text-white/45 transition-colors duration-200 hover:text-white"
+          >
+            Manage goals <ArrowRight className="h-3 w-3" />
+          </Link>
+        </div>
       </GlassPanel>
     </TiltCard>
   );
@@ -353,7 +454,7 @@ function LoadingState() {
 
 export function DashboardOverview() {
   const prefersReducedMotion = useReducedMotion();
-  const { objectives, hydrated: objectivesHydrated } = useObjectives();
+  const { objectives, hydrated: objectivesHydrated, completeObjective } = useObjectives();
   const { sessions, todaySessions, todayFocusMinutes, hydrated: sessionsHydrated } =
     usePomodoroSessions();
   const { lastStudiedSet, hydrated: flashcardsHydrated } = useFlashcards();
@@ -367,6 +468,7 @@ export function DashboardOverview() {
   const weekData = React.useMemo(() => buildWeekData(sessions), [sessions]);
   const weekTotal = weekData.reduce((sum, d) => sum + d.minutes, 0);
   const queue = React.useMemo(() => upNext(objectives), [objectives]);
+  const todayBars = React.useMemo(() => buildTodayBars(objectives), [objectives]);
   const recent = React.useMemo(
     () => buildRecentEntries(objectives, sessions, lastStudiedSet),
     [objectives, sessions, lastStudiedSet]
@@ -386,8 +488,16 @@ export function DashboardOverview() {
       variants={container}
       initial={prefersReducedMotion ? false : "hidden"}
       animate="visible"
-      className="space-y-5"
+      className="glass-panel overflow-hidden rounded-2xl p-2 shadow-[0_0_0_1px_rgba(59,130,246,0.15),0_20px_60px_-16px_rgba(59,130,246,0.25)]"
     >
+      {/* Product-window framing mirrors the live preview on the homepage. */}
+      <div className="rounded-xl bg-surface/60 p-4 sm:p-6 md:p-8">
+      <div className="mb-5 flex items-center gap-1.5" aria-hidden="true">
+        <span className="h-2.5 w-2.5 rounded-full bg-danger/60" />
+        <span className="h-2.5 w-2.5 rounded-full bg-warning/60" />
+        <span className="h-2.5 w-2.5 rounded-full bg-success/60" />
+      </div>
+      <div className="space-y-5">
       {/* Greeting + quick actions */}
       <motion.div
         variants={item}
@@ -419,21 +529,158 @@ export function DashboardOverview() {
         </div>
       </motion.div>
 
-      {/* Rank + XP hero */}
-      <motion.div variants={item}>
-        <RankHero
-          rankLabel={rank.label}
-          level={progression.level}
-          xpIntoLevel={progression.xpIntoLevel}
-          xpForNextLevel={progression.xpForNextLevel}
-          progressPercent={progression.progressPercent}
-          isMaxLevel={progression.isMaxLevel}
-          todayXp={todayXp}
-        />
-      </motion.div>
+      {/* Up next (top 5 open objectives by date/priority — not week-scoped) + Today — matches the homepage preview until Current rank. */}
+      <div className="grid grid-cols-1 gap-3.5 lg:grid-cols-[1.1fr_0.9fr]">
+        <motion.div variants={item}>
+          <div className="flex h-full flex-col gap-2">
+            <p className="mb-0.5 text-[10px] uppercase tracking-wide text-white/45">
+              Up next
+            </p>
+            {queue.length === 0 ? (
+              <Link
+                href="/kanban"
+                className="flex flex-1 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-white/12 bg-white/[0.03] p-6 text-center transition-colors duration-200 hover:border-white/20 hover:bg-white/[0.05]"
+              >
+                <Circle className="h-4 w-4 text-white/40" />
+                <p className="text-xs text-white/55">No objectives yet</p>
+                <span className="inline-flex items-center gap-1 text-[11px] text-white/40">
+                  Create one on the board <ArrowRight className="h-3 w-3" />
+                </span>
+              </Link>
+            ) : (
+              queue.map((objective) => (
+                <div
+                  key={objective.id}
+                  className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-white/[0.04] p-3 transition-colors duration-200 hover:border-white/16 hover:bg-white/[0.07]"
+                >
+                  <span
+                    className={cn(
+                      "h-1.5 w-1.5 shrink-0 rounded-full",
+                      objective.priority === "urgent" || objective.priority === "high"
+                        ? "bg-danger"
+                        : objective.priority === "medium"
+                          ? "bg-warning"
+                          : "bg-success"
+                    )}
+                  />
+                  <Link
+                    href="/kanban"
+                    className="min-w-0 flex-1 cursor-pointer truncate text-xs font-medium text-white"
+                  >
+                    {objective.title}
+                  </Link>
+                  <button
+                    type="button"
+                    aria-label={`Mark "${objective.title}" done`}
+                    onClick={() => completeObjective(objective.id)}
+                    className="shrink-0 cursor-pointer rounded-md p-0.5 text-white/40 transition-colors duration-150 hover:text-success"
+                  >
+                    <Circle className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        </motion.div>
 
-      {/* Today pulse */}
-      <motion.div variants={item} className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <motion.div variants={item}>
+          <div className="flex h-full flex-col gap-2">
+            <p className="mb-0.5 text-[10px] uppercase tracking-wide text-white/45">Today</p>
+
+            {/* Focus session — always present */}
+            <Link
+              href={todayBars.focus?.href ?? "/pomodoro"}
+              className={cn(
+                "flex cursor-pointer items-center gap-2.5 rounded-lg border p-3 transition-colors duration-200",
+                todayBars.focus?.done
+                  ? "border-success/25 bg-success-muted/15 hover:border-success/40 hover:bg-success-muted/25"
+                  : todayBars.focus
+                    ? "border-white/8 bg-white/[0.04] hover:border-white/16 hover:bg-white/[0.07]"
+                    : "border-dashed border-white/12 bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.05]"
+              )}
+            >
+              {todayBars.focus?.done ? (
+                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-success" />
+              ) : (
+                <Timer className="h-3.5 w-3.5 shrink-0 text-accent" />
+              )}
+              <p
+                className={cn(
+                  "min-w-0 flex-1 truncate text-xs font-medium",
+                  todayBars.focus?.done
+                    ? "text-white/70 line-through"
+                    : todayBars.focus
+                      ? "text-white"
+                      : "text-white/40"
+                )}
+              >
+                {todayBars.focus?.label ?? "Focus session — schedule one"}
+              </p>
+              {!!todayBars.focus?.extraCount && (
+                <span className="shrink-0 rounded-full bg-white/10 px-1.5 py-0.5 text-[10px] font-medium text-white/55">
+                  +{todayBars.focus.extraCount} more
+                </span>
+              )}
+              <span className="shrink-0 font-mono text-[11px] text-white/40">
+                {todayBars.focus?.time ?? "—"}
+              </span>
+            </Link>
+
+            {/* Calendar-only event — always present */}
+            <Link
+              href={todayBars.calendarEvent?.href ?? "/calendar"}
+              className={cn(
+                "flex cursor-pointer items-center gap-2.5 rounded-lg border p-3 transition-colors duration-200",
+                todayBars.calendarEvent?.done
+                  ? "border-success/25 bg-success-muted/15 hover:border-success/40 hover:bg-success-muted/25"
+                  : todayBars.calendarEvent
+                    ? "border-white/8 bg-white/[0.04] hover:border-white/16 hover:bg-white/[0.07]"
+                    : "border-dashed border-white/12 bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.05]"
+              )}
+            >
+              {todayBars.calendarEvent?.done ? (
+                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-success" />
+              ) : (
+                <CalendarClock className="h-3.5 w-3.5 shrink-0 text-accent" />
+              )}
+              <p
+                className={cn(
+                  "min-w-0 flex-1 truncate text-xs font-medium",
+                  todayBars.calendarEvent?.done
+                    ? "text-white/70 line-through"
+                    : todayBars.calendarEvent
+                      ? "text-white"
+                      : "text-white/40"
+                )}
+              >
+                {todayBars.calendarEvent?.label ?? "Calendar event — add one"}
+              </p>
+              {!!todayBars.calendarEvent?.extraCount && (
+                <span className="shrink-0 rounded-full bg-white/10 px-1.5 py-0.5 text-[10px] font-medium text-white/55">
+                  +{todayBars.calendarEvent.extraCount} more
+                </span>
+              )}
+              <span className="shrink-0 font-mono text-[11px] text-white/40">
+                {todayBars.calendarEvent?.time ?? "—"}
+              </span>
+            </Link>
+
+            {/* Streak — always present */}
+            <div className="flex items-center gap-2 rounded-lg border border-accent/30 bg-accent-muted/25 p-3">
+              <Flame className="h-3.5 w-3.5 shrink-0 text-warning" />
+              <p className="text-xs font-medium text-white">
+                {streak > 0 ? `${streak}-day streak` : "No streak yet"}
+              </p>
+              <Badge variant="accent" className="ml-auto shrink-0">
+                {rank.label}
+              </Badge>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Stats row — same set as the homepage preview */}
+      <motion.div variants={item} className="grid grid-cols-2 gap-3.5 md:grid-cols-4">
         <StatCard
           icon={Flame}
           label="Streak"
@@ -447,7 +694,14 @@ export function DashboardOverview() {
           label="Focus today"
           value={todayFocusMinutes}
           suffix=" min"
-          hint={`${todaySessions.length} session${todaySessions.length === 1 ? "" : "s"} completed`}
+          hint={`${todaySessions.length} session${todaySessions.length === 1 ? "" : "s"} today`}
+          iconClassName="bg-accent-muted text-accent"
+        />
+        <StatCard
+          icon={Repeat}
+          label="Intervals"
+          value={stats.intervalsCompleted}
+          hint="All-time completed"
           iconClassName="bg-accent-muted text-accent"
         />
         <StatCard
@@ -458,114 +712,63 @@ export function DashboardOverview() {
           hint="Last 7 days"
           iconClassName="bg-secondary-muted text-secondary"
         />
-        <GoalsPulseCard dailyGoal={dailyGoal} weeklyGoal={weeklyGoal} />
       </motion.div>
 
-      {/* Up next + Recent */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <motion.div variants={item}>
-          <GlassPanel className="flex h-full flex-col p-6">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-white">Up next</h2>
-              <Link
-                href="/kanban"
-                className="inline-flex cursor-pointer items-center gap-1 text-xs text-white/50 transition-colors duration-200 hover:text-white"
-              >
-                Board <ArrowRight className="h-3 w-3" />
-              </Link>
+      {/* Daily goal + Current rank / XP — mirrors the homepage pair */}
+      <motion.div variants={item} className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
+        <GoalsPulseCard dailyGoal={dailyGoal} weeklyGoal={weeklyGoal} />
+        <RankHero
+          rankLabel={rank.label}
+          level={progression.level}
+          xpIntoLevel={progression.xpIntoLevel}
+          xpForNextLevel={progression.xpForNextLevel}
+          progressPercent={progression.progressPercent}
+          isMaxLevel={progression.isMaxLevel}
+          todayXp={todayXp}
+        />
+      </motion.div>
+
+      <motion.div variants={item}>
+        <GlassPanel className="flex h-full flex-col p-6">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-white">Recent</h2>
+            <History className="h-3.5 w-3.5 text-white/40" />
+          </div>
+          {recent.length === 0 ? (
+            <div className="flex flex-1 flex-col items-center justify-center gap-3 py-8 text-center">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/5">
+                <History className="h-5 w-5 text-white/50" />
+              </span>
+              <p className="text-sm text-white/60">Nothing to resume yet</p>
             </div>
-            {queue.length === 0 ? (
-              <div className="flex flex-1 flex-col items-center justify-center gap-3 py-10 text-center">
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/5">
-                  <Kanban className="h-5 w-5 text-white/50" />
-                </span>
-                <p className="text-sm text-white/60">Nothing queued</p>
-                <Button asChild size="sm" variant="outline" className="cursor-pointer">
-                  <Link href="/kanban" className="inline-flex items-center gap-1.5">
-                    Add an objective <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
-                </Button>
-              </div>
-            ) : (
-              <ul className="space-y-2.5">
-                {queue.map((objective) => (
-                  <li key={objective.id}>
+          ) : (
+            <ul className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+              {recent.map((entry) => {
+                const Icon = entry.icon;
+                return (
+                  <li key={entry.key}>
                     <Link
-                      href="/kanban"
-                      className="block cursor-pointer rounded-xl border border-white/8 bg-white/[0.04] p-3.5 transition-all duration-200 hover:border-white/16 hover:bg-white/[0.07]"
+                      href={entry.href}
+                      className="flex cursor-pointer items-center gap-3 rounded-xl border border-white/8 bg-white/[0.04] p-3.5 transition-all duration-200 hover:border-white/16 hover:bg-white/[0.07]"
                     >
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="min-w-0 truncate text-sm font-medium text-white">
-                          {objective.title}
-                        </p>
-                        <Badge variant={PRIORITY_BADGE[objective.priority]} className="shrink-0">
-                          {objective.priority}
-                        </Badge>
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-white/60">
+                        <Icon className="h-4 w-4" />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-white">{entry.title}</p>
+                        <p className="mt-0.5 text-[11px] text-white/45">{entry.subtitle}</p>
                       </div>
-                      <div className="mt-2 flex items-center gap-2 text-[11px] text-white/45">
-                        <span>{objective.subject}</span>
-                        {(objective.scheduledStart ?? objective.dueDate) && (
-                          <span className="inline-flex items-center gap-1">
-                            <CalendarClock className="h-3 w-3" />
-                            {new Date(
-                              (objective.scheduledStart ?? objective.dueDate)!
-                            ).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
-                          </span>
-                        )}
-                      </div>
-                      {objective.progress > 0 && (
-                        <ProgressBar value={objective.progress} size="sm" className="mt-2.5" />
-                      )}
+                      <span className="shrink-0 text-[11px] text-white/40">
+                        {formatRelativeTime(entry.timestamp)}
+                      </span>
                     </Link>
                   </li>
-                ))}
-              </ul>
-            )}
-          </GlassPanel>
-        </motion.div>
-
-        <motion.div variants={item}>
-          <GlassPanel className="flex h-full flex-col p-6">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-white">Recent</h2>
-              <History className="h-3.5 w-3.5 text-white/40" />
-            </div>
-            {recent.length === 0 ? (
-              <div className="flex flex-1 flex-col items-center justify-center gap-3 py-10 text-center">
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/5">
-                  <History className="h-5 w-5 text-white/50" />
-                </span>
-                <p className="text-sm text-white/60">Nothing to resume yet</p>
-              </div>
-            ) : (
-              <ul className="space-y-2.5">
-                {recent.map((entry) => {
-                  const Icon = entry.icon;
-                  return (
-                    <li key={entry.key}>
-                      <Link
-                        href={entry.href}
-                        className="flex cursor-pointer items-center gap-3 rounded-xl border border-white/8 bg-white/[0.04] p-3.5 transition-all duration-200 hover:border-white/16 hover:bg-white/[0.07]"
-                      >
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-white/60">
-                          <Icon className="h-4 w-4" />
-                        </span>
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium text-white">{entry.title}</p>
-                          <p className="mt-0.5 text-[11px] text-white/45">{entry.subtitle}</p>
-                        </div>
-                        <span className="shrink-0 text-[11px] text-white/40">
-                          {formatRelativeTime(entry.timestamp)}
-                        </span>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </GlassPanel>
-        </motion.div>
-      </div>
+                );
+              })}
+            </ul>
+          )}
+        </GlassPanel>
+      </motion.div>
 
       {/* Focus this week */}
       <motion.div variants={item}>
@@ -631,6 +834,8 @@ export function DashboardOverview() {
           )}
         </GlassPanel>
       </motion.div>
+      </div>
+      </div>
     </motion.div>
   );
 }

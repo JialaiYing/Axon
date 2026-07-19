@@ -8,11 +8,13 @@ function dayKey(date: Date) {
   return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
 }
 
-/** Fraction (0-1) of the last 7 days that had at least one completed work session. */
+/** Fraction (0-1) of the last 7 days that had at least some logged focus time. */
 function focusConsistency(sessions: PomodoroSession[]): number {
   const activeDays = new Set(
     sessions
-      .filter((s) => s.completed && s.type === "work" && (daysSince(s.date) ?? Infinity) < WINDOW_DAYS)
+      .filter(
+        (s) => s.type === "work" && s.durationMinutes > 0 && (daysSince(s.date) ?? Infinity) < WINDOW_DAYS
+      )
       .map((s) => dayKey(new Date(s.date)))
   );
   return activeDays.size / WINDOW_DAYS;

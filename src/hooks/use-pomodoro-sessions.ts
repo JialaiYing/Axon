@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { asArray, dedupeById, useLocalStorage } from "@/hooks/use-local-storage";
+import { isToday } from "@/lib/goals-utils";
 import { awardFocusSessionXp } from "@/lib/progress/store";
 import type { PomodoroSession } from "@/types";
 
@@ -14,17 +15,6 @@ function createId() {
     return crypto.randomUUID();
   }
   return `session-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
-function isToday(iso: string) {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return false;
-  const now = new Date();
-  return (
-    d.getFullYear() === now.getFullYear() &&
-    d.getMonth() === now.getMonth() &&
-    d.getDate() === now.getDate()
-  );
 }
 
 function normalizeSession(value: PomodoroSession): PomodoroSession | null {
@@ -73,14 +63,20 @@ export function usePomodoroSessions() {
     [setRawSessions]
   );
 
+  // Counts any logged work session today, partial or fully completed — same
+  // scope as `todayFocusMinutes` below, so the two numbers displayed
+  // together (dashboard, Pomodoro page) never disagree about what counts.
   const todaySessions = React.useMemo(
-    () => sessions.filter((s) => s.completed && isToday(s.date)),
+    () => sessions.filter((s) => s.type === "work" && s.durationMinutes > 0 && isToday(s.date)),
     [sessions]
   );
 
   const todayFocusMinutes = React.useMemo(
-    () => todaySessions.reduce((sum, s) => sum + s.durationMinutes, 0),
-    [todaySessions]
+    () =>
+      sessions
+        .filter((s) => s.type === "work" && s.durationMinutes > 0 && isToday(s.date))
+        .reduce((sum, s) => sum + s.durationMinutes, 0),
+    [sessions]
   );
 
   return {

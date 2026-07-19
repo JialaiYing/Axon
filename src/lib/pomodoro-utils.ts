@@ -15,6 +15,34 @@ export const PERSONAL_TIMER_PRESETS = [
   { label: "5 min", minutes: 5 },
 ];
 
+/** Matches the upper bound used by adjustTimerBy (8 hours). */
+export const MAX_PERSONAL_TIMER_MINUTES = 8 * 60;
+export const MIN_PERSONAL_TIMER_MINUTES = 1;
+
+/**
+ * Parses a typed/preset duration string into a safe whole-minute value.
+ * Returns null for empty/invalid input so the UI can keep the draft
+ * without coercing to 0 or NaN.
+ */
+export function parsePersonalMinutes(raw: string): number | null {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  if (!/^\d+$/.test(trimmed)) return null;
+  const parsed = Number.parseInt(trimmed, 10);
+  if (!Number.isFinite(parsed)) return null;
+  if (parsed < MIN_PERSONAL_TIMER_MINUTES || parsed > MAX_PERSONAL_TIMER_MINUTES) return null;
+  return parsed;
+}
+
+/** Clamps a known numeric duration into the personal-timer range. */
+export function clampPersonalMinutes(minutes: number, fallback = 25): number {
+  if (!Number.isFinite(minutes)) return fallback;
+  return Math.min(
+    MAX_PERSONAL_TIMER_MINUTES,
+    Math.max(MIN_PERSONAL_TIMER_MINUTES, Math.round(minutes))
+  );
+}
+
 /** Whole minutes a fresh focus session for this objective should run — its remaining
  *  estimate if any time's already logged, otherwise its full estimate, otherwise a
  *  sane default. Falls back gracefully for zero/missing estimates. */

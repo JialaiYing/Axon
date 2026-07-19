@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Magnetic } from "@/components/ui/magnetic";
 import BorderGlow from "@/components/effects/border-glow";
 import ScrollFloat from "@/components/effects/scroll-float";
 import TextType from "@/components/effects/text-type";
@@ -28,7 +29,7 @@ export function FinalCTA() {
             scrollEnd="bottom bottom-=40%"
             stagger={0.03}
             containerClassName="relative flex justify-center"
-            textClassName="text-2xl font-semibold tracking-tight text-foreground md:text-3xl"
+            textClassName="font-display text-2xl font-semibold tracking-tight text-foreground md:text-3xl"
           >
             Start your first streak today
           </ScrollFloat>
@@ -42,29 +43,31 @@ export function FinalCTA() {
             as="p"
           />
           <div className="relative mt-9 flex justify-center">
-            <BorderGlow
-              asButton
-              edgeSensitivity={28}
-              glowColor="210 90 75"
-              backgroundColor="#1d3a66"
-              borderRadius={10}
-              glowRadius={28}
-              glowIntensity={1}
-              coneSpread={25}
-              colors={["#A6C8FF", "#5227FF", "#FF9FFC"]}
-              fillOpacity={0.45}
-            >
-              <Button
-                size="lg"
-                asChild
-                className="rounded-[9px] border-0 shadow-none hover:shadow-none"
+            <Magnetic strength={12} range={80}>
+              <BorderGlow
+                asButton
+                edgeSensitivity={28}
+                glowColor="210 90 75"
+                backgroundColor="#1d3a66"
+                borderRadius={10}
+                glowRadius={28}
+                glowIntensity={1}
+                coneSpread={25}
+                colors={["#A6C8FF", "#5227FF", "#FF9FFC"]}
+                fillOpacity={0.45}
               >
-                <Link href="/dashboard">
-                  Open Dashboard
-                  <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
-                </Link>
-              </Button>
-            </BorderGlow>
+                <Button
+                  size="lg"
+                  asChild
+                  className="rounded-[9px] border-0 shadow-none hover:shadow-none"
+                >
+                  <Link href="/dashboard">
+                    Open Dashboard
+                    <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+                  </Link>
+                </Button>
+              </BorderGlow>
+            </Magnetic>
           </div>
         </div>
       </ScrollReveal>

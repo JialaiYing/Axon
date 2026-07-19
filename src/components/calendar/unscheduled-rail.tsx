@@ -3,7 +3,7 @@
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Inbox } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { Panel } from "@/components/ui/panel";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { priorityBadgeVariant } from "@/lib/kanban-utils";
@@ -21,12 +21,15 @@ interface UnscheduledRailProps {
 export function UnscheduledRail({ objectives, defaultStart, onSchedule }: UnscheduledRailProps) {
   const [collapsed, setCollapsed] = React.useState(false);
   const unscheduled = React.useMemo(
-    () => objectives.filter((o) => !o.scheduledStart && o.status !== "done" && o.status !== "recycled"),
+    () =>
+      objectives.filter(
+        (o) => !o.scheduledStart && o.status !== "done" && o.status !== "recycled" && o.showOnKanban !== false
+      ),
     [objectives]
   );
 
   return (
-    <Card className="overflow-hidden">
+    <Panel variant="interactive" className="overflow-hidden">
       <button
         type="button"
         onClick={() => setCollapsed((c) => !c)}
@@ -49,7 +52,7 @@ export function UnscheduledRail({ objectives, defaultStart, onSchedule }: Unsche
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2, ease: [0.21, 0.47, 0.32, 0.98] }}
-            className="overflow-hidden border-t border-border"
+            className="overflow-hidden border-t border-white/8"
           >
             <div className="flex max-h-64 flex-col gap-1.5 overflow-y-auto p-3">
               {unscheduled.length === 0 ? (
@@ -90,6 +93,6 @@ export function UnscheduledRail({ objectives, defaultStart, onSchedule }: Unsche
           </motion.div>
         )}
       </AnimatePresence>
-    </Card>
+    </Panel>
   );
 }

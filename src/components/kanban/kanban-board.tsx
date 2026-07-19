@@ -14,8 +14,10 @@ import {
   type DragEndEvent,
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+import { motion, useReducedMotion } from "framer-motion";
 import { RotateCcw } from "lucide-react";
-import { PageHeader } from "@/components/layout/page-header";
+import { AppPage } from "@/components/layout/app-page";
+import { EASE, STAGGER } from "@/lib/motion";
 import { KanbanColumn } from "@/components/kanban/kanban-column";
 import { KanbanCard } from "@/components/kanban/kanban-card";
 import { KanbanToolbar } from "@/components/kanban/kanban-toolbar";
@@ -27,7 +29,7 @@ import { KanbanBoardSkeleton } from "@/components/ui/skeleton";
 import { ConfettiBurst } from "@/components/ui/confetti";
 import { KANBAN_COLUMNS } from "@/constants/kanban";
 import { sortByPriority } from "@/lib/kanban-utils";
-import { useObjectives, type ObjectiveInput } from "@/hooks/use-objectives";
+import { useObjectives, isOnKanbanBoard, type ObjectiveInput } from "@/hooks/use-objectives";
 import type { Objective, KanbanStatus } from "@/types";
 
 type DialogState =
@@ -36,6 +38,7 @@ type DialogState =
   | null;
 
 export function KanbanBoard() {
+  const prefersReducedMotion = useReducedMotion();
   const {
     objectives,
     hydrated,
@@ -66,7 +69,7 @@ export function KanbanBoard() {
   );
 
   const boardObjectives = React.useMemo(
-    () => objectives.filter((o) => o.status !== "recycled"),
+    () => objectives.filter((o) => o.status !== "recycled" && isOnKanbanBoard(o)),
     [objectives]
   );
   const recycledObjectives = React.useMemo(
@@ -155,31 +158,30 @@ export function KanbanBoard() {
   }
 
   return (
-    <div className="relative">
-      <PageHeader
-        title="Kanban"
-        description="Plan, track, and move your objectives through your study workflow."
-        actions={
-          <Button variant="outline" onClick={() => setRecycleBinOpen(true)}>
-            <RotateCcw className="h-4 w-4" />
-            Recycle bin
-            {recycledObjectives.length > 0 && (
-              <span className="ml-0.5 rounded-full bg-surface px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
-                {recycledObjectives.length}
-              </span>
-            )}
-          </Button>
-        }
-      />
-
-      <KanbanToolbar
-        search={search}
-        onSearchChange={setSearch}
-        priorityFilter={priorityFilter}
-        onPriorityFilterChange={setPriorityFilter}
-        onAdd={() => setDialogState({ mode: "create", status: "todo" })}
-      />
-
+    <AppPage
+      title="Kanban"
+      description="Plan, track, and move your objectives through your study workflow."
+      actions={
+        <Button variant="outline" onClick={() => setRecycleBinOpen(true)}>
+          <RotateCcw className="h-4 w-4" />
+          Recycle bin
+          {recycledObjectives.length > 0 && (
+            <span className="ml-0.5 rounded-full bg-surface px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
+              {recycledObjectives.length}
+            </span>
+          )}
+        </Button>
+      }
+      toolbar={
+        <KanbanToolbar
+          search={search}
+          onSearchChange={setSearch}
+          priorityFilter={priorityFilter}
+          onPriorityFilterChange={setPriorityFilter}
+          onAdd={() => setDialogState({ mode: "create", status: "todo" })}
+        />
+      }
+    >
       {!hydrated ? (
         <KanbanBoardSkeleton />
       ) : (
@@ -190,21 +192,34 @@ export function KanbanBoard() {
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
-          <div className="flex gap-5 overflow-x-auto pb-4">
+          <motion.div
+            initial={prefersReducedMotion ? undefined : "hidden"}
+            animate="visible"
+            variants={{ hidden: {}, visible: { transition: { staggerChildren: STAGGER.base } } }}
+            className="grid w-full grid-flow-col auto-cols-[minmax(280px,1fr)] gap-5 overflow-x-auto pb-4 lg:grid-flow-row lg:grid-cols-3"
+          >
             {KANBAN_COLUMNS.map((column) => (
-              <KanbanColumn
+              <motion.div
                 key={column.id}
-                column={column}
-                objectives={grouped[column.id]}
-                onEdit={(objective) => setDialogState({ mode: "edit", objective })}
-                onDelete={(objective) => setDeleteTarget(objective)}
-                onAdd={(status) => setDialogState({ mode: "create", status })}
-                onSendToRecycleBin={(objective) => sendToRecycleBin(objective.id)}
-                onSchedule={(objective, input) => scheduleObjective(objective.id, input)}
-                onUnschedule={(objective) => unscheduleObjective(objective.id)}
-              />
+                className="min-w-0"
+                variants={{
+                  hidden: { opacity: 0, y: 12, scale: 0.98 },
+                  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.5, ease: EASE } },
+                }}
+              >
+                <KanbanColumn
+                  column={column}
+                  objectives={grouped[column.id]}
+                  onEdit={(objective) => setDialogState({ mode: "edit", objective })}
+                  onDelete={(objective) => setDeleteTarget(objective)}
+                  onAdd={(status) => setDialogState({ mode: "create", status })}
+                  onSendToRecycleBin={(objective) => sendToRecycleBin(objective.id)}
+                  onSchedule={(objective, input) => scheduleObjective(objective.id, input)}
+                  onUnschedule={(objective) => unscheduleObjective(objective.id)}
+                />
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
 
           <DragOverlay>
             {activeObjective ? (
@@ -254,6 +269,6 @@ export function KanbanBoard() {
         onRestore={(objective) => restoreFromRecycleBin(objective.id)}
         onDeleteForever={(objective) => permanentlyDelete(objective.id)}
       />
-    </div>
+    </AppPage>
   );
 }

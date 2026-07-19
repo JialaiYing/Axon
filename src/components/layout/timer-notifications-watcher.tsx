@@ -6,6 +6,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { X, Timer as TimerIcon } from "lucide-react";
 import { usePomodoroTimers } from "@/hooks/use-pomodoro-timers";
 import { useNotifications } from "@/hooks/use-notifications";
+import { usePomodoroSessions } from "@/hooks/use-pomodoro-sessions";
+import { useObjectives } from "@/hooks/use-objectives";
 
 const TOAST_DURATION_MS = 6000;
 
@@ -26,9 +28,36 @@ interface Toast {
 export function TimerNotificationsWatcher() {
   const pathname = usePathname();
   const router = useRouter();
-  const { timers, hydrated, markNotified, removeTimer } = usePomodoroTimers();
+  const { timers, hydrated, markLogged, markNotified, removeTimer } = usePomodoroTimers();
   const { addNotification, removeNotification } = useNotifications();
+  const { logSession } = usePomodoroSessions();
+  const { logStudyTime } = useObjectives();
   const [toasts, setToasts] = React.useState<Toast[]>([]);
+  const loggedInThisMount = React.useRef(new Set<string>());
+
+  // Completion accounting lives in this always-mounted watcher so Dashboard,
+  // Analytics, Kanban progress, and Pomodoro all observe the same session
+  // record even when the timer expires on another route.
+  React.useEffect(() => {
+    if (!hydrated) return;
+    timers
+      .filter((timer) => timer.status === "finished" && !timer.loggedCompletion)
+      .forEach((timer) => {
+        if (loggedInThisMount.current.has(timer.id)) return;
+        loggedInThisMount.current.add(timer.id);
+        markLogged(timer.id);
+        const minutes = Math.max(0, Math.round(timer.durationSeconds / 60));
+        if (minutes <= 0) return;
+        if (timer.objectiveId) logStudyTime(timer.objectiveId, minutes);
+        logSession({
+          durationMinutes: minutes,
+          type: "work",
+          completed: true,
+          objectiveId: timer.objectiveId,
+          label: timer.label,
+        });
+      });
+  }, [timers, hydrated, markLogged, logStudyTime, logSession]);
 
   React.useEffect(() => {
     if (!hydrated) return;

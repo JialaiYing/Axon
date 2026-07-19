@@ -35,7 +35,7 @@ function normalizeFolder(value: FlashcardFolder): FlashcardFolder | null {
     ...value,
     title: typeof value.title === "string" && value.title.trim() ? value.title : "Untitled folder",
     imageDataUrl: typeof value.imageDataUrl === "string" ? value.imageDataUrl : undefined,
-    color: typeof value.color === "string" ? value.color : FOLDER_COLORS[0],
+    color: typeof value.color === "string" ? value.color : FOLDER_COLORS[0] ?? "#5227FF",
     createdAt: validIso(value.createdAt) ?? new Date().toISOString(),
     lastOpenedAt: validIso(value.lastOpenedAt),
     // Omit = visible. Only an explicit `false` hides the folder from the dome.
@@ -127,7 +127,7 @@ export function useFlashcards() {
         id: createId(),
         title: input.title,
         imageDataUrl: input.imageDataUrl,
-        color: input.color ?? FOLDER_COLORS[Math.floor(Math.random() * FOLDER_COLORS.length)],
+        color: input.color ?? FOLDER_COLORS[Math.floor(Math.random() * FOLDER_COLORS.length)] ?? "#5227FF",
         createdAt: new Date().toISOString(),
         showInDome: true,
         pinned: false,

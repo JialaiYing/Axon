@@ -37,6 +37,13 @@ export interface Objective {
   scheduledStart?: string; // ISO datetime
   /** Length of the scheduled block, in minutes. Independent of estimatedStudyTime. */
   scheduledDurationMinutes?: number;
+  /**
+   * Whether this objective appears as a card on the Kanban board.
+   * Calendar-only events set this to false — they still live in the same
+   * objectives store (one source of truth) but are filtered out of board
+   * columns. Omit / true = visible on the board.
+   */
+  showOnKanban?: boolean;
   // Reserved for future phases
   subtasks?: { id: string; title: string; done: boolean }[];
   attachments?: { id: string; name: string; url: string }[];
@@ -161,6 +168,19 @@ export interface Goal {
   deadline?: string;
   completed: boolean;
   createdAt: string;
+}
+
+/** Closed period result for a tracked goal (daily midnight / weekly Monday reset). */
+export interface GoalHistoryEntry {
+  id: string;
+  goalId: string;
+  type: "daily" | "weekly";
+  /** Daily: `YYYY-MM-DD`. Weekly: Monday's `YYYY-MM-DD`. */
+  periodKey: string;
+  progress: number;
+  target: number;
+  hit: boolean;
+  recordedAt: string;
 }
 
 export interface UserStats {

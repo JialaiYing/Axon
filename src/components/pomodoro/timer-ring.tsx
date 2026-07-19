@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { formatClock } from "@/lib/pomodoro-utils";
 
 interface TimerRingProps {
@@ -14,11 +14,12 @@ interface TimerRingProps {
 const STROKE = 7;
 
 export function TimerRing({ remainingSeconds, totalSeconds, size = 260 }: TimerRingProps) {
+  const prefersReducedMotion = useReducedMotion();
   const gradientId = React.useId();
   const SIZE = size;
   const RADIUS = (SIZE - STROKE) / 2;
   const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
-  const fraction = totalSeconds > 0 ? remainingSeconds / totalSeconds : 1;
+  const fraction = totalSeconds > 0 ? Math.min(1, Math.max(0, remainingSeconds / totalSeconds)) : 1;
   const isLow = totalSeconds > 0 && fraction <= 0.1;
   const dashOffset = CIRCUMFERENCE * (1 - fraction);
 
@@ -35,6 +36,12 @@ export function TimerRing({ remainingSeconds, totalSeconds, size = 260 }: TimerR
         }}
         transition={{ duration: 0.8, ease: "easeOut" }}
         style={{ width: SIZE * 0.85, height: SIZE * 0.85 }}
+      />
+
+      <div
+        aria-hidden
+        className="absolute rounded-full border border-white/8 bg-[radial-gradient(circle_at_35%_25%,rgba(255,255,255,0.09),rgba(255,255,255,0.015)_55%,transparent)] shadow-[inset_0_1px_0_rgba(255,255,255,0.07),0_18px_50px_-28px_rgba(59,130,246,0.7)]"
+        style={{ width: SIZE - 28, height: SIZE - 28 }}
       />
 
       <svg width={SIZE} height={SIZE} className="-rotate-90 drop-shadow-sm">
@@ -63,7 +70,7 @@ export function TimerRing({ remainingSeconds, totalSeconds, size = 260 }: TimerR
           strokeLinecap="round"
           strokeDasharray={CIRCUMFERENCE}
           animate={{ strokeDashoffset: dashOffset }}
-          transition={{ duration: 0.6, ease: "linear" }}
+          transition={{ duration: prefersReducedMotion ? 0 : 0.6, ease: "linear" }}
           style={{
             filter: isLow
               ? "drop-shadow(0 0 12px rgba(239,68,68,0.6))"
@@ -74,9 +81,9 @@ export function TimerRing({ remainingSeconds, totalSeconds, size = 260 }: TimerR
 
       <div className="absolute flex flex-col items-center justify-center text-center">
         <motion.span
-          animate={isLow ? { scale: [1, 1.05, 1] } : { scale: 1 }}
-          transition={{ duration: 1, repeat: isLow ? Infinity : 0 }}
-          className="font-mono font-semibold tabular-nums tracking-[0.01em] text-foreground drop-shadow-sm"
+          animate={isLow && !prefersReducedMotion ? { scale: [1, 1.04, 1] } : { scale: 1 }}
+          transition={{ duration: 1, repeat: isLow && !prefersReducedMotion ? Infinity : 0 }}
+          className="font-mono font-semibold tabular-nums tracking-[-0.04em] text-foreground drop-shadow-[0_2px_16px_rgba(59,130,246,0.2)]"
           style={{ fontSize: size >= 400 ? "4.5rem" : "3rem" }}
         >
           {formatClock(remainingSeconds)}

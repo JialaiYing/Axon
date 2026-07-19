@@ -26,7 +26,16 @@ export type ObjectiveInput = {
   status: ObjectiveStatus;
   color?: string;
   notes?: string;
+  scheduledStart?: string;
+  scheduledDurationMinutes?: number;
+  /** Defaults to true. False = calendar-only event, hidden from Kanban columns. */
+  showOnKanban?: boolean;
 };
+
+/** True when the objective should render as a Kanban card (default / omitted = yes). */
+export function isOnKanbanBoard(objective: Pick<Objective, "showOnKanban">): boolean {
+  return objective.showOnKanban !== false;
+}
 
 function createId() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -87,6 +96,8 @@ function normalizeObjective(value: Objective): Objective | null {
     notes: typeof value.notes === "string" ? value.notes : undefined,
     scheduledStart: validIso(value.scheduledStart),
     scheduledDurationMinutes,
+    // Omit = visible on the board. Only an explicit `false` hides it.
+    showOnKanban: value.showOnKanban === false ? false : true,
     studySessions: normalizeStudySessions(value.studySessions),
   };
 }
@@ -137,6 +148,13 @@ export function useObjectives() {
         completedAt: input.status === "done" ? now : undefined,
         color: input.color,
         notes: input.notes,
+        scheduledStart: validIso(input.scheduledStart),
+        scheduledDurationMinutes:
+          typeof input.scheduledDurationMinutes === "number" &&
+          Number.isFinite(input.scheduledDurationMinutes)
+            ? Math.max(5, Math.round(input.scheduledDurationMinutes))
+            : undefined,
+        showOnKanban: input.showOnKanban === false ? false : true,
       };
       setObjectives((prev) => [objective, ...prev]);
       return objective;
@@ -160,13 +178,20 @@ export function useObjectives() {
       }
       const now = new Date().toISOString();
       const isNowDone = Boolean(current && current.status !== "done" && patch.status === "done");
+      // Mirrors moveObjective: reverting a "done" objective to any other
+      // status via the edit dialog must clear completedAt too, otherwise
+      // it keeps counting as "completed" in analytics/goal history even
+      // after it's no longer actually done.
+      const isLeavingDone = Boolean(
+        current && current.status === "done" && patch.status && patch.status !== "done"
+      );
       setObjectives((prev) =>
         prev.map((objective) =>
           objective.id === id
             ? {
                 ...objective,
                 ...patch,
-                completedAt: isNowDone ? now : objective.completedAt,
+                completedAt: isNowDone ? now : isLeavingDone ? undefined : objective.completedAt,
                 updatedAt: now,
               }
             : objective

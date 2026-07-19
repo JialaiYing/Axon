@@ -5,6 +5,7 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { AnimatePresence } from "framer-motion";
 import { Plus } from "lucide-react";
 import { KanbanCard } from "@/components/kanban/kanban-card";
+import { Panel } from "@/components/ui/panel";
 import { cn } from "@/lib/utils";
 import type { KanbanColumnDef } from "@/constants/kanban";
 import type { ScheduleInput } from "@/components/calendar/schedule-popover";
@@ -39,7 +40,7 @@ export function KanbanColumn({
   const ids = objectives.map((o) => o.id);
 
   return (
-    <div className="flex w-[300px] shrink-0 flex-col rounded-xl border border-border bg-surface/50 p-3 shadow-[var(--shadow-soft)] backdrop-blur-sm transition-colors duration-300 md:w-[320px]">
+    <Panel variant="glass" className="flex h-full w-full min-w-0 flex-col p-3">
       <div className="mb-3.5 flex items-center justify-between px-1 pt-0.5">
         <div>
           <div className="flex items-center gap-2">
@@ -94,6 +95,6 @@ export function KanbanColumn({
           </button>
         )}
       </div>
-    </div>
+    </Panel>
   );
 }

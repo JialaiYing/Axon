@@ -20,7 +20,7 @@ export function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivEl
 
 export function KanbanColumnSkeleton() {
   return (
-    <div className="flex w-[300px] shrink-0 flex-col gap-3.5 rounded-xl border border-border bg-surface/50 p-3 md:w-[320px]">
+    <div className="flex h-full w-full min-w-0 flex-col gap-3.5 rounded-xl border border-border bg-surface/50 p-3">
       <div className="flex items-center justify-between px-1 pt-0.5">
         <Skeleton className="h-4 w-24" />
         <Skeleton className="h-7 w-7 rounded-md" />
@@ -44,7 +44,7 @@ export function KanbanColumnSkeleton() {
 
 export function KanbanBoardSkeleton() {
   return (
-    <div className="flex gap-5 overflow-x-auto pb-4">
+    <div className="grid w-full grid-flow-col auto-cols-[minmax(280px,1fr)] gap-5 overflow-x-auto pb-4 lg:grid-flow-row lg:grid-cols-3">
       <KanbanColumnSkeleton />
       <KanbanColumnSkeleton />
       <KanbanColumnSkeleton />

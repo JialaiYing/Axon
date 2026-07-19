@@ -18,7 +18,7 @@ export function Gamification() {
             scrollStart="center bottom+=50%"
             scrollEnd="bottom bottom-=40%"
             stagger={0.03}
-            textClassName="text-2xl font-semibold tracking-tight text-foreground md:text-3xl"
+            textClassName="font-display text-2xl font-semibold tracking-tight text-foreground md:text-3xl"
           >
             Progress you can actually see
           </ScrollFloat>

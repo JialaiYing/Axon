@@ -70,7 +70,7 @@ export function Features() {
             scrollEnd="bottom bottom-=40%"
             stagger={0.03}
             containerClassName="flex justify-center"
-            textClassName="text-2xl font-semibold tracking-tight text-foreground md:text-3xl"
+            textClassName="font-display text-2xl font-semibold tracking-tight text-foreground md:text-3xl"
           >
             {"Everything you need. Nothing you don't."}
           </ScrollFloat>
@@ -90,11 +90,10 @@ export function Features() {
               <TiltCard className="h-full">
                 <MagicCard
                   className="h-full rounded-xl"
-                  enableStars
+                  enableStars={false}
                   enableBorderGlow
                   enableTilt={false}
                   clickEffect
-                  particleCount={10}
                   glowColor="59, 130, 246"
                 >
                   <Card className="h-full rounded-xl border-0 bg-transparent shadow-none">

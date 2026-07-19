@@ -91,7 +91,7 @@ export function StudyView({ set, onBack, onEdit }: StudyViewProps) {
         </Button>
       </div>
 
-      {cards.length === 0 ? (
+      {!card ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
           <p className="text-sm text-white/60">This set has no cards yet</p>
           <Button size="sm" className="cursor-pointer" onClick={onEdit}>

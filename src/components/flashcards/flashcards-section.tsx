@@ -580,8 +580,11 @@ export function FlashcardsSection() {
         defaultFolderId={createSetFolderId}
         onCreateFolder={(title) => addFolder({ title })}
         onCreate={(input) => {
+          // Deliberately not touchSet() here — creating a set opens it for
+          // editing (adding cards), not studying it, so it shouldn't jump
+          // to the top of "Recents" or become the dashboard's "Jump back
+          // in" target until it's actually been opened to study.
           const set = addSet(input);
-          touchSet(set.id);
           setEditSetId(set.id);
         }}
       />

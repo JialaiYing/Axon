@@ -1,5 +1,7 @@
 import { LandingNav } from "@/components/landing/landing-nav";
 import { LandingBackground } from "@/components/landing/landing-background";
+import { SmoothScroll } from "@/components/landing/smooth-scroll";
+import { GrainOverlay } from "@/components/ui/grain-overlay";
 import { Hero } from "@/components/landing/hero";
 import { WhyAxon } from "@/components/landing/why-axon";
 import { Features } from "@/components/landing/features";
@@ -15,7 +17,9 @@ import { PageTransition } from "@/components/layout/page-transition";
 export default function LandingPage() {
   return (
     <div className="relative min-h-screen bg-background">
+      <SmoothScroll />
       <LandingBackground />
+      <GrainOverlay />
       <div className="relative z-10">
         <LandingNav />
         <PageTransition>

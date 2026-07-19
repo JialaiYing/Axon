@@ -120,12 +120,18 @@ export function usePomodoroTimers() {
 
   // A single shared ticking clock drives re-renders for every timer card;
   // each card derives its own remaining time from `endAt`, so this tick is
-  // just a "wake up and recompute" signal, not the source of truth.
+  // just a "wake up and recompute" signal, not the source of truth. It only
+  // runs while a timer is actually counting down — paused/finished/empty
+  // lists don't need per-second re-renders (this hook is mounted app-wide
+  // via the notifications watcher, so an unconditional interval would tick
+  // on every page forever).
+  const hasRunningTimer = timers.some((t) => t.status === "running");
   const [, setTick] = React.useState(0);
   React.useEffect(() => {
+    if (!hasRunningTimer) return;
     const interval = setInterval(() => setTick((t) => t + 1), 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [hasRunningTimer]);
 
   // Flip any running timer whose endAt has passed into "finished".
   React.useEffect(() => {
@@ -202,7 +208,10 @@ export function usePomodoroTimers() {
         if (t.id !== id) return t;
         return {
           ...t,
-          durationSeconds: t.durationSeconds + extraSeconds,
+          // Treat an extension after completion as a new focus interval.
+          // The completed interval was already logged, so retaining the old
+          // duration here would count it a second time when this run finishes.
+          durationSeconds: extraSeconds,
           status: "running",
           endAt: Date.now() + extraSeconds * 1000,
           pausedRemainingSeconds: null,

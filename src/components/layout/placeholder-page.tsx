@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
-import { PageHeader } from "@/components/layout/page-header";
+import { AppPage } from "@/components/layout/app-page";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface PlaceholderPageProps {
   title: string;
@@ -8,24 +9,19 @@ interface PlaceholderPageProps {
   phaseLabel: string;
 }
 
-export function PlaceholderPage({
-  title,
-  description,
-  icon: Icon,
-  phaseLabel,
-}: PlaceholderPageProps) {
+/**
+ * Stays a server component and resolves `icon` into an element itself —
+ * `AppPage`/`EmptyState` are client components, and a bare component
+ * reference (unlike an already-rendered element) can't cross that boundary.
+ */
+export function PlaceholderPage({ title, description, icon: Icon, phaseLabel }: PlaceholderPageProps) {
   return (
-    <div>
-      <PageHeader title={title} description={description} />
-      <div className="flex min-h-[420px] flex-col items-center justify-center gap-4 text-center">
-        <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-border/40 bg-surface/20 backdrop-blur-sm">
-          <Icon className="h-6 w-6 text-muted" />
-        </div>
-        <div>
-          <p className="text-sm font-medium text-foreground">{title} is coming soon</p>
-          <p className="mt-1 text-xs text-muted-foreground">{phaseLabel}</p>
-        </div>
-      </div>
-    </div>
+    <AppPage title={title} description={description}>
+      <EmptyState
+        icon={<Icon className="h-5.5 w-5.5 text-muted" />}
+        title={`${title} is coming soon`}
+        description={phaseLabel}
+      />
+    </AppPage>
   );
 }

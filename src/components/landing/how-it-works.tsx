@@ -43,7 +43,7 @@ export function HowItWorks() {
             scrollEnd="bottom bottom-=40%"
             stagger={0.03}
             containerClassName="flex justify-center"
-            textClassName="text-2xl font-semibold tracking-tight text-foreground md:text-3xl"
+            textClassName="font-display text-2xl font-semibold tracking-tight text-foreground md:text-3xl"
           >
             How it works
           </ScrollFloat>
@@ -63,10 +63,9 @@ export function HowItWorks() {
             <ScrollRevealItem key={item.step}>
               <MagicCard
                 className="h-full rounded-xl"
-                enableStars
+                enableStars={false}
                 enableBorderGlow
                 clickEffect
-                particleCount={8}
                 glowColor="59, 130, 246"
               >
                 <div className="group relative h-full rounded-xl border border-border/60 bg-card/50 p-7 backdrop-blur-sm transition-transform duration-300 hover:-translate-y-1">
