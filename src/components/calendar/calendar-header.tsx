@@ -1,10 +1,12 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, CalendarPlus } from "lucide-react";
+import { ChevronLeft, ChevronRight, CalendarPlus, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatDayTitle, formatMonthTitle, formatWeekRangeTitle } from "@/lib/calendar-utils";
+import { downloadObjectivesIcs } from "@/lib/calendar/ics";
 import type { CalendarViewMode } from "@/hooks/use-calendar-state";
+import type { Objective } from "@/types";
 
 interface CalendarHeaderProps {
   view: CalendarViewMode;
@@ -14,6 +16,7 @@ interface CalendarHeaderProps {
   onNext: () => void;
   onToday: () => void;
   onAddExisting: () => void;
+  scheduledObjectives?: Objective[];
 }
 
 export function CalendarHeader({
@@ -24,6 +27,7 @@ export function CalendarHeader({
   onNext,
   onToday,
   onAddExisting,
+  scheduledObjectives = [],
 }: CalendarHeaderProps) {
   const title =
     view === "month"
@@ -31,6 +35,8 @@ export function CalendarHeader({
       : view === "week"
         ? formatWeekRangeTitle(currentDate)
         : formatDayTitle(currentDate);
+
+  const exportableCount = scheduledObjectives.filter((o) => o.scheduledStart).length;
 
   return (
     <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -64,7 +70,7 @@ export function CalendarHeader({
         <p className="hidden text-sm text-muted sm:block">{title}</p>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Tabs value={view} onValueChange={(v) => onViewChange(v as CalendarViewMode)}>
           <TabsList>
             <TabsTrigger value="month">Month</TabsTrigger>
@@ -72,13 +78,24 @@ export function CalendarHeader({
             <TabsTrigger value="day">Day</TabsTrigger>
           </TabsList>
         </Tabs>
+        <Button
+          variant="outline"
+          disabled={exportableCount === 0}
+          onClick={() => downloadObjectivesIcs(scheduledObjectives)}
+          title={
+            exportableCount === 0
+              ? "Schedule at least one objective to export"
+              : `Export ${exportableCount} scheduled event${exportableCount === 1 ? "" : "s"}`
+          }
+        >
+          <Download className="h-4 w-4" />
+          Export .ics
+        </Button>
         <Button variant="outline" onClick={onAddExisting}>
           <CalendarPlus className="h-4 w-4" />
           Add existing objective
         </Button>
       </div>
-
-      <p className="text-sm text-muted sm:hidden">{title}</p>
     </div>
   );
 }

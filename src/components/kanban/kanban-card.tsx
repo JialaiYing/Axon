@@ -4,7 +4,7 @@ import * as React from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { motion } from "framer-motion";
-import { Pencil, Trash2, Clock, CalendarDays, CalendarPlus, ArchiveX, CalendarClock, CalendarOff } from "lucide-react";
+import { Pencil, Trash2, Clock, CalendarDays, CalendarPlus, ArchiveX, CalendarClock, CalendarOff, ListChecks, Repeat } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { cn } from "@/lib/utils";
@@ -185,6 +185,24 @@ export function KanbanCard({
       <div className="mt-3 pl-2">
         <ProgressBar value={objective.progress} size="sm" showLabel />
       </div>
+
+      {((objective.subtasks && objective.subtasks.length > 0) ||
+        (objective.recurrence && objective.recurrence !== "none")) && (
+        <div className="mt-2 flex flex-wrap items-center gap-2 pl-2 text-[11px] text-muted-foreground">
+          {objective.subtasks && objective.subtasks.length > 0 && (
+            <span className="flex items-center gap-1">
+              <ListChecks className="h-3 w-3" />
+              {objective.subtasks.filter((s) => s.done).length}/{objective.subtasks.length}
+            </span>
+          )}
+          {objective.recurrence && objective.recurrence !== "none" && (
+            <span className="flex items-center gap-1 capitalize">
+              <Repeat className="h-3 w-3" />
+              {objective.recurrence}
+            </span>
+          )}
+        </div>
+      )}
 
       {!isOverlay && (onSchedule || onUnschedule) && (
         <div className="mt-2.5 pl-2" onPointerDown={(e) => e.stopPropagation()}>

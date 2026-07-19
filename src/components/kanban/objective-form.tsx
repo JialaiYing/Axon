@@ -16,14 +16,17 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { DialogFooter } from "@/components/ui/dialog";
+import { SubtaskEditor } from "@/components/kanban/subtask-editor";
+import { AttachmentEditor } from "@/components/kanban/attachment-editor";
+import { DependencyPicker } from "@/components/kanban/dependency-picker";
 import { cn } from "@/lib/utils";
 import {
   KANBAN_COLUMNS,
   PRIORITY_OPTIONS,
   OBJECTIVE_COLORS,
 } from "@/constants/kanban";
-import type { ObjectiveInput } from "@/hooks/use-objectives";
-import type { KanbanStatus, Objective } from "@/types";
+import { progressFromSubtasks, type ObjectiveInput } from "@/hooks/use-objectives";
+import type { Attachment, KanbanStatus, Objective, Recurrence, Subtask } from "@/types";
 
 const objectiveSchema = z.object({
   title: z.string().min(1, "Title is required").max(120, "Keep it under 120 characters"),
@@ -40,6 +43,7 @@ const objectiveSchema = z.object({
   labels: z.string().max(200).optional(),
   color: z.string().optional(),
   notes: z.string().max(1000).optional(),
+  recurrence: z.enum(["none", "daily", "weekly"]),
 });
 
 type ObjectiveFormValues = z.infer<typeof objectiveSchema>;
@@ -47,6 +51,8 @@ type ObjectiveFormValues = z.infer<typeof objectiveSchema>;
 interface ObjectiveFormProps {
   defaultStatus?: KanbanStatus;
   initialValues?: Objective;
+  /** Other objectives available as dependency targets. */
+  dependencyCandidates?: Objective[];
   onSubmit: (input: ObjectiveInput) => void;
   onCancel: () => void;
   submitLabel: string;
@@ -55,10 +61,22 @@ interface ObjectiveFormProps {
 export function ObjectiveForm({
   defaultStatus = "todo",
   initialValues,
+  dependencyCandidates = [],
   onSubmit,
   onCancel,
   submitLabel,
 }: ObjectiveFormProps) {
+  const [subtasks, setSubtasks] = React.useState<Subtask[]>(initialValues?.subtasks ?? []);
+  const [attachments, setAttachments] = React.useState<Attachment[]>(
+    initialValues?.attachments ?? []
+  );
+  const [dependencies, setDependencies] = React.useState<string[]>(
+    initialValues?.dependencies ?? []
+  );
+
+  const derivedProgress = progressFromSubtasks(subtasks);
+  const progressLocked = derivedProgress !== null;
+
   const {
     register,
     handleSubmit,
@@ -86,11 +104,18 @@ export function ObjectiveForm({
       labels: initialValues?.labels?.join(", ") ?? "",
       color: initialValues?.color ?? OBJECTIVE_COLORS[0],
       notes: initialValues?.notes ?? "",
+      recurrence: (initialValues?.recurrence as Recurrence | undefined) ?? "none",
     },
   });
 
   const selectedColor = watch("color");
   const progress = watch("progress");
+
+  React.useEffect(() => {
+    if (derivedProgress !== null) {
+      setValue("progress", derivedProgress);
+    }
+  }, [derivedProgress, setValue]);
 
   const submit = handleSubmit((values) => {
     onSubmit({
@@ -101,12 +126,16 @@ export function ObjectiveForm({
       status: values.status,
       dueDate: values.dueDate ? new Date(values.dueDate).toISOString() : undefined,
       estimatedStudyTime: values.estimatedStudyTime,
-      progress: values.progress,
+      progress: derivedProgress !== null ? derivedProgress : values.progress,
       labels: values.labels
         ? values.labels.split(",").map((l: string) => l.trim()).filter(Boolean)
         : [],
       color: values.color,
       notes: values.notes?.trim() || undefined,
+      subtasks,
+      attachments,
+      dependencies,
+      recurrence: values.recurrence,
     });
   });
 
@@ -201,22 +230,51 @@ export function ObjectiveForm({
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="progress">Progress ({progress ?? 0}%)</Label>
+          <Label htmlFor="progress">
+            Progress ({progress ?? 0}%)
+            {progressLocked ? " · from checklist" : ""}
+          </Label>
           <input
             id="progress"
             type="range"
             min={0}
             max={100}
             step={5}
+            disabled={progressLocked}
             {...register("progress")}
-            className="mt-2.5 h-1.5 w-full cursor-pointer appearance-none rounded-full bg-surface accent-accent"
+            className={cn(
+              "mt-2.5 h-1.5 w-full appearance-none rounded-full bg-surface accent-accent",
+              progressLocked ? "cursor-not-allowed opacity-60" : "cursor-pointer"
+            )}
           />
         </div>
       </div>
 
-      <div className="space-y-1.5">
-        <Label htmlFor="labels">Labels (comma separated)</Label>
-        <Input id="labels" placeholder="reading, quiz-prep" {...register("labels")} />
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label htmlFor="labels">Labels (comma separated)</Label>
+          <Input id="labels" placeholder="reading, quiz-prep" {...register("labels")} />
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="recurrence">Repeat</Label>
+          <Controller
+            control={control}
+            name="recurrence"
+            render={({ field }) => (
+              <Select value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger id="recurrence">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Does not repeat</SelectItem>
+                  <SelectItem value="daily">Daily</SelectItem>
+                  <SelectItem value="weekly">Weekly</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          />
+        </div>
       </div>
 
       <div className="space-y-1.5">
@@ -239,6 +297,17 @@ export function ObjectiveForm({
           ))}
         </div>
       </div>
+
+      <SubtaskEditor subtasks={subtasks} onChange={setSubtasks} />
+
+      <AttachmentEditor attachments={attachments} onChange={setAttachments} />
+
+      <DependencyPicker
+        currentId={initialValues?.id}
+        candidates={dependencyCandidates}
+        selectedIds={dependencies}
+        onChange={setDependencies}
+      />
 
       <div className="space-y-1.5">
         <Label htmlFor="notes">Notes</Label>

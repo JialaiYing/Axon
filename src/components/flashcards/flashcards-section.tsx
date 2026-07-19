@@ -24,6 +24,7 @@ import { FolderViewDialog } from "@/components/flashcards/folder-view-dialog";
 import { SetViewDialog } from "@/components/flashcards/set-view-dialog";
 import { StudyView } from "@/components/flashcards/study-view";
 import DomeGallery from "@/components/flashcards/dome-gallery";
+import { FeatureIntro } from "@/components/onboarding/feature-intro";
 import type { FlashcardFolder, FlashcardSet } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -173,6 +174,7 @@ export function FlashcardsSection() {
 
   return (
     <>
+      <FeatureIntro feature="flashcards" />
       <motion.div
         initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

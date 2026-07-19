@@ -159,6 +159,7 @@ export function KanbanBoard() {
 
   return (
     <AppPage
+      feature="kanban"
       title="Kanban"
       description="Plan, track, and move your objectives through your study workflow."
       actions={
@@ -244,6 +245,7 @@ export function KanbanBoard() {
         mode={dialogState?.mode ?? "create"}
         defaultStatus={dialogState?.mode === "create" ? dialogState.status : undefined}
         objective={dialogState?.mode === "edit" ? dialogState.objective : undefined}
+        dependencyCandidates={objectives}
         onSubmit={handleFormSubmit}
       />
 

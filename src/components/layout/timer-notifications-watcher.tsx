@@ -8,6 +8,7 @@ import { usePomodoroTimers } from "@/hooks/use-pomodoro-timers";
 import { useNotifications } from "@/hooks/use-notifications";
 import { usePomodoroSessions } from "@/hooks/use-pomodoro-sessions";
 import { useObjectives } from "@/hooks/use-objectives";
+import { showBrowserNotification } from "@/lib/notifications/browser";
 
 const TOAST_DURATION_MS = 6000;
 
@@ -65,18 +66,34 @@ export function TimerNotificationsWatcher() {
     if (due.length === 0) return;
     due.forEach((timer) => {
       markNotified(timer.id);
+      const title = "Timer finished";
+      const message = `"${timer.label}" just ran out of time.`;
+
+      // System notification when the tab isn't focused (permission + pref gated).
+      const browserNote = showBrowserNotification(title, {
+        body: message,
+        tag: `axon-timer-${timer.id}`,
+      });
+      if (browserNote) {
+        browserNote.onclick = () => {
+          window.focus();
+          router.push("/pomodoro");
+          browserNote.close();
+        };
+      }
+
       if (pathname === "/pomodoro") return;
       const notification = addNotification({
         timerId: timer.id,
-        title: "Timer finished",
-        message: `"${timer.label}" just ran out of time.`,
+        title,
+        message,
       });
       setToasts((prev) => [
         ...prev,
         { id: notification.id, timerId: timer.id, title: notification.title, message: notification.message },
       ]);
     });
-  }, [timers, hydrated, pathname, markNotified, addNotification]);
+  }, [timers, hydrated, pathname, markNotified, addNotification, router]);
 
   function dismissToast(id: string) {
     setToasts((prev) => prev.filter((t) => t.id !== id));

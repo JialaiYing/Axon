@@ -38,6 +38,7 @@ import { DayView } from "@/components/calendar/day-view";
 import { AgendaPanel } from "@/components/calendar/agenda-panel";
 import { UnscheduledRail } from "@/components/calendar/unscheduled-rail";
 import { AddObjectiveDialog } from "@/components/calendar/add-objective-dialog";
+import { FeatureIntro } from "@/components/onboarding/feature-intro";
 import type { ScheduleInput } from "@/components/calendar/schedule-popover";
 import type { Objective } from "@/types";
 
@@ -140,6 +141,7 @@ export function CalendarPage() {
 
   return (
     <div className="relative">
+      <FeatureIntro feature="calendar" />
       <CalendarHeader
         view={view}
         onViewChange={(v) => setView(v)}
@@ -148,6 +150,7 @@ export function CalendarPage() {
         onNext={goNext}
         onToday={goToday}
         onAddExisting={() => setAddTarget(currentDate)}
+        scheduledObjectives={visibleObjectives}
       />
 
       {isLoading ? (
@@ -250,6 +253,7 @@ export function CalendarPage() {
         onOpenChange={(open) => !open && setEditTarget(null)}
         mode="edit"
         objective={editTarget ?? undefined}
+        dependencyCandidates={objectives}
         onSubmit={(input) => {
           if (editTarget) updateObjective(editTarget.id, input);
         }}

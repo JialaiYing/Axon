@@ -35,6 +35,7 @@ import { ProgressBar } from "@/components/ui/progress-bar";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TiltCard } from "@/components/ui/tilt-card";
+import { FeatureIntro } from "@/components/onboarding/feature-intro";
 import { useObjectives } from "@/hooks/use-objectives";
 import { usePomodoroSessions } from "@/hooks/use-pomodoro-sessions";
 import { useFlashcards } from "@/hooks/use-flashcards";
@@ -484,6 +485,8 @@ export function DashboardOverview() {
   if (!hydrated) return <LoadingState />;
 
   return (
+    <>
+    <FeatureIntro feature="dashboard" />
     <motion.div
       variants={container}
       initial={prefersReducedMotion ? false : "hidden"}
@@ -837,5 +840,6 @@ export function DashboardOverview() {
       </div>
       </div>
     </motion.div>
+    </>
   );
 }

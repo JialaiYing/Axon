@@ -28,6 +28,7 @@ import {
 } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
+import { FeatureIntro } from "@/components/onboarding/feature-intro";
 import { useObjectives } from "@/hooks/use-objectives";
 import { usePomodoroSessions } from "@/hooks/use-pomodoro-sessions";
 import { useFlashcards } from "@/hooks/use-flashcards";
@@ -331,6 +332,8 @@ export function AnalyticsOverview() {
   if (!hydrated) return <LoadingState />;
 
   return (
+    <>
+    <FeatureIntro feature="analytics" />
     <motion.div
       variants={container}
       initial={prefersReducedMotion ? false : "hidden"}
@@ -700,5 +703,6 @@ export function AnalyticsOverview() {
         </GlassPanel>
       </motion.div>
     </motion.div>
+    </>
   );
 }

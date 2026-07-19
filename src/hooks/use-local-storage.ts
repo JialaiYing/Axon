@@ -29,6 +29,18 @@ function subscribe(key: string, listener: () => void) {
 
 function broadcast(key: string) {
   subscribers.get(key)?.forEach((listener) => listener());
+  // Global bus so the sync engine can debounce pushes without coupling to each key.
+  globalListeners.forEach((listener) => listener(key));
+}
+
+const globalListeners = new Set<(key: string) => void>();
+
+/** Subscribe to every localStorage write that goes through this module. */
+export function subscribeLocalStorageWrites(listener: (key: string) => void) {
+  globalListeners.add(listener);
+  return () => {
+    globalListeners.delete(listener);
+  };
 }
 
 function readStorage<T>(key: string, fallback: T): T {

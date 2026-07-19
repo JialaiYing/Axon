@@ -8,11 +8,19 @@ import { awardObjectiveCompletionXp } from "@/lib/progress/store";
 import { MOCK_OBJECTIVES } from "@/lib/mock-objectives";
 import { daysSince } from "@/lib/kanban-utils";
 import { AUTO_RECYCLE_AFTER_DAYS, RECYCLE_BIN_RETENTION_DAYS } from "@/constants/kanban";
-import type { Objective, ObjectiveStatus, Priority } from "@/types";
+import type {
+  Attachment,
+  Objective,
+  ObjectiveStatus,
+  Priority,
+  Recurrence,
+  Subtask,
+} from "@/types";
 
 const STORAGE_KEY = "axon:kanban:objectives";
 const OBJECTIVE_STATUSES = new Set(["todo", "in-progress", "done", "recycled"]);
 const PRIORITIES = new Set(["low", "medium", "high", "urgent"]);
+const RECURRENCES = new Set<Recurrence>(["none", "daily", "weekly"]);
 
 export type ObjectiveInput = {
   title: string;
@@ -30,7 +38,18 @@ export type ObjectiveInput = {
   scheduledDurationMinutes?: number;
   /** Defaults to true. False = calendar-only event, hidden from Kanban columns. */
   showOnKanban?: boolean;
+  subtasks?: Subtask[];
+  attachments?: Attachment[];
+  dependencies?: string[];
+  recurrence?: Recurrence;
 };
+
+/** Progress derived from checklist completion when subtasks exist. */
+export function progressFromSubtasks(subtasks: Subtask[] | undefined): number | null {
+  if (!subtasks || subtasks.length === 0) return null;
+  const done = subtasks.filter((s) => s.done).length;
+  return Math.round((done / subtasks.length) * 100);
+}
 
 /** True when the objective should render as a Kanban card (default / omitted = yes). */
 export function isOnKanbanBoard(objective: Pick<Objective, "showOnKanban">): boolean {
@@ -63,6 +82,37 @@ function normalizeStudySessions(value: Objective["studySessions"]): NonNullable<
     }));
 }
 
+function normalizeSubtasks(value: Objective["subtasks"]): Subtask[] {
+  return asArray<Subtask>(value)
+    .filter((item) => item && typeof item.id === "string" && typeof item.title === "string")
+    .map((item) => ({
+      id: item.id,
+      title: item.title.trim() || "Untitled",
+      done: Boolean(item.done),
+    }));
+}
+
+function normalizeAttachments(value: Objective["attachments"]): Attachment[] {
+  return asArray<Attachment>(value)
+    .filter(
+      (item) =>
+        item &&
+        typeof item.id === "string" &&
+        typeof item.name === "string" &&
+        typeof item.url === "string"
+    )
+    .map((item) => ({
+      id: item.id,
+      name: item.name.trim() || "Link",
+      url: item.url.trim(),
+    }))
+    .filter((item) => item.url.length > 0);
+}
+
+function normalizeDependencies(value: Objective["dependencies"]): string[] {
+  return asArray<string>(value).filter((id) => typeof id === "string" && id.trim());
+}
+
 function normalizeObjective(value: Objective): Objective | null {
   if (!value || typeof value !== "object" || typeof value.id !== "string") return null;
   const now = new Date().toISOString();
@@ -76,6 +126,12 @@ function normalizeObjective(value: Objective): Objective | null {
     typeof value.scheduledDurationMinutes === "number" && Number.isFinite(value.scheduledDurationMinutes)
       ? Math.max(5, Math.round(value.scheduledDurationMinutes))
       : undefined;
+  const subtasks = normalizeSubtasks(value.subtasks);
+  const derivedProgress = progressFromSubtasks(subtasks);
+  const recurrence =
+    typeof value.recurrence === "string" && RECURRENCES.has(value.recurrence)
+      ? value.recurrence
+      : "none";
 
   return {
     ...value,
@@ -85,7 +141,10 @@ function normalizeObjective(value: Objective): Objective | null {
     priority,
     dueDate: validIso(value.dueDate),
     estimatedStudyTime,
-    progress: Math.min(100, Math.max(0, Math.round(finiteNumber(value.progress, 0)))),
+    progress:
+      derivedProgress !== null
+        ? derivedProgress
+        : Math.min(100, Math.max(0, Math.round(finiteNumber(value.progress, 0)))),
     labels: asArray<string>(value.labels).filter((label) => typeof label === "string" && label.trim()),
     status,
     createdAt: validIso(value.createdAt) ?? now,
@@ -99,6 +158,12 @@ function normalizeObjective(value: Objective): Objective | null {
     // Omit = visible on the board. Only an explicit `false` hides it.
     showOnKanban: value.showOnKanban === false ? false : true,
     studySessions: normalizeStudySessions(value.studySessions),
+    subtasks,
+    attachments: normalizeAttachments(value.attachments),
+    dependencies: normalizeDependencies(value.dependencies),
+    recurrence,
+    recurrenceParentId:
+      typeof value.recurrenceParentId === "string" ? value.recurrenceParentId : undefined,
   };
 }
 
@@ -132,6 +197,8 @@ export function useObjectives() {
   const addObjective = React.useCallback(
     (input: ObjectiveInput) => {
       const now = new Date().toISOString();
+      const subtasks = normalizeSubtasks(input.subtasks);
+      const derivedProgress = progressFromSubtasks(subtasks);
       const objective: Objective = {
         id: createId(),
         title: input.title,
@@ -140,7 +207,7 @@ export function useObjectives() {
         priority: input.priority,
         dueDate: input.dueDate,
         estimatedStudyTime: input.estimatedStudyTime,
-        progress: input.progress,
+        progress: derivedProgress !== null ? derivedProgress : input.progress,
         labels: input.labels,
         status: input.status,
         createdAt: now,
@@ -155,6 +222,10 @@ export function useObjectives() {
             ? Math.max(5, Math.round(input.scheduledDurationMinutes))
             : undefined,
         showOnKanban: input.showOnKanban === false ? false : true,
+        subtasks,
+        attachments: normalizeAttachments(input.attachments),
+        dependencies: normalizeDependencies(input.dependencies),
+        recurrence: input.recurrence && RECURRENCES.has(input.recurrence) ? input.recurrence : "none",
       };
       setObjectives((prev) => [objective, ...prev]);
       return objective;
@@ -186,16 +257,28 @@ export function useObjectives() {
         current && current.status === "done" && patch.status && patch.status !== "done"
       );
       setObjectives((prev) =>
-        prev.map((objective) =>
-          objective.id === id
-            ? {
-                ...objective,
-                ...patch,
-                completedAt: isNowDone ? now : isLeavingDone ? undefined : objective.completedAt,
-                updatedAt: now,
-              }
-            : objective
-        )
+        prev.map((objective) => {
+          if (objective.id !== id) return objective;
+          const nextSubtasks =
+            patch.subtasks !== undefined ? normalizeSubtasks(patch.subtasks) : objective.subtasks;
+          const derived = progressFromSubtasks(nextSubtasks);
+          return {
+            ...objective,
+            ...patch,
+            subtasks: nextSubtasks,
+            attachments:
+              patch.attachments !== undefined
+                ? normalizeAttachments(patch.attachments)
+                : objective.attachments,
+            dependencies:
+              patch.dependencies !== undefined
+                ? normalizeDependencies(patch.dependencies)
+                : objective.dependencies,
+            progress: derived !== null ? derived : (patch.progress ?? objective.progress),
+            completedAt: isNowDone ? now : isLeavingDone ? undefined : objective.completedAt,
+            updatedAt: now,
+          };
+        })
       );
       if (isNowDone && current) {
         awardObjectiveCompletionXp({ ...current, ...patch, completedAt: now });
@@ -301,9 +384,14 @@ export function useObjectives() {
             { id: createId(), date: now, minutes },
           ];
           const totalMinutes = sessions.reduce((sum, s) => sum + s.minutes, 0);
-          const nextProgress = objective.estimatedStudyTime
-            ? Math.min(100, Math.round((totalMinutes / objective.estimatedStudyTime) * 100))
-            : objective.progress;
+          // Checklist-derived progress wins over study-time estimates.
+          const derived = progressFromSubtasks(objective.subtasks);
+          const nextProgress =
+            derived !== null
+              ? derived
+              : objective.estimatedStudyTime
+                ? Math.min(100, Math.round((totalMinutes / objective.estimatedStudyTime) * 100))
+                : objective.progress;
           return {
             ...objective,
             studySessions: sessions,
@@ -396,23 +484,227 @@ export function useObjectives() {
 
   const permanentlyDelete = deleteObjective;
 
+  const addSubtask = React.useCallback(
+    (objectiveId: string, title: string) => {
+      const trimmed = title.trim();
+      if (!trimmed) return;
+      const now = new Date().toISOString();
+      setObjectives((prev) =>
+        prev.map((objective) => {
+          if (objective.id !== objectiveId) return objective;
+          const subtasks = [
+            ...(objective.subtasks ?? []),
+            { id: createId(), title: trimmed, done: false },
+          ];
+          return {
+            ...objective,
+            subtasks,
+            progress: progressFromSubtasks(subtasks) ?? 0,
+            updatedAt: now,
+          };
+        })
+      );
+    },
+    [setObjectives]
+  );
+
+  const toggleSubtask = React.useCallback(
+    (objectiveId: string, subtaskId: string) => {
+      const now = new Date().toISOString();
+      setObjectives((prev) =>
+        prev.map((objective) => {
+          if (objective.id !== objectiveId) return objective;
+          const subtasks = (objective.subtasks ?? []).map((s) =>
+            s.id === subtaskId ? { ...s, done: !s.done } : s
+          );
+          return {
+            ...objective,
+            subtasks,
+            progress: progressFromSubtasks(subtasks) ?? objective.progress,
+            updatedAt: now,
+          };
+        })
+      );
+    },
+    [setObjectives]
+  );
+
+  const deleteSubtask = React.useCallback(
+    (objectiveId: string, subtaskId: string) => {
+      const now = new Date().toISOString();
+      setObjectives((prev) =>
+        prev.map((objective) => {
+          if (objective.id !== objectiveId) return objective;
+          const subtasks = (objective.subtasks ?? []).filter((s) => s.id !== subtaskId);
+          const derived = progressFromSubtasks(subtasks);
+          return {
+            ...objective,
+            subtasks,
+            progress: derived !== null ? derived : objective.progress,
+            updatedAt: now,
+          };
+        })
+      );
+    },
+    [setObjectives]
+  );
+
+  const reorderSubtasks = React.useCallback(
+    (objectiveId: string, activeId: string, overId: string) => {
+      if (activeId === overId) return;
+      const now = new Date().toISOString();
+      setObjectives((prev) =>
+        prev.map((objective) => {
+          if (objective.id !== objectiveId) return objective;
+          const list = objective.subtasks ?? [];
+          const oldIndex = list.findIndex((s) => s.id === activeId);
+          const newIndex = list.findIndex((s) => s.id === overId);
+          if (oldIndex === -1 || newIndex === -1) return objective;
+          return {
+            ...objective,
+            subtasks: arrayMove(list, oldIndex, newIndex),
+            updatedAt: now,
+          };
+        })
+      );
+    },
+    [setObjectives]
+  );
+
+  const setDependencies = React.useCallback(
+    (objectiveId: string, dependencyIds: string[]) => {
+      const now = new Date().toISOString();
+      setObjectives((prev) =>
+        prev.map((objective) =>
+          objective.id === objectiveId
+            ? {
+                ...objective,
+                dependencies: normalizeDependencies(
+                  dependencyIds.filter((id) => id !== objectiveId)
+                ),
+                updatedAt: now,
+              }
+            : objective
+        )
+      );
+    },
+    [setObjectives]
+  );
+
+  const addAttachment = React.useCallback(
+    (objectiveId: string, input: { name: string; url: string }) => {
+      const name = input.name.trim() || "Link";
+      const url = input.url.trim();
+      if (!url) return;
+      const now = new Date().toISOString();
+      setObjectives((prev) =>
+        prev.map((objective) =>
+          objective.id === objectiveId
+            ? {
+                ...objective,
+                attachments: [
+                  ...(objective.attachments ?? []),
+                  { id: createId(), name, url },
+                ],
+                updatedAt: now,
+              }
+            : objective
+        )
+      );
+    },
+    [setObjectives]
+  );
+
+  const deleteAttachment = React.useCallback(
+    (objectiveId: string, attachmentId: string) => {
+      const now = new Date().toISOString();
+      setObjectives((prev) =>
+        prev.map((objective) =>
+          objective.id === objectiveId
+            ? {
+                ...objective,
+                attachments: (objective.attachments ?? []).filter((a) => a.id !== attachmentId),
+                updatedAt: now,
+              }
+            : objective
+        )
+      );
+    },
+    [setObjectives]
+  );
+
   /**
    * Applies the two time-based lifecycle rules: a "done" card auto-recycles
    * after AUTO_RECYCLE_AFTER_DAYS, and a recycled card is permanently
-   * deleted after RECYCLE_BIN_RETENTION_DAYS. Runs on hydration and then
-   * periodically so a long-open tab stays accurate.
+   * deleted after RECYCLE_BIN_RETENTION_DAYS. Also spawns the next occurrence
+   * for recurring objectives that were just completed.
    */
   const runHousekeeping = React.useCallback(() => {
     setObjectives((prev) => {
       let changed = false;
-      const now = new Date().toISOString();
+      const now = new Date();
+      const nowIso = now.toISOString();
+      const spawned: Objective[] = [];
+      // Avoid spawning twice in one pass for the same parent.
+      const spawnedParents = new Set<string>();
+
       const next = prev
         .map((objective) => {
+          if (
+            objective.status === "done" &&
+            objective.recurrence &&
+            objective.recurrence !== "none" &&
+            !spawnedParents.has(objective.id)
+          ) {
+            // Skip if a non-recycled occurrence already exists for this parent.
+            const hasActiveChild = prev.some(
+              (o) => o.recurrenceParentId === objective.id && o.status !== "recycled"
+            );
+            if (!hasActiveChild) {
+              const offsetMs =
+                objective.recurrence === "daily"
+                  ? 24 * 60 * 60 * 1000
+                  : 7 * 24 * 60 * 60 * 1000;
+              const nextDue = objective.dueDate
+                ? new Date(new Date(objective.dueDate).getTime() + offsetMs).toISOString()
+                : undefined;
+              const nextStart = objective.scheduledStart
+                ? new Date(new Date(objective.scheduledStart).getTime() + offsetMs).toISOString()
+                : undefined;
+              spawned.push({
+                ...objective,
+                id: createId(),
+                status: "todo",
+                progress: 0,
+                completedAt: undefined,
+                recycledAt: undefined,
+                createdAt: nowIso,
+                updatedAt: nowIso,
+                dueDate: nextDue,
+                scheduledStart: nextStart,
+                studySessions: [],
+                subtasks: (objective.subtasks ?? []).map((s) => ({
+                  ...s,
+                  id: createId(),
+                  done: false,
+                })),
+                recurrenceParentId: objective.id,
+              });
+              spawnedParents.add(objective.id);
+              changed = true;
+            }
+          }
+
           if (objective.status === "done") {
             const elapsed = daysSince(objective.completedAt);
             if (elapsed !== null && elapsed >= AUTO_RECYCLE_AFTER_DAYS) {
               changed = true;
-              return { ...objective, status: "recycled" as const, recycledAt: now, updatedAt: now };
+              return {
+                ...objective,
+                status: "recycled" as const,
+                recycledAt: nowIso,
+                updatedAt: nowIso,
+              };
             }
           }
           return objective;
@@ -427,6 +719,11 @@ export function useObjectives() {
           }
           return true;
         });
+
+      if (spawned.length > 0) {
+        changed = true;
+        return [...spawned, ...next];
+      }
       return changed ? next : prev;
     });
   }, [setObjectives]);
@@ -461,6 +758,13 @@ export function useObjectives() {
     sendToRecycleBin,
     restoreFromRecycleBin,
     permanentlyDelete,
+    addSubtask,
+    toggleSubtask,
+    deleteSubtask,
+    reorderSubtasks,
+    setDependencies,
+    addAttachment,
+    deleteAttachment,
     columnCounts,
   };
 }

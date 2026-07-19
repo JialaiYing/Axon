@@ -311,6 +311,7 @@ export function GoalsOverview() {
 
   return (
     <AppPage
+      feature="goals"
       title="Goals"
       description="Daily and weekly targets that update from your real focus and completed objectives."
       actions={

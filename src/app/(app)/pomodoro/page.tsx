@@ -259,6 +259,7 @@ export default function PomodoroPage() {
 
   return (
     <AppPage
+      feature="pomodoro"
       title="Pomodoro"
       description="Timed focus sessions — linked to your objectives, or entirely off the record. Run as many at once as you like."
     >

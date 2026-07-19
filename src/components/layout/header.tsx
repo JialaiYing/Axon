@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Search, Settings } from "lucide-react";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { NotificationBell } from "@/components/layout/notification-bell";
+import { ProfileMenu } from "@/components/auth/profile-menu";
 import { cn } from "@/lib/utils";
 
 export function Header() {
@@ -14,6 +15,7 @@ export function Header() {
     <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between gap-4 border-b border-border/40 bg-background/25 px-4 backdrop-blur-md md:px-6">
       <div className="flex items-center gap-3">
         <MobileNav />
+        {/* Reserved for a future AI-powered command palette — intentionally not wired. */}
         <div className="group hidden items-center gap-2 rounded-lg border border-border/50 bg-surface/40 px-3 py-1.5 text-sm text-muted-foreground transition-colors duration-200 hover:border-border-strong hover:bg-surface/55 md:flex md:w-72">
           <Search className="h-3.5 w-3.5 transition-colors duration-200 group-hover:text-foreground" />
           <span className="text-xs">Search Axon...</span>
@@ -41,10 +43,7 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-2 border-l border-border/40 pl-3">
-          <div
-            aria-label="User profile"
-            className="h-8 w-8 shrink-0 rounded-full bg-gradient-to-br from-accent to-secondary"
-          />
+          <ProfileMenu />
         </div>
       </div>
     </header>

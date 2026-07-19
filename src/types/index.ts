@@ -8,6 +8,21 @@ export type ObjectiveStatus = "todo" | "in-progress" | "done" | "recycled";
 /** The three statuses that are actually rendered/draggable as kanban columns. */
 export type KanbanStatus = "todo" | "in-progress" | "done";
 
+/** How often a completed/due objective should spawn a new occurrence. */
+export type Recurrence = "none" | "daily" | "weekly";
+
+export interface Subtask {
+  id: string;
+  title: string;
+  done: boolean;
+}
+
+export interface Attachment {
+  id: string;
+  name: string;
+  url: string;
+}
+
 export interface Objective {
   id: string;
   title: string;
@@ -44,11 +59,17 @@ export interface Objective {
    * columns. Omit / true = visible on the board.
    */
   showOnKanban?: boolean;
-  // Reserved for future phases
-  subtasks?: { id: string; title: string; done: boolean }[];
-  attachments?: { id: string; name: string; url: string }[];
+  /** Checklist items. When present, progress is derived from completion ratio. */
+  subtasks?: Subtask[];
+  /** Simple name+URL links attached to the objective. */
+  attachments?: Attachment[];
   studySessions?: { id: string; date: string; minutes: number }[];
+  /** IDs of objectives that block this one ("blocked by"). */
   dependencies?: string[];
+  /** When set (and not "none"), housekeeping spawns the next occurrence on completion. */
+  recurrence?: Recurrence;
+  /** Links a spawned occurrence back to its template/previous instance. */
+  recurrenceParentId?: string;
 }
 
 export interface FlashcardFolder {

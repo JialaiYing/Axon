@@ -3,8 +3,10 @@
 import * as React from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { PageHeader } from "@/components/layout/page-header";
+import { FeatureIntro } from "@/components/onboarding/feature-intro";
 import { EASE } from "@/lib/motion";
 import { cn } from "@/lib/utils";
+import type { OnboardingFeature } from "@/hooks/use-onboarding";
 
 interface AppPageProps {
   title: string;
@@ -12,6 +14,8 @@ interface AppPageProps {
   actions?: React.ReactNode;
   /** Optional row under the header — search, filters, view toggles. */
   toolbar?: React.ReactNode;
+  /** When set, shows a one-time Canva-style intro for this feature. */
+  feature?: OnboardingFeature;
   children: React.ReactNode;
   className?: string;
 }
@@ -22,7 +26,15 @@ interface AppPageProps {
  * Calendar, Kanban, Settings etc. all arrive on screen the same way
  * Dashboard/Flashcards already do.
  */
-export function AppPage({ title, description, actions, toolbar, children, className }: AppPageProps) {
+export function AppPage({
+  title,
+  description,
+  actions,
+  toolbar,
+  feature,
+  children,
+  className,
+}: AppPageProps) {
   const prefersReducedMotion = useReducedMotion();
 
   return (
@@ -35,6 +47,8 @@ export function AppPage({ title, description, actions, toolbar, children, classN
       }}
       className={cn("relative", className)}
     >
+      {feature && <FeatureIntro feature={feature} />}
+
       <motion.div
         variants={{
           hidden: { opacity: 0, y: 10 },

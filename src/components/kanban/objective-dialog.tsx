@@ -17,6 +17,8 @@ interface ObjectiveDialogProps {
   mode: "create" | "edit";
   defaultStatus?: KanbanStatus;
   objective?: Objective;
+  /** Other objectives available as dependency targets. */
+  dependencyCandidates?: Objective[];
   onSubmit: (input: ObjectiveInput) => void;
 }
 
@@ -26,6 +28,7 @@ export function ObjectiveDialog({
   mode,
   defaultStatus,
   objective,
+  dependencyCandidates,
   onSubmit,
 }: ObjectiveDialogProps) {
   return (
@@ -44,6 +47,7 @@ export function ObjectiveDialog({
           key={objective?.id ?? "new"}
           defaultStatus={defaultStatus}
           initialValues={objective}
+          dependencyCandidates={dependencyCandidates}
           submitLabel={mode === "create" ? "Create objective" : "Save changes"}
           onCancel={() => onOpenChange(false)}
           onSubmit={(input) => {

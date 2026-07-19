@@ -133,6 +133,19 @@ export function useFlashcards() {
         pinned: false,
       };
       setFolders((prev) => [folder, ...prev]);
+
+      // When signed in, replace bulky data URLs with a Supabase Storage public URL.
+      if (input.imageDataUrl?.startsWith("data:")) {
+        void import("@/lib/supabase/storage").then(({ maybeUploadFlashcardImage }) =>
+          maybeUploadFlashcardImage(input.imageDataUrl, folder.id).then((url) => {
+            if (!url || url === input.imageDataUrl) return;
+            setFolders((prev) =>
+              prev.map((f) => (f.id === folder.id ? { ...f, imageDataUrl: url } : f))
+            );
+          })
+        );
+      }
+
       return folder;
     },
     [setFolders]

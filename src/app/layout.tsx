@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Sora } from "next/font/google";
+import { AppProviders } from "@/components/providers/app-providers";
 import "./globals.css";
 
 const inter = Inter({
@@ -32,7 +33,9 @@ export default function RootLayout({
       style={{ colorScheme: "dark" }}
       className={`${inter.variable} ${sora.variable}`}
     >
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        <AppProviders>{children}</AppProviders>
+      </body>
     </html>
   );
 }
