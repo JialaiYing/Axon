@@ -2,11 +2,12 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Bell, Cloud, Home, Moon, RotateCcw, Shield, Sparkles } from "lucide-react";
+import { Bell, Cloud, Focus, Home, Moon, RotateCcw, Shield, Sparkles } from "lucide-react";
 import { AppPage } from "@/components/layout/app-page";
 import { Panel } from "@/components/ui/panel";
 import { Button } from "@/components/ui/button";
 import { useOnboarding } from "@/hooks/use-onboarding";
+import { useFocusPreferences } from "@/hooks/use-focus-preferences";
 import { useAuth } from "@/components/auth/auth-provider";
 import { useSync } from "@/components/sync/sync-provider";
 import {
@@ -17,19 +18,27 @@ import {
   setBrowserNotificationPreference,
   type BrowserNotificationPermission,
 } from "@/lib/notifications/browser";
+import {
+  getDueSoonNotificationPreference,
+  setDueSoonNotificationPreference,
+} from "@/lib/notifications/preferences";
 
 export default function SettingsPage() {
   const { resetAll, markAllSeen } = useOnboarding();
+  const { preferences: focusPreferences, updatePreferences: updateFocusPreferences } =
+    useFocusPreferences();
   const { user, configured } = useAuth();
   const { status, syncNow } = useSync();
 
   const [permission, setPermission] = React.useState<BrowserNotificationPermission>("default");
   const [prefEnabled, setPrefEnabled] = React.useState(false);
+  const [dueSoonEnabled, setDueSoonEnabled] = React.useState(false);
   const [tourReset, setTourReset] = React.useState(false);
 
   React.useEffect(() => {
     setPermission(getBrowserNotificationPermission());
     setPrefEnabled(getBrowserNotificationPreference());
+    setDueSoonEnabled(getDueSoonNotificationPreference());
   }, []);
 
   const enableNotifications = async () => {
@@ -97,13 +106,61 @@ export default function SettingsPage() {
 
         <Panel variant="interactive" className="p-5">
           <div className="mb-3 flex items-center gap-2">
+            <Focus className="h-4 w-4 text-accent" />
+            <h2 className="text-sm font-semibold text-foreground">Focus Mode</h2>
+          </div>
+          <p className="mb-3 text-sm leading-relaxed text-muted">
+            Full-screen lockdown when a Pomodoro starts — hides nav, confirms before leaving, and
+            nudges you if you switch tabs. Browsers can&apos;t hard-block other sites.
+          </p>
+          <div className="flex flex-col gap-2">
+            <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-border bg-surface/40 px-3 py-2.5 text-sm">
+              <span className="text-foreground">Auto-enter on timer start</span>
+              <input
+                type="checkbox"
+                checked={focusPreferences.autoEnterFocusMode}
+                onChange={(e) =>
+                  updateFocusPreferences({ autoEnterFocusMode: e.target.checked })
+                }
+                className="h-4 w-4 accent-accent"
+              />
+            </label>
+            <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-border bg-surface/40 px-3 py-2.5 text-sm">
+              <span className="text-foreground">Show stay-focused reminder</span>
+              <input
+                type="checkbox"
+                checked={focusPreferences.showBlocklistReminder}
+                onChange={(e) =>
+                  updateFocusPreferences({ showBlocklistReminder: e.target.checked })
+                }
+                className="h-4 w-4 accent-accent"
+              />
+            </label>
+          </div>
+        </Panel>
+
+        <Panel variant="interactive" className="p-5">
+          <div className="mb-3 flex items-center gap-2">
             <Bell className="h-4 w-4 text-accent" />
             <h2 className="text-sm font-semibold text-foreground">Browser notifications</h2>
           </div>
           <p className="mb-3 text-sm leading-relaxed text-muted">
-            Get a system alert when a Pomodoro timer finishes — even if Axon is in a background
-            tab. In-app toasts still work either way.
+            Lean by design: Pomodoro completion alerts are the default. Optional due-soon
+            reminders fire at most once per day so notifications don&apos;t fight Focus Mode.
           </p>
+          <label className="mb-3 flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-border bg-surface/40 px-3 py-2.5 text-sm">
+            <span className="text-foreground">Due-soon / overdue reminder (once daily)</span>
+            <input
+              type="checkbox"
+              checked={dueSoonEnabled}
+              onChange={(e) => {
+                const next = e.target.checked;
+                setDueSoonNotificationPreference(next);
+                setDueSoonEnabled(next);
+              }}
+              className="h-4 w-4 accent-accent"
+            />
+          </label>
           {!areBrowserNotificationsSupported() ? (
             <p className="text-xs text-muted-foreground">
               This browser does not support the Notification API.
@@ -134,8 +191,8 @@ export default function SettingsPage() {
             <h2 className="text-sm font-semibold text-foreground">Feature tours</h2>
           </div>
           <p className="mb-3 text-sm leading-relaxed text-muted">
-            First-visit tips explain each section the first time you open it. Replay them anytime,
-            or dismiss everything at once.
+            A short Kanban + Pomodoro tour runs once for new users. Replay it anytime, or dismiss
+            everything at once.
           </p>
           <div className="flex flex-wrap gap-2">
             <Button
@@ -156,7 +213,7 @@ export default function SettingsPage() {
           </div>
           {tourReset && (
             <p className="mt-2 text-xs text-muted-foreground">
-              Tours reset — visit any feature page to see its intro again.
+              Tour reset — reload or visit the app to see the core loop intro again.
             </p>
           )}
         </Panel>

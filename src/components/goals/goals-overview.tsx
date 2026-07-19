@@ -330,6 +330,39 @@ export function GoalsOverview() {
         <LoadingState />
       ) : (
         <div className="space-y-5">
+          {/* First-run: no activity yet (goals are seeded, so empty = no progress) */}
+          {dailyGoal?.progress === 0 &&
+            weeklyGoal?.progress === 0 &&
+            dailyHistory.length === 0 &&
+            weeklyHistory.length === 0 && (
+              <Panel variant="interactive" className="flex flex-col items-center gap-3 p-8 text-center">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-accent-muted text-accent">
+                  <Timer className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">No activity yet</p>
+                  <p className="mt-1.5 max-w-md text-xs leading-relaxed text-muted-foreground">
+                    Daily focus minutes come from Pomodoro sessions. Weekly objective counts come
+                    from Kanban completions. Start either to see these goals move.
+                  </p>
+                </div>
+                <div className="flex flex-wrap justify-center gap-2">
+                  <Button asChild size="sm">
+                    <Link href="/pomodoro">
+                      <Timer className="h-3.5 w-3.5" />
+                      Start focus
+                    </Link>
+                  </Button>
+                  <Button asChild size="sm" variant="outline">
+                    <Link href="/kanban">
+                      <ListTodo className="h-3.5 w-3.5" />
+                      Open board
+                    </Link>
+                  </Button>
+                </div>
+              </Panel>
+            )}
+
           {/* Overview header */}
           <Panel variant="glass" className="p-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

@@ -15,7 +15,7 @@ import {
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { motion, useReducedMotion } from "framer-motion";
-import { RotateCcw } from "lucide-react";
+import { Kanban, RotateCcw, SearchX } from "lucide-react";
 import { AppPage } from "@/components/layout/app-page";
 import { EASE, STAGGER } from "@/lib/motion";
 import { KanbanColumn } from "@/components/kanban/kanban-column";
@@ -24,6 +24,7 @@ import { KanbanToolbar } from "@/components/kanban/kanban-toolbar";
 import { ObjectiveDialog } from "@/components/kanban/objective-dialog";
 import { RecycleBinDialog } from "@/components/kanban/recycle-bin-dialog";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
 import { KanbanBoardSkeleton } from "@/components/ui/skeleton";
 import { ConfettiBurst } from "@/components/ui/confetti";
@@ -61,7 +62,19 @@ export function KanbanBoard() {
   const [celebrateKey, setCelebrateKey] = React.useState(0);
 
   const [dialogState, setDialogState] = React.useState<DialogState>(null);
-  const [deleteTarget, setDeleteTarget] = React.useState<Objective | null>(null); 
+  const [deleteTarget, setDeleteTarget] = React.useState<Objective | null>(null);
+
+  // Command palette "Add objective" lands here with ?new=1
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("new") === "1") {
+      setDialogState({ mode: "create", status: "todo" });
+      params.delete("new");
+      const next = `${window.location.pathname}${params.toString() ? `?${params}` : ""}`;
+      window.history.replaceState(null, "", next);
+    }
+  }, []);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -108,6 +121,9 @@ export function KanbanBoard() {
   }, [filtered]);
 
   const activeObjective = activeId ? objectives.find((o) => o.id === activeId) ?? null : null;
+  const isBoardEmpty = boardObjectives.length === 0;
+  const hasActiveFilters = search.trim().length > 0 || priorityFilter !== "all";
+  const isFilterEmpty = !isBoardEmpty && filtered.length === 0 && hasActiveFilters;
 
   function handleDragStart(event: DragStartEvent) {
     setActiveId(String(event.active.id));
@@ -185,6 +201,25 @@ export function KanbanBoard() {
     >
       {!hydrated ? (
         <KanbanBoardSkeleton />
+      ) : isBoardEmpty ? (
+        <EmptyState
+          icon={<Kanban className="h-5.5 w-5.5 text-muted" />}
+          title="Create your first objective"
+          description="Queued → In progress → Done. Add a study objective, then drag it across the board as you work."
+          actionLabel="Create first objective"
+          onAction={() => setDialogState({ mode: "create", status: "todo" })}
+        />
+      ) : isFilterEmpty ? (
+        <EmptyState
+          icon={<SearchX className="h-5.5 w-5.5 text-muted" />}
+          title="No objectives match these filters"
+          description="Try a different search term or clear the priority filter to see your board again."
+          actionLabel="Clear filters"
+          onAction={() => {
+            setSearch("");
+            setPriorityFilter("all");
+          }}
+        />
       ) : (
         <DndContext
           sensors={sensors}

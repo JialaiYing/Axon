@@ -6,8 +6,6 @@ import { motion, useReducedMotion } from "framer-motion";
 import {
   ArrowRight,
   BookOpen,
-  CalendarClock,
-  CheckCircle2,
   Circle,
   Flame,
   Gauge,
@@ -36,6 +34,7 @@ import { AnimatedCounter } from "@/components/ui/animated-counter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TiltCard } from "@/components/ui/tilt-card";
 import { FeatureIntro } from "@/components/onboarding/feature-intro";
+import { TodayAgendaPanel } from "@/components/dashboard/today-agenda-panel";
 import { useObjectives } from "@/hooks/use-objectives";
 import { usePomodoroSessions } from "@/hooks/use-pomodoro-sessions";
 import { useFlashcards } from "@/hooks/use-flashcards";
@@ -44,7 +43,6 @@ import { useGoals } from "@/hooks/use-goals";
 import {
   dayElapsedFraction,
   goalPaceStatus,
-  isToday as isTodayDate,
   PACE_LABEL,
   weekElapsedFraction,
   type GoalPaceStatus,
@@ -111,62 +109,6 @@ function upNext(objectives: Objective[]) {
       return PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority];
     })
     .slice(0, 5);
-}
-
-interface TodayBarEntry {
-  label: string;
-  time: string;
-  href: string;
-  /** True when this scheduled item was already completed today. */
-  done: boolean;
-  /** Count of other items scheduled today in this same bucket, not shown. */
-  extraCount: number;
-}
-
-interface TodayBars {
-  focus: TodayBarEntry | null;
-  calendarEvent: TodayBarEntry | null;
-}
-
-/**
- * Always three Today bars: focus session, calendar-only event, streak. A
- * completed item stays visible (marked done) rather than disappearing —
- * finishing today's only scheduled thing shouldn't make the dashboard look
- * like nothing was ever planned. If more than one thing is scheduled in a
- * bucket, the soonest surfaces and the rest count toward "+N more" so a
- * busy day doesn't look identical to a day with exactly one thing on it.
- */
-function buildTodayBars(objectives: Objective[]): TodayBars {
-  const todayScheduled = objectives
-    .filter((o) => o.status !== "recycled" && o.scheduledStart && isTodayDate(o.scheduledStart))
-    .sort(
-      (a, b) =>
-        new Date(a.scheduledStart!).getTime() - new Date(b.scheduledStart!).getTime()
-    );
-
-  const focusItems = todayScheduled.filter((o) => o.showOnKanban !== false);
-  const calendarItems = todayScheduled.filter((o) => o.showOnKanban === false);
-
-  function pickPrimary(items: Objective[], labelFor: (o: Objective) => string, href: string): TodayBarEntry | null {
-    if (items.length === 0) return null;
-    const primary = items.find((o) => o.status !== "done") ?? items[0]!;
-    const time = new Date(primary.scheduledStart!).toLocaleTimeString(undefined, {
-      hour: "numeric",
-      minute: "2-digit",
-    });
-    return {
-      label: labelFor(primary),
-      time,
-      href,
-      done: primary.status === "done",
-      extraCount: items.length - 1,
-    };
-  }
-
-  return {
-    focus: pickPrimary(focusItems, (o) => `Focus session — ${o.title}`, "/pomodoro"),
-    calendarEvent: pickPrimary(calendarItems, (o) => o.title, "/calendar"),
-  };
 }
 
 interface RecentEntry {
@@ -469,7 +411,6 @@ export function DashboardOverview() {
   const weekData = React.useMemo(() => buildWeekData(sessions), [sessions]);
   const weekTotal = weekData.reduce((sum, d) => sum + d.minutes, 0);
   const queue = React.useMemo(() => upNext(objectives), [objectives]);
-  const todayBars = React.useMemo(() => buildTodayBars(objectives), [objectives]);
   const recent = React.useMemo(
     () => buildRecentEntries(objectives, sessions, lastStudiedSet),
     [objectives, sessions, lastStudiedSet]
@@ -532,26 +473,35 @@ export function DashboardOverview() {
         </div>
       </motion.div>
 
-      {/* Up next (top 5 open objectives by date/priority — not week-scoped) + Today — matches the homepage preview until Current rank. */}
-      <div className="grid grid-cols-1 gap-3.5 lg:grid-cols-[1.1fr_0.9fr]">
-        <motion.div variants={item}>
-          <div className="flex h-full flex-col gap-2">
-            <p className="mb-0.5 text-[10px] uppercase tracking-wide text-white/45">
-              Up next
-            </p>
-            {queue.length === 0 ? (
-              <Link
-                href="/kanban"
-                className="flex flex-1 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-white/12 bg-white/[0.03] p-6 text-center transition-colors duration-200 hover:border-white/20 hover:bg-white/[0.05]"
-              >
-                <Circle className="h-4 w-4 text-white/40" />
-                <p className="text-xs text-white/55">No objectives yet</p>
-                <span className="inline-flex items-center gap-1 text-[11px] text-white/40">
-                  Create one on the board <ArrowRight className="h-3 w-3" />
-                </span>
-              </Link>
-            ) : (
-              queue.map((objective) => (
+      {/* Glance-and-go agenda — primary dashboard surface */}
+      <motion.div variants={item}>
+        <TodayAgendaPanel
+          objectives={objectives}
+          dailyGoal={dailyGoal}
+          weeklyGoal={weeklyGoal}
+          streak={streak}
+          rankLabel={rank.label}
+        />
+      </motion.div>
+
+      {/* Compact up-next queue */}
+      <motion.div variants={item}>
+        <div className="flex flex-col gap-2">
+          <p className="mb-0.5 text-[10px] uppercase tracking-wide text-white/45">Up next</p>
+          {queue.length === 0 ? (
+            <Link
+              href="/kanban"
+              className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-white/12 bg-white/[0.03] p-6 text-center transition-colors duration-200 hover:border-white/20 hover:bg-white/[0.05]"
+            >
+              <Circle className="h-4 w-4 text-white/40" />
+              <p className="text-xs text-white/55">No objectives yet</p>
+              <span className="inline-flex items-center gap-1 text-[11px] text-white/40">
+                Create one on the board <ArrowRight className="h-3 w-3" />
+              </span>
+            </Link>
+          ) : (
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {queue.map((objective) => (
                 <div
                   key={objective.id}
                   className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-white/[0.04] p-3 transition-colors duration-200 hover:border-white/16 hover:bg-white/[0.07]"
@@ -581,108 +531,13 @@ export function DashboardOverview() {
                     <Circle className="h-3.5 w-3.5" />
                   </button>
                 </div>
-              ))
-            )}
-          </div>
-        </motion.div>
-
-        <motion.div variants={item}>
-          <div className="flex h-full flex-col gap-2">
-            <p className="mb-0.5 text-[10px] uppercase tracking-wide text-white/45">Today</p>
-
-            {/* Focus session — always present */}
-            <Link
-              href={todayBars.focus?.href ?? "/pomodoro"}
-              className={cn(
-                "flex cursor-pointer items-center gap-2.5 rounded-lg border p-3 transition-colors duration-200",
-                todayBars.focus?.done
-                  ? "border-success/25 bg-success-muted/15 hover:border-success/40 hover:bg-success-muted/25"
-                  : todayBars.focus
-                    ? "border-white/8 bg-white/[0.04] hover:border-white/16 hover:bg-white/[0.07]"
-                    : "border-dashed border-white/12 bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.05]"
-              )}
-            >
-              {todayBars.focus?.done ? (
-                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-success" />
-              ) : (
-                <Timer className="h-3.5 w-3.5 shrink-0 text-accent" />
-              )}
-              <p
-                className={cn(
-                  "min-w-0 flex-1 truncate text-xs font-medium",
-                  todayBars.focus?.done
-                    ? "text-white/70 line-through"
-                    : todayBars.focus
-                      ? "text-white"
-                      : "text-white/40"
-                )}
-              >
-                {todayBars.focus?.label ?? "Focus session — schedule one"}
-              </p>
-              {!!todayBars.focus?.extraCount && (
-                <span className="shrink-0 rounded-full bg-white/10 px-1.5 py-0.5 text-[10px] font-medium text-white/55">
-                  +{todayBars.focus.extraCount} more
-                </span>
-              )}
-              <span className="shrink-0 font-mono text-[11px] text-white/40">
-                {todayBars.focus?.time ?? "—"}
-              </span>
-            </Link>
-
-            {/* Calendar-only event — always present */}
-            <Link
-              href={todayBars.calendarEvent?.href ?? "/calendar"}
-              className={cn(
-                "flex cursor-pointer items-center gap-2.5 rounded-lg border p-3 transition-colors duration-200",
-                todayBars.calendarEvent?.done
-                  ? "border-success/25 bg-success-muted/15 hover:border-success/40 hover:bg-success-muted/25"
-                  : todayBars.calendarEvent
-                    ? "border-white/8 bg-white/[0.04] hover:border-white/16 hover:bg-white/[0.07]"
-                    : "border-dashed border-white/12 bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.05]"
-              )}
-            >
-              {todayBars.calendarEvent?.done ? (
-                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-success" />
-              ) : (
-                <CalendarClock className="h-3.5 w-3.5 shrink-0 text-accent" />
-              )}
-              <p
-                className={cn(
-                  "min-w-0 flex-1 truncate text-xs font-medium",
-                  todayBars.calendarEvent?.done
-                    ? "text-white/70 line-through"
-                    : todayBars.calendarEvent
-                      ? "text-white"
-                      : "text-white/40"
-                )}
-              >
-                {todayBars.calendarEvent?.label ?? "Calendar event — add one"}
-              </p>
-              {!!todayBars.calendarEvent?.extraCount && (
-                <span className="shrink-0 rounded-full bg-white/10 px-1.5 py-0.5 text-[10px] font-medium text-white/55">
-                  +{todayBars.calendarEvent.extraCount} more
-                </span>
-              )}
-              <span className="shrink-0 font-mono text-[11px] text-white/40">
-                {todayBars.calendarEvent?.time ?? "—"}
-              </span>
-            </Link>
-
-            {/* Streak — always present */}
-            <div className="flex items-center gap-2 rounded-lg border border-accent/30 bg-accent-muted/25 p-3">
-              <Flame className="h-3.5 w-3.5 shrink-0 text-warning" />
-              <p className="text-xs font-medium text-white">
-                {streak > 0 ? `${streak}-day streak` : "No streak yet"}
-              </p>
-              <Badge variant="accent" className="ml-auto shrink-0">
-                {rank.label}
-              </Badge>
+              ))}
             </div>
-          </div>
-        </motion.div>
-      </div>
+          )}
+        </div>
+      </motion.div>
 
-      {/* Stats row — same set as the homepage preview */}
+      {/* Stats row — demoted below the Today agenda */}
       <motion.div variants={item} className="grid grid-cols-2 gap-3.5 md:grid-cols-4">
         <StatCard
           icon={Flame}

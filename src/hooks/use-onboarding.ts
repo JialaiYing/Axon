@@ -3,6 +3,10 @@
 import * as React from "react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 
+/**
+ * Core-loop tour only (≤4 steps). Legacy per-page tips are collapsed into
+ * this single first-run flow focused on Kanban + Pomodoro.
+ */
 export type OnboardingFeature =
   | "dashboard"
   | "kanban"
@@ -10,9 +14,11 @@ export type OnboardingFeature =
   | "flashcards"
   | "pomodoro"
   | "analytics"
-  | "goals";
+  | "goals"
+  | "core";
 
 export const ONBOARDING_FEATURES: OnboardingFeature[] = [
+  "core",
   "dashboard",
   "kanban",
   "calendar",
@@ -22,39 +28,59 @@ export const ONBOARDING_FEATURES: OnboardingFeature[] = [
   "goals",
 ];
 
+/** Features that still show a lightweight page tip (core loop only). */
+export const PAGE_TIP_FEATURES = ["kanban", "pomodoro"] as const;
+
+export type PageTipFeature = (typeof PAGE_TIP_FEATURES)[number];
+
 export const ONBOARDING_COPY: Record<
-  OnboardingFeature,
+  PageTipFeature,
   { title: string; body: string }
 > = {
-  dashboard: {
-    title: "Your command center",
-    body: "See today’s schedule, streak, focus time, and the next objectives worth tackling. Everything else in Axon feeds into this overview.",
-  },
   kanban: {
     title: "Track objectives on a board",
-    body: "Create study objectives, drag them between Queued / In progress / Done, add checklists, and schedule work straight from a card.",
-  },
-  calendar: {
-    title: "Plan when you’ll study",
-    body: "Drop objectives onto days or time slots, drag to reschedule, and export an .ics file to sync with Google or Apple Calendar.",
-  },
-  flashcards: {
-    title: "Build sets and drill mastery",
-    body: "Organize decks into folders, study in focused sessions, and watch mastery climb as you mark cards correct or incorrect.",
+    body: "Create a study objective, then drag it Queued → In progress → Done as you work.",
   },
   pomodoro: {
-    title: "Focus with live timers",
-    body: "Start objective-linked or personal timers, run several at once, and get notified when a session finishes — even if you’re on another page.",
-  },
-  analytics: {
-    title: "Understand your patterns",
-    body: "Charts for focus trends, completions, peak hours, and flashcard performance so you can see what’s actually working.",
-  },
-  goals: {
-    title: "Daily and weekly targets",
-    body: "Set a daily focus-minute goal and a weekly objectives goal. Progress updates automatically from your real sessions and completions.",
+    title: "Focus with a live timer",
+    body: "Start an objective-linked or personal timer. Focus Mode locks the screen so you stay on task.",
   },
 };
+
+export interface CoreTourStep {
+  id: string;
+  title: string;
+  body: string;
+  href?: string;
+  cta?: string;
+}
+
+export const CORE_TOUR_STEPS: CoreTourStep[] = [
+  {
+    id: "welcome",
+    title: "Welcome to Axon",
+    body: "Your study loop is simple: plan objectives, focus with Pomodoro, and watch progress update automatically.",
+  },
+  {
+    id: "kanban",
+    title: "Plan on the Kanban board",
+    body: "Create your first objective — subject, priority, and an estimate. Drag cards as you make progress.",
+    href: "/kanban",
+    cta: "Open Kanban",
+  },
+  {
+    id: "pomodoro",
+    title: "Start a focus session",
+    body: "Link a timer to an objective and enter Focus Mode. Stay in the tab until the session ends.",
+    href: "/pomodoro",
+    cta: "Open Pomodoro",
+  },
+  {
+    id: "done",
+    title: "You’re ready",
+    body: "That’s the core loop. Dashboard shows today’s agenda; Analytics and Goals fill in as you study.",
+  },
+];
 
 const STORAGE_KEY = "axon:onboarding:seen";
 
@@ -85,6 +111,8 @@ export function useOnboarding() {
     setSeen(next);
   }, [setSeen]);
 
+  const coreComplete = Boolean(seen.core);
+
   return {
     seen,
     hydrated,
@@ -92,5 +120,6 @@ export function useOnboarding() {
     markSeen,
     resetAll,
     markAllSeen,
+    coreComplete,
   };
 }

@@ -16,6 +16,12 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { DialogFooter } from "@/components/ui/dialog";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { SubtaskEditor } from "@/components/kanban/subtask-editor";
 import { AttachmentEditor } from "@/components/kanban/attachment-editor";
 import { DependencyPicker } from "@/components/kanban/dependency-picker";
@@ -250,31 +256,9 @@ export function ObjectiveForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1.5">
-          <Label htmlFor="labels">Labels (comma separated)</Label>
-          <Input id="labels" placeholder="reading, quiz-prep" {...register("labels")} />
-        </div>
-
-        <div className="space-y-1.5">
-          <Label htmlFor="recurrence">Repeat</Label>
-          <Controller
-            control={control}
-            name="recurrence"
-            render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger id="recurrence">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Does not repeat</SelectItem>
-                  <SelectItem value="daily">Daily</SelectItem>
-                  <SelectItem value="weekly">Weekly</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
-          />
-        </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="labels">Labels (comma separated)</Label>
+        <Input id="labels" placeholder="reading, quiz-prep" {...register("labels")} />
       </div>
 
       <div className="space-y-1.5">
@@ -302,17 +286,50 @@ export function ObjectiveForm({
 
       <AttachmentEditor attachments={attachments} onChange={setAttachments} />
 
-      <DependencyPicker
-        currentId={initialValues?.id}
-        candidates={dependencyCandidates}
-        selectedIds={dependencies}
-        onChange={setDependencies}
-      />
-
       <div className="space-y-1.5">
         <Label htmlFor="notes">Notes</Label>
         <Textarea id="notes" rows={2} placeholder="Optional notes" {...register("notes")} />
       </div>
+
+      <Accordion type="single" collapsible className="rounded-lg border border-border px-3">
+        <AccordionItem value="advanced" className="border-0">
+          <AccordionTrigger className="py-3 text-xs text-muted-foreground hover:text-foreground">
+            Advanced — repeat &amp; dependencies
+          </AccordionTrigger>
+          <AccordionContent className="space-y-4 pb-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="recurrence">Repeat</Label>
+              <Controller
+                control={control}
+                name="recurrence"
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger id="recurrence">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Does not repeat</SelectItem>
+                      <SelectItem value="daily">Daily</SelectItem>
+                      <SelectItem value="weekly">Weekly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <DependencyPicker
+                currentId={initialValues?.id}
+                candidates={dependencyCandidates}
+                selectedIds={dependencies}
+                onChange={setDependencies}
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Dependencies are stored for later — they don&apos;t block completion yet.
+              </p>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
 
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onCancel}>

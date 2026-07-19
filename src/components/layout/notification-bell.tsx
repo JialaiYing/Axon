@@ -3,9 +3,10 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { Bell, X, Timer as TimerIcon, BellOff } from "lucide-react";
+import { Bell, X, Timer as TimerIcon, BellOff, Flag } from "lucide-react";
 import { useNotifications } from "@/hooks/use-notifications";
 import { usePomodoroTimers } from "@/hooks/use-pomodoro-timers";
+import type { TimerNotification } from "@/types";
 import { cn } from "@/lib/utils";
 
 function timeAgo(iso: string): string {
@@ -53,14 +54,17 @@ export function NotificationBell() {
     });
   }
 
-  function handleOpenNotification() {
+  function handleOpenNotification(n: TimerNotification) {
     setOpen(false);
-    router.push("/pomodoro");
+    router.push(n.href ?? (n.kind === "due-soon" ? "/kanban" : "/pomodoro"));
   }
 
-  function handleCloseNotification(id: string, timerId: string) {
-    removeTimer(timerId);
-    removeNotification(id);
+  function handleCloseNotification(n: TimerNotification) {
+    // Only timer notifications are coupled to live timer instances.
+    if ((n.kind ?? "timer") === "timer" && n.timerId) {
+      removeTimer(n.timerId);
+    }
+    removeNotification(n.id);
   }
 
   return (
@@ -112,11 +116,16 @@ export function NotificationBell() {
                       <div
                         role="button"
                         tabIndex={0}
-                        onClick={handleOpenNotification}
+                        onClick={() => handleOpenNotification(n)}
+                        onKeyDown={(e) => e.key === "Enter" && handleOpenNotification(n)}
                         className="group flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-card-hover"
                       >
                         <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-accent-muted text-accent">
-                          <TimerIcon className="h-3.5 w-3.5" />
+                          {n.kind === "due-soon" ? (
+                            <Flag className="h-3.5 w-3.5" />
+                          ) : (
+                            <TimerIcon className="h-3.5 w-3.5" />
+                          )}
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-xs font-medium text-foreground">{n.title}</p>
@@ -125,10 +134,10 @@ export function NotificationBell() {
                         </div>
                         <button
                           type="button"
-                          aria-label="Close and stop timer"
+                          aria-label="Dismiss notification"
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleCloseNotification(n.id, n.timerId);
+                            handleCloseNotification(n);
                           }}
                           className="flex h-6 w-6 shrink-0 items-center justify-center rounded text-muted opacity-0 transition-opacity hover:bg-surface hover:text-danger group-hover:opacity-100"
                         >

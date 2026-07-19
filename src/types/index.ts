@@ -169,10 +169,15 @@ export interface PomodoroTimerInstance {
   notified?: boolean;
 }
 
-/** A notification raised when a timer finishes, archived in the header's notification bell. */
+export type AppNotificationKind = "timer" | "due-soon";
+
+/** Archived in-app notification shown in the header bell. */
 export interface TimerNotification {
   id: string;
+  /** Legacy field — timer id, or a synthetic key for non-timer kinds. */
   timerId: string;
+  kind?: AppNotificationKind;
+  href?: string;
   title: string;
   message: string;
   createdAt: string;

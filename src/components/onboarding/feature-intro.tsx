@@ -6,22 +6,32 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
   ONBOARDING_COPY,
+  PAGE_TIP_FEATURES,
   useOnboarding,
   type OnboardingFeature,
+  type PageTipFeature,
 } from "@/hooks/use-onboarding";
 
 interface FeatureIntroProps {
   feature: OnboardingFeature;
 }
 
+function isPageTip(feature: OnboardingFeature): feature is PageTipFeature {
+  return (PAGE_TIP_FEATURES as readonly string[]).includes(feature);
+}
+
 /**
- * Canva-style first-visit tip for a feature page. Shows once until dismissed;
- * Settings can reset all tours.
+ * Lightweight tip for Kanban / Pomodoro only. Other features rely on the
+ * core tour so first-run isn't seven separate banners.
  */
 export function FeatureIntro({ feature }: FeatureIntroProps) {
-  const { hydrated, hasSeen, markSeen } = useOnboarding();
+  const { hydrated, hasSeen, markSeen, coreComplete } = useOnboarding();
+
+  if (!isPageTip(feature)) return null;
+
   const copy = ONBOARDING_COPY[feature];
-  const visible = hydrated && !hasSeen(feature);
+  // Wait until the core tour is done so tips don't stack on top of it.
+  const visible = hydrated && coreComplete && !hasSeen(feature);
 
   return (
     <AnimatePresence>
@@ -54,14 +64,6 @@ export function FeatureIntro({ feature }: FeatureIntroProps) {
               <div className="mt-3 flex flex-wrap gap-2">
                 <Button type="button" size="sm" onClick={() => markSeen(feature)}>
                   Got it
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => markSeen(feature)}
-                >
-                  Don&apos;t show again
                 </Button>
               </div>
             </div>

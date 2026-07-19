@@ -22,7 +22,7 @@ A higher-quality version is available at [`docs/demo/axon-demo.mp4`](docs/demo/a
 * **Kanban Task Board:** Full CRUD with drag-and-drop, priority sorting, and a recycle bin (7-day auto-move, 30-day permanent delete) — complete with a confetti celebration on task completion.
 * **Calendar:** Month/week/day views with drag-and-drop scheduling, a live "now playing" focus session indicator, an agenda panel (live, today, tomorrow, upcoming deadlines), and calendar-only events that never clutter the kanban board.
 * **Pomodoro Focus Timer:** Run multiple concurrent timers — objective-linked or personal — with digital ring and ambient "blob" display modes, session history, and toast/notification-bell alerts when a timer finishes.
-* **Flashcards:** Folders and decks with a 3D "dome gallery" browser, focused study/practice mode, and per-card mastery tracking based on your actual review history.
+* **Flashcards:** Folders and decks with a default set grid, optional visual dome gallery, focused study/practice mode, and per-card mastery tracking based on your actual review history.
 * **Analytics:** Focus-time trend lines, weekly rhythm and peak-hours charts, completions-by-priority breakdown, and day-streak consistency — all computed from your real sessions and objectives.
 * **Goals:** Daily and weekly targets with live pace tracking (on track / behind / done), goal streaks, and a rolling history of every closed period.
 * **XP & Rank Progression:** Deterministic, rule-based XP for completed focus sessions and objectives, with levels, ranks, streaks, and a daily bonus — no server, no AI, just local math.
@@ -44,7 +44,7 @@ A higher-quality version is available at [`docs/demo/axon-demo.mp4`](docs/demo/a
 - [Lucide Icons](https://lucide.dev/)
 - [Framer Motion](https://www.framer.com/motion/) — page/section transitions and micro-interactions
 - [GSAP](https://gsap.com/) + [Lenis](https://lenis.darkroom.engineering/) — landing-page scroll choreography
-- [OGL](https://github.com/oframe/ogl) / [Three.js](https://threejs.org/) — WebGL ambient effects and the flashcards' 3D dome gallery
+- [OGL](https://github.com/oframe/ogl) / [Three.js](https://threejs.org/) — WebGL ambient background effects (the flashcard dome gallery is DOM/CSS, not WebGL)
 - [@dnd-kit](https://dndkit.com/) — kanban and calendar drag-and-drop
 
 **Data & Forms**
@@ -113,7 +113,7 @@ A quick walkthrough for reviewers testing the app locally:
 2. **Create and move a task** — go to the Kanban board, add an objective, assign a priority, and drag it across columns. Complete one to see the confetti celebration; delete one to send it to the recycle bin (auto-moves after 7 days, permanently deletes after 30).
 3. **Schedule it on the calendar** — switch to Month/Week/Day view, drag an unscheduled objective onto a slot, or add a calendar-only event that never shows up on the board.
 4. **Run a focus session** — open the Pomodoro timer, start an objective-linked or personal session, and toggle between the ring and blob display modes. Run more than one at once if you want.
-5. **Build a flashcard deck** — create a folder and a set from the Flashcards page, browse the 3D dome gallery, and study a deck to see mastery tracking update per card.
+5. **Build a flashcard deck** — create a folder and a set from the Flashcards page, study from the set grid (or optional visual gallery), and see mastery tracking update per card.
 6. **Check your trends** — Analytics turns your real sessions and completions into focus trend lines, peak-hours/weekly-rhythm charts, and a consistency score.
 7. **Track your goals** — Goals shows live daily/weekly pace against your targets, with a history of every past period once you have a few days of activity.
 8. **Switch themes?** Axon intentionally ships with a single, fixed dark theme — see the Settings page for why.
@@ -143,7 +143,7 @@ Every core phase below has shipped and is exercised by the demo above:
 - [x] **Kanban** — full CRUD, drag-and-drop, recycle bin, localStorage persistence
 - [x] **Dashboard** — live stats, XP/productivity calculations, charts
 - [x] **Calendar** — month/week/day views, drag-and-drop scheduling, live agenda
-- [x] **Flashcards** — folders, 3D dome gallery, study mode, per-card mastery tracking
+- [x] **Flashcards** — folders, set grid + optional dome gallery, study mode, per-card mastery tracking
 - [x] **Pomodoro** — multi-timer, auto-switching, session history, notifications
 - [x] **Analytics** — trend lines, peak-hours/weekly-rhythm charts, consistency scoring
 - [x] **Goals** — daily/weekly targets, live pace, streaks, period history

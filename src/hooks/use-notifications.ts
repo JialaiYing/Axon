@@ -24,9 +24,12 @@ function write(updater: (prev: TimerNotification[]) => TimerNotification[]) {
 
 function normalizeNotification(value: TimerNotification): TimerNotification | null {
   if (!value || typeof value !== "object" || typeof value.id !== "string") return null;
+  const kind = value.kind === "due-soon" ? "due-soon" : "timer";
   return {
     ...value,
     timerId: typeof value.timerId === "string" ? value.timerId : "",
+    kind,
+    href: typeof value.href === "string" ? value.href : undefined,
     title: typeof value.title === "string" && value.title.trim() ? value.title : "Notification",
     message: typeof value.message === "string" ? value.message : "",
     createdAt:
@@ -54,10 +57,18 @@ export function useNotifications() {
   const notifications = React.useMemo(() => normalizeNotifications(rawNotifications), [rawNotifications]);
 
   const addNotification = React.useCallback(
-    (input: { timerId: string; title: string; message: string }) => {
+    (input: {
+      timerId: string;
+      title: string;
+      message: string;
+      kind?: TimerNotification["kind"];
+      href?: string;
+    }) => {
       const notification: TimerNotification = {
         id: createId(),
         timerId: input.timerId,
+        kind: input.kind ?? "timer",
+        href: input.href,
         title: input.title,
         message: input.message,
         createdAt: new Date().toISOString(),

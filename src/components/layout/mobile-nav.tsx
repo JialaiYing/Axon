@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Menu, X, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { NAV_ITEMS } from "@/constants/navigation";
+import { NAV_ITEMS, NAV_PRIMARY, NAV_PROGRESS } from "@/constants/navigation";
 
 export function MobileNav() {
   const [open, setOpen] = React.useState(false);
@@ -28,7 +28,7 @@ export function MobileNav() {
       </DialogPrimitive.Trigger>
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-        <DialogPrimitive.Content className="fixed inset-y-0 left-0 z-50 flex h-full w-72 flex-col border-r border-border/40 bg-surface/50 p-4 backdrop-blur-xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left duration-200">
+        <DialogPrimitive.Content className="fixed inset-y-0 left-0 z-50 flex h-full w-72 flex-col border-r border-border/40 bg-surface/90 p-4 backdrop-blur-md duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left">
           <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="flex h-7 w-7 items-center justify-center rounded-md bg-accent">
@@ -42,20 +42,61 @@ export function MobileNav() {
           </div>
 
           <nav className="flex flex-1 flex-col gap-1">
-            {NAV_ITEMS.map((item) => {
+            {NAV_PRIMARY.map((item) => {
               const isActive = pathname === item.href;
               const Icon = item.icon;
               return (
                 <Link
                   key={item.href}
-                  href={item.disabled ? "#" : item.href}
-                  aria-disabled={item.disabled}
+                  href={item.href}
                   className={cn(
                     "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
                     isActive
                       ? "bg-accent-muted text-accent-foreground"
-                      : "text-muted hover:bg-card hover:text-foreground",
-                    item.disabled && "pointer-events-none opacity-40"
+                      : "text-muted hover:bg-card hover:text-foreground"
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                  {item.label}
+                </Link>
+              );
+            })}
+
+            <p className="mt-3 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              {NAV_PROGRESS.label}
+            </p>
+            {NAV_PROGRESS.children.map((item) => {
+              const isActive = pathname === item.href;
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
+                    isActive
+                      ? "bg-accent-muted text-accent-foreground"
+                      : "text-muted hover:bg-card hover:text-foreground"
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                  {item.label}
+                </Link>
+              );
+            })}
+
+            {NAV_ITEMS.filter((i) => i.href === "/settings").map((item) => {
+              const isActive = pathname === item.href;
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "mt-3 flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
+                    isActive
+                      ? "bg-accent-muted text-accent-foreground"
+                      : "text-muted hover:bg-card hover:text-foreground"
                   )}
                 >
                   <Icon className="h-4 w-4" />

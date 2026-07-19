@@ -5,7 +5,9 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { PageTransition } from "@/components/layout/page-transition";
 import { TimerNotificationsWatcher } from "@/components/layout/timer-notifications-watcher";
+import { DueSoonWatcher } from "@/components/layout/due-soon-watcher";
 import { DashboardBackground } from "@/components/layout/dashboard-background";
+import { CoreTour } from "@/components/onboarding/core-tour";
 import { GrainOverlay } from "@/components/ui/grain-overlay";
 import { cn } from "@/lib/utils";
 
@@ -31,6 +33,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         </main>
       </div>
       <TimerNotificationsWatcher />
+      <DueSoonWatcher />
+      <CoreTour />
     </div>
   );
 }
