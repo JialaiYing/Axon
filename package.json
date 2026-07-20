@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "demo:capture": "node scripts/demo/capture.mjs"
+    "demo:capture": "node scripts/demo/capture.mjs",
+    "demo:cinematic": "node scripts/demo/record-cinematic.mjs && python scripts/demo/make_title_cards.py && node scripts/demo/build-cinematic.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.1.0",

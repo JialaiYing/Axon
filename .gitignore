@@ -5,3 +5,9 @@ out
 *.tsbuildinfo
 next-env.d.ts
 .DS_Store
+
+# Intermediate/scratch artifacts from the demo video pipeline (npm run
+# demo:capture / scripts/demo/*) — only the final docs/demo/axon-demo.mp4
+# and .gif are meant to be committed.
+docs/demo/raw
+docs/demo/work

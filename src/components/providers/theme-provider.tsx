@@ -1,10 +1,18 @@
 "use client";
 
 import * as React from "react";
+import { usePathname } from "next/navigation";
 
 export type ThemeMode = "dark" | "light";
 
 const STORAGE_KEY = "axon:theme";
+
+// The marketing homepage is always dark — light mode is a dashboard-only
+// preference. Anything outside the `(app)` route group (just `/` today)
+// forces dark regardless of the stored preference.
+function isThemeableRoute(pathname: string | null) {
+  return pathname !== null && pathname !== "/";
+}
 
 interface ThemeContextValue {
   theme: ThemeMode;
@@ -21,6 +29,7 @@ function applyTheme(theme: ThemeMode) {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const [theme, setThemeState] = React.useState<ThemeMode>("dark");
   const [hydrated, setHydrated] = React.useState(false);
 
@@ -29,16 +38,21 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       const stored = window.localStorage.getItem(STORAGE_KEY);
       const next: ThemeMode = stored === "light" ? "light" : "dark";
       setThemeState(next);
-      applyTheme(next);
     } catch {
-      applyTheme("dark");
+      setThemeState("dark");
     }
     setHydrated(true);
   }, []);
 
+  // Re-applies whenever the stored preference OR the route changes, so
+  // navigating back to the homepage always snaps to dark even if the user
+  // picked light mode inside the dashboard.
+  React.useEffect(() => {
+    applyTheme(isThemeableRoute(pathname) ? theme : "dark");
+  }, [theme, pathname]);
+
   const setTheme = React.useCallback((next: ThemeMode) => {
     setThemeState(next);
-    applyTheme(next);
     try {
       window.localStorage.setItem(STORAGE_KEY, next);
     } catch {
