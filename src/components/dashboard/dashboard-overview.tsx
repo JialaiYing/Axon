@@ -486,7 +486,7 @@ export function DashboardOverview() {
       variants={container}
       initial={prefersReducedMotion ? false : "hidden"}
       animate="visible"
-      className="glass-panel overflow-hidden rounded-2xl p-2 shadow-[0_0_0_1px_rgba(59,130,246,0.15),0_20px_60px_-16px_rgba(59,130,246,0.25)]"
+      className="glass-panel overflow-hidden rounded-2xl p-2 shadow-[0_0_0_1px_rgba(59,130,246,0.15),0_20px_60px_-16px_rgba(59,130,246,0.25)] light:shadow-[0_0_0_1px_var(--color-border),var(--shadow-elevation-3)]"
     >
       {/* Product-window framing mirrors the live preview on the homepage. */}
       <div className="rounded-xl bg-surface/60 p-4 sm:p-6 md:p-8">

@@ -51,10 +51,12 @@ export function LandingNav() {
           items={NAV_ITEMS}
           activeHref={activeHref}
           ease="power2.easeOut"
-          baseColor="rgba(15, 17, 21, 0.85)"
-          pillColor="rgba(19, 22, 32, 0.9)"
-          pillTextColor="#9096a8"
-          hoveredPillTextColor="#f4f5f7"
+          baseColor="var(--color-surface)"
+          pillColor="var(--color-card)"
+          pillTextColor="var(--color-muted)"
+          hoveredPillTextColor="var(--color-foreground)"
+          activePillColor="var(--color-accent-muted)"
+          activePillTextColor="var(--color-accent)"
           initialLoadAnimation={false}
         />
 
@@ -65,7 +67,7 @@ export function LandingNav() {
             asButton
             edgeSensitivity={28}
             glowColor="270 80 75"
-            backgroundColor="#0f1115"
+            backgroundColor="var(--color-surface)"
             borderRadius={8}
             glowRadius={22}
             glowIntensity={0.9}
@@ -87,7 +89,7 @@ export function LandingNav() {
             asButton
             edgeSensitivity={28}
             glowColor="210 90 75"
-            backgroundColor="#1d3a66"
+            backgroundColor="var(--color-accent-muted)"
             borderRadius={8}
             glowRadius={22}
             glowIntensity={1}

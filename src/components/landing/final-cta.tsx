@@ -48,7 +48,7 @@ export function FinalCTA() {
                 asButton
                 edgeSensitivity={28}
                 glowColor="210 90 75"
-                backgroundColor="#1d3a66"
+                backgroundColor="var(--color-accent-muted)"
                 borderRadius={10}
                 glowRadius={28}
                 glowIntensity={1}

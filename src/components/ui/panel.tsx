@@ -19,8 +19,10 @@ const panelVariants = cva(
       variant: {
         standard:
           "border-border/50 bg-card shadow-[var(--shadow-elevation-1)]",
+        // Light mode drops the blur/gradient sheen entirely — it reads muddy
+        // on light backgrounds — in favor of a plain opaque card + hairline border.
         glass:
-          "border-border bg-gradient-to-b from-foreground/[0.04] to-card/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),var(--shadow-elevation-2)] backdrop-blur-[14px] backdrop-saturate-120",
+          "border-border bg-gradient-to-b from-foreground/[0.04] to-card/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),var(--shadow-elevation-2)] backdrop-blur-[14px] backdrop-saturate-120 light:bg-card light:from-transparent light:to-transparent light:shadow-[var(--shadow-elevation-2)] light:backdrop-blur-none light:backdrop-saturate-100",
         interactive:
           "border-border bg-card shadow-[var(--shadow-elevation-1)] hover:border-border-strong hover:bg-card-hover hover:shadow-[var(--shadow-elevation-2)] hover:-translate-y-[2px]",
       },

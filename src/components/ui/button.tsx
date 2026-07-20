@@ -10,15 +10,18 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
+        // Each variant's neon glow shadow is dark-mode-tuned — light mode
+        // swaps it for a flat hairline shadow via the `light:` overrides
+        // (glow blur reads as haze on a light background).
         default:
-          "bg-accent/80 text-accent-foreground hover:bg-accent/90 shadow-[0_0_0_1px_rgba(59,130,246,0.15),0_8px_30px_-10px_rgba(59,130,246,0.35)] hover:shadow-[0_0_0_1px_rgba(59,130,246,0.25),0_14px_40px_-10px_rgba(59,130,246,0.55)] backdrop-blur-sm",
+          "bg-accent/80 text-accent-foreground hover:bg-accent/90 shadow-[0_0_0_1px_rgba(59,130,246,0.15),0_8px_30px_-10px_rgba(59,130,246,0.35)] hover:shadow-[0_0_0_1px_rgba(59,130,246,0.25),0_14px_40px_-10px_rgba(59,130,246,0.55)] backdrop-blur-sm light:shadow-[0_1px_2px_rgba(23,24,28,0.12)] light:hover:shadow-[0_2px_8px_-2px_rgba(23,24,28,0.2)] light:backdrop-blur-none",
         secondary:
-          "bg-secondary/80 text-secondary-foreground shadow-[0_1px_2px_rgba(0,0,0,0.2)] hover:bg-secondary/90 hover:shadow-[0_10px_28px_-10px_rgba(168,85,247,0.45)] backdrop-blur-sm",
+          "bg-secondary/80 text-secondary-foreground shadow-[0_1px_2px_rgba(0,0,0,0.2)] hover:bg-secondary/90 hover:shadow-[0_10px_28px_-10px_rgba(168,85,247,0.45)] backdrop-blur-sm light:shadow-[0_1px_2px_rgba(23,24,28,0.12)] light:hover:shadow-[0_2px_8px_-2px_rgba(23,24,28,0.2)] light:backdrop-blur-none",
         outline:
-          "border border-border/50 bg-card/20 text-foreground hover:border-border-strong hover:bg-card/40 hover:shadow-[0_8px_20px_-12px_rgba(0,0,0,0.5)] backdrop-blur-sm",
+          "border border-border/50 bg-card/20 text-foreground hover:border-border-strong hover:bg-card/40 hover:shadow-[0_8px_20px_-12px_rgba(0,0,0,0.5)] backdrop-blur-sm light:bg-card/70 light:hover:bg-card light:hover:shadow-[var(--shadow-elevation-1)] light:backdrop-blur-none",
         ghost: "bg-transparent text-foreground hover:bg-card/35",
         destructive:
-          "bg-danger/85 text-white shadow-[0_1px_2px_rgba(0,0,0,0.2)] hover:bg-danger/95 hover:shadow-[0_10px_28px_-10px_rgba(239,68,68,0.5)] backdrop-blur-sm",
+          "bg-danger/85 text-white shadow-[0_1px_2px_rgba(0,0,0,0.2)] hover:bg-danger/95 hover:shadow-[0_10px_28px_-10px_rgba(239,68,68,0.5)] backdrop-blur-sm light:shadow-[0_1px_2px_rgba(23,24,28,0.12)] light:hover:shadow-[0_2px_8px_-2px_rgba(220,38,38,0.25)] light:backdrop-blur-none",
         link: "text-accent underline-offset-4 hover:underline p-0 h-auto hover:translate-y-0 hover:scale-100",
       },
       size: {

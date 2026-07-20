@@ -135,6 +135,15 @@
   will-change: transform, opacity;
 }
 
+.pill.is-active {
+  background: var(--pill-active-bg, var(--pill-bg));
+  color: var(--pill-active-text, var(--pill-text));
+}
+
+.pill.is-active .pill-label {
+  color: var(--pill-active-text, var(--pill-text));
+}
+
 .pill.is-active::after {
   content: "";
   position: absolute;
@@ -236,4 +245,9 @@
   cursor: pointer;
   background-color: var(--base);
   color: var(--hover-text, #fff);
+}
+
+.mobile-menu-popover .mobile-menu-link.is-active {
+  background-color: var(--pill-active-bg, var(--pill-bg));
+  color: var(--pill-active-text, var(--pill-text));
 }

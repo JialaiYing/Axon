@@ -31,15 +31,13 @@
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  transition: opacity 0.25s ease-out;
-  z-index: -1;
-}
-
-.border-glow-card:not(:hover):not(.sweep-active)::before,
-.border-glow-card:not(:hover):not(.sweep-active)::after,
-.border-glow-card:not(:hover):not(.sweep-active) > .edge-light {
+  /* Hidden by default and only ever revealed by the :hover/.sweep-active
+     rule below — relying on a `:not(:hover)` override to hide it instead
+     left the calc()-driven opacity below as the resting value on some
+     cards, which can resolve to a visible glow even at rest. */
   opacity: 0;
   transition: opacity 0.75s ease-in-out;
+  z-index: -1;
 }
 
 /* colored mesh-gradient border */
@@ -64,16 +62,19 @@
       border-box,
     var(--gradient-base, linear-gradient(#c299ff 0 100%)) border-box;
 
-  opacity: calc(
-    (var(--edge-proximity) - var(--color-sensitivity)) / (100 - var(--color-sensitivity))
-  );
-
   mask-image: conic-gradient(
     from var(--cursor-angle) at center,
     black calc(var(--cone-spread) * 1%),
     transparent calc((var(--cone-spread) + 15) * 1%),
     transparent calc((100 - var(--cone-spread) - 15) * 1%),
     black calc((100 - var(--cone-spread)) * 1%)
+  );
+}
+
+.border-glow-card:hover::before,
+.border-glow-card.sweep-active::before {
+  opacity: calc(
+    (var(--edge-proximity) - var(--color-sensitivity)) / (100 - var(--color-sensitivity))
   );
 }
 
@@ -113,11 +114,15 @@
     );
 
   mask-composite: subtract, add, add, add, add, add;
+  mix-blend-mode: soft-light;
+}
+
+.border-glow-card:hover::after,
+.border-glow-card.sweep-active::after {
   opacity: calc(
     var(--fill-opacity, 0.5) * (var(--edge-proximity) - var(--color-sensitivity)) /
       (100 - var(--color-sensitivity))
   );
-  mix-blend-mode: soft-light;
 }
 
 /* outer glow layer */
@@ -134,10 +139,14 @@
     black 97.5%
   );
 
+  mix-blend-mode: plus-lighter;
+}
+
+.border-glow-card:hover > .edge-light,
+.border-glow-card.sweep-active > .edge-light {
   opacity: calc(
     (var(--edge-proximity) - var(--edge-sensitivity)) / (100 - var(--edge-sensitivity))
   );
-  mix-blend-mode: plus-lighter;
 }
 
 .border-glow-card > .edge-light::before {
@@ -167,6 +176,22 @@
   position: relative;
   overflow: auto;
   z-index: 1;
+}
+
+/* Light mode: the colored mesh glow reads as a soft neon haze on a light
+   background instead of the intended edge accent, so it's suppressed in
+   favor of a plain hairline border on hover. */
+html[data-theme="light"] .border-glow-card:hover::before,
+html[data-theme="light"] .border-glow-card:hover::after,
+html[data-theme="light"] .border-glow-card.sweep-active::before,
+html[data-theme="light"] .border-glow-card.sweep-active::after,
+html[data-theme="light"] .border-glow-card:hover > .edge-light,
+html[data-theme="light"] .border-glow-card.sweep-active > .edge-light {
+  opacity: 0;
+}
+
+html[data-theme="light"] .border-glow-card:hover {
+  border-color: var(--color-border-strong);
 }
 
 /* Compact variant for wrapping buttons / CTAs */

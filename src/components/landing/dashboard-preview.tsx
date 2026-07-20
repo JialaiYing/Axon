@@ -85,7 +85,7 @@ export function DashboardPreview() {
             glareEnable={false}
             className="will-change-transform"
           >
-            <Card className="glass-panel glass-panel-hover overflow-hidden rounded-2xl p-2 shadow-[0_0_0_1px_rgba(59,130,246,0.15),0_20px_60px_-16px_rgba(59,130,246,0.35)]">
+            <Card className="glass-panel glass-panel-hover overflow-hidden rounded-2xl p-2 shadow-[0_0_0_1px_rgba(59,130,246,0.15),0_20px_60px_-16px_rgba(59,130,246,0.35)] light:shadow-[0_0_0_1px_var(--color-border),var(--shadow-elevation-3)]">
               <div className="rounded-xl bg-surface/60 p-6 md:p-8">
                 <div className="mb-5 flex items-center gap-1.5">
                   <span className="h-2.5 w-2.5 rounded-full bg-danger/60" />

@@ -22,6 +22,9 @@ export interface PillNavProps {
   pillColor?: string;
   hoveredPillTextColor?: string;
   pillTextColor?: string;
+  /** Background/text for the currently active pill — falls back to pillColor/pillTextColor. */
+  activePillColor?: string;
+  activePillTextColor?: string;
   onMobileMenuClick?: () => void;
   initialLoadAnimation?: boolean;
 }
@@ -52,6 +55,8 @@ export default function PillNav({
   pillColor = "#120F17",
   hoveredPillTextColor = "#120F17",
   pillTextColor,
+  activePillColor,
+  activePillTextColor,
   onMobileMenuClick,
   initialLoadAnimation = true,
 }: PillNavProps) {
@@ -265,6 +270,8 @@ export default function PillNav({
     ["--pill-bg"]: pillColor,
     ["--hover-text"]: hoveredPillTextColor,
     ["--pill-text"]: resolvedPillTextColor,
+    ["--pill-active-bg"]: activePillColor ?? pillColor,
+    ["--pill-active-text"]: activePillTextColor ?? resolvedPillTextColor,
   } as CSSProperties;
 
   const renderPillContent = (item: PillNavItem, i: number) => (

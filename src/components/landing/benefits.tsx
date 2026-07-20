@@ -38,7 +38,7 @@ export function Benefits() {
                 <BorderGlow
                   edgeSensitivity={28}
                   glowColor="210 90 75"
-                  backgroundColor="#131620"
+                  backgroundColor="var(--color-card)"
                   borderRadius={12}
                   glowRadius={24}
                   glowIntensity={0.85}
@@ -47,14 +47,9 @@ export function Benefits() {
                   fillOpacity={0.35}
                   className="h-full"
                 >
-                  {/* BorderGlow without asButton renders backgroundColor as a
-                      literal, theme-independent fill — this card stays dark
-                      navy in both themes, so its text is hardcoded light
-                      rather than following text-muted (which would flip to
-                      dark gray in light mode and disappear). */}
                   <div className="flex items-start gap-3 p-4">
                     <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success" />
-                    <p className="text-sm leading-relaxed text-white/70">{benefit}</p>
+                    <p className="text-sm leading-relaxed text-muted">{benefit}</p>
                   </div>
                 </BorderGlow>
               </TiltCard>

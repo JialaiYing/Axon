@@ -36,8 +36,10 @@ export function ProgressBar({
       >
         <div
           className={cn(
-            "h-full rounded-full bg-gradient-to-r from-accent to-secondary transition-all duration-500 ease-out",
-            clamped > 0 && "shadow-[0_0_10px_-1px_rgba(59,130,246,0.55)]",
+            // Neon gradient + glow reads great on dark surfaces; light mode
+            // flattens it to a single solid accent fill, no glow.
+            "h-full rounded-full bg-gradient-to-r from-accent to-secondary transition-all duration-500 ease-out light:bg-accent light:bg-none",
+            clamped > 0 && "shadow-[0_0_10px_-1px_rgba(59,130,246,0.55)] light:shadow-none",
             barClassName
           )}
           style={{ width: `${clamped}%` }}

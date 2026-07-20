@@ -194,7 +194,7 @@ export function AgendaPanel({
                   className={cn(
                     "rounded-lg border p-3",
                     timer.status === "running"
-                      ? "border-accent/40 bg-accent-muted/20 shadow-[0_0_0_1px_rgba(59,130,246,0.15),0_0_24px_-8px_rgba(59,130,246,0.35)]"
+                      ? "border-accent/40 bg-accent-muted/20 shadow-[0_0_0_1px_rgba(59,130,246,0.15),0_0_24px_-8px_rgba(59,130,246,0.35)] light:shadow-[0_0_0_1px_rgba(37,99,235,0.25)]"
                       : "border-border bg-surface"
                   )}
                 >

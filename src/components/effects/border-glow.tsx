@@ -8,7 +8,6 @@ import {
   type PointerEvent,
   type ReactNode,
 } from "react";
-import { cn } from "@/lib/utils";
 import "./border-glow.css";
 
 function parseHSL(hslStr: string) {
@@ -248,11 +247,11 @@ export default function BorderGlow({
     <div
       ref={cardRef}
       onPointerMove={handlePointerMove}
-      className={cn(
-        "border-glow-card",
-        asButton && "border-glow-button",
-        className
-      )}
+      // Built by hand rather than through cn()/tailwind-merge: twMerge treats
+      // "border-glow-card" and "border-glow-button" as conflicting Tailwind
+      // border-* utilities (they just happen to share that prefix) and drops
+      // one, silently breaking every asButton instance's base styling.
+      className={`border-glow-card${asButton ? " border-glow-button" : ""}${className ? ` ${className}` : ""}`}
       style={style}
     >
       <span className="edge-light" />

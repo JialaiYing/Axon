@@ -25,10 +25,10 @@ export function DashboardBackground() {
           style={{
             background:
               theme === "light"
-                ? `radial-gradient(ellipse at 20% 20%, ${palette.gradient[0]} 0%, transparent 50%),
-                   radial-gradient(ellipse at 80% 30%, ${palette.gradient[1]} 0%, transparent 45%),
-                   radial-gradient(ellipse at 50% 80%, ${palette.gradient[2]} 0%, transparent 50%),
-                   #f4f6fa`
+                ? `radial-gradient(ellipse at 20% 20%, ${palette.gradient[0]}26 0%, transparent 50%),
+                   radial-gradient(ellipse at 80% 30%, ${palette.gradient[1]}20 0%, transparent 45%),
+                   radial-gradient(ellipse at 50% 80%, ${palette.gradient[2]}1a 0%, transparent 50%),
+                   #f7f6f2`
                 : `radial-gradient(ellipse at 20% 20%, ${palette.gradient[0]}55 0%, transparent 50%),
                    radial-gradient(ellipse at 80% 30%, ${palette.gradient[1]}44 0%, transparent 45%),
                    radial-gradient(ellipse at 50% 80%, ${palette.gradient[2]}33 0%, transparent 50%),
@@ -39,7 +39,15 @@ export function DashboardBackground() {
 
       {(backgroundId === "lines" || backgroundId === "aurora") && (
         <FloatingLines
-          className={cn("h-full w-full", backgroundId === "aurora" && "opacity-40")}
+          className={cn(
+            "h-full w-full transition-[opacity,filter] duration-500",
+            backgroundId === "aurora" ? "opacity-40" : "opacity-100",
+            // Full-strength saturated lines read as neon graphics on a dark
+            // canvas but look like a garish smear on a near-white one — light
+            // mode fades them to a quiet, desaturated wash instead.
+            theme === "light" &&
+              (backgroundId === "aurora" ? "opacity-[0.12] saturate-[0.35]" : "opacity-[0.18] saturate-[0.35]")
+          )}
           enabledWaves={["top", "middle", "bottom"]}
           lineCount={8}
           lineDistance={8}
@@ -47,7 +55,7 @@ export function DashboardBackground() {
           bendStrength={-2}
           interactive={false}
           parallax={false}
-          animationSpeed={1}
+          animationSpeed={theme === "light" ? 0.5 : 1}
           maxFps={30}
           linesGradient={palette.gradient}
           mixBlendMode="normal"

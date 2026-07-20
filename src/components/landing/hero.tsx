@@ -142,7 +142,7 @@ export function Hero() {
               asButton
               edgeSensitivity={28}
               glowColor="210 90 75"
-              backgroundColor="#1d3a66"
+              backgroundColor="var(--color-accent-muted)"
               borderRadius={10}
               glowRadius={28}
               glowIntensity={1}
@@ -186,7 +186,7 @@ export function Hero() {
             asButton
             edgeSensitivity={28}
             glowColor="270 80 75"
-            backgroundColor="#0f1115"
+            backgroundColor="var(--color-surface)"
             borderRadius={10}
             glowRadius={28}
             glowIntensity={0.9}

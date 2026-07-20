@@ -24,7 +24,7 @@ export function Sidebar({ open, onOpenChange }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-border/40 bg-surface/90 shadow-[0_0_40px_-10px_rgba(0,0,0,0.6)] backdrop-blur-md transition-[width] duration-300 ease-out md:flex",
+        "fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-border/40 bg-surface/90 shadow-[0_0_40px_-10px_rgba(0,0,0,0.6)] backdrop-blur-md transition-[width] duration-300 ease-out md:flex light:bg-surface light:shadow-none light:backdrop-blur-none",
         open ? "w-[200px]" : "w-16"
       )}
     >
@@ -35,7 +35,7 @@ export function Sidebar({ open, onOpenChange }: SidebarProps) {
           open ? "px-4" : "justify-center px-0"
         )}
       >
-        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-accent shadow-[0_0_0_1px_rgba(59,130,246,0.15),0_8px_30px_-10px_rgba(59,130,246,0.35)]">
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-accent shadow-[0_0_0_1px_rgba(59,130,246,0.15),0_8px_30px_-10px_rgba(59,130,246,0.35)] light:shadow-[0_1px_2px_rgba(23,24,28,0.18)]">
           <Zap className="h-4 w-4 text-accent-foreground" strokeWidth={2.5} />
         </div>
         {open && (
