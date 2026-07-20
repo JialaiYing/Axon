@@ -40,6 +40,7 @@ import { usePomodoroSessions } from "@/hooks/use-pomodoro-sessions";
 import { useFlashcards } from "@/hooks/use-flashcards";
 import { useUserStats } from "@/hooks/use-user-stats";
 import { useGoals } from "@/hooks/use-goals";
+import { useDisplayName } from "@/hooks/use-display-name";
 import {
   dayElapsedFraction,
   goalPaceStatus,
@@ -182,7 +183,7 @@ function GlassPanel({
   );
 }
 
-function StatCard({
+const StatCard = React.memo(function StatCard({
   icon: Icon,
   label,
   value,
@@ -201,12 +202,12 @@ function StatCard({
     <TiltCard maxTilt={5} className="h-full">
       <GlassPanel className="flex h-full flex-col justify-between p-5">
         <div className="flex items-center justify-between">
-          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-white/55">
+          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-foreground/55">
             {label}
           </p>
           <span
             className={cn(
-              "flex h-8 w-8 items-center justify-center rounded-lg border border-white/10",
+              "flex h-8 w-8 items-center justify-center rounded-lg border border-foreground/10",
               iconClassName
             )}
           >
@@ -214,34 +215,40 @@ function StatCard({
           </span>
         </div>
         <div className="mt-4">
-          <p className="text-2xl font-semibold tabular-nums text-white">
+          <p className="text-2xl font-semibold tabular-nums text-foreground">
             <AnimatedCounter value={value} suffix={suffix} />
           </p>
-          <p className="mt-1 text-xs text-white/45">{hint}</p>
+          <p className="mt-1 text-xs text-foreground/45">{hint}</p>
         </div>
       </GlassPanel>
     </TiltCard>
   );
-}
+});
 
-function GoalRow({ goal, status }: { goal: Goal; status: GoalPaceStatus }) {
+const GoalRow = React.memo(function GoalRow({
+  goal,
+  status,
+}: {
+  goal: Goal;
+  status: GoalPaceStatus;
+}) {
   const percent = goal.target > 0 ? (goal.progress / goal.target) * 100 : 0;
   return (
     <div>
-      <div className="flex items-center justify-between gap-2 text-[11px] text-white/55">
+      <div className="flex items-center justify-between gap-2 text-[11px] text-foreground/55">
         <span className="truncate">{goal.title}</span>
         <span className="flex shrink-0 items-center gap-2">
           <span
             className={cn(
               "text-[10px] font-medium uppercase tracking-[0.08em]",
               status === "done" && "text-success",
-              status === "on-track" && "text-white/50",
+              status === "on-track" && "text-foreground/50",
               status === "behind" && "text-warning"
             )}
           >
             {PACE_LABEL[status]}
           </span>
-          <span className="tabular-nums text-white/70">
+          <span className="tabular-nums text-foreground/70">
             {goal.progress}/{goal.target}
             {goal.unit ? ` ${goal.unit}` : ""}
           </span>
@@ -250,18 +257,48 @@ function GoalRow({ goal, status }: { goal: Goal; status: GoalPaceStatus }) {
       <ProgressBar value={percent} size="sm" className="mt-1.5" />
     </div>
   );
-}
+});
+
+const PersonalGoalRow = React.memo(function PersonalGoalRow({ goal }: { goal: Goal }) {
+  const percent = goal.target > 0 ? (goal.progress / goal.target) * 100 : 0;
+  return (
+    <div>
+      <div className="flex items-center justify-between gap-2 text-[11px] text-foreground/55">
+        <span className="truncate">{goal.title}</span>
+        <span className="flex shrink-0 items-center gap-2">
+          <span
+            className={cn(
+              "text-[10px] font-medium uppercase tracking-[0.08em]",
+              goal.completed ? "text-success" : "text-foreground/50"
+            )}
+          >
+            {goal.completed ? "Done" : "Personal"}
+          </span>
+          <span className="tabular-nums text-foreground/70">
+            {goal.progress}/{goal.target}
+            {goal.unit ? ` ${goal.unit}` : ""}
+          </span>
+        </span>
+      </div>
+      <ProgressBar value={percent} size="sm" className="mt-1.5" />
+    </div>
+  );
+});
 
 function GoalsPulseCard({
   dailyGoal,
   weeklyGoal,
+  personalGoals,
 }: {
   dailyGoal: Goal | null;
   weeklyGoal: Goal | null;
+  personalGoals: Goal[];
 }) {
   const now = new Date();
   const dailyStatus = dailyGoal ? goalPaceStatus(dailyGoal, dayElapsedFraction(now)) : null;
   const weeklyStatus = weeklyGoal ? goalPaceStatus(weeklyGoal, weekElapsedFraction(now)) : null;
+  const visiblePersonalGoals = personalGoals.slice(0, 2);
+  const remainingPersonalGoals = personalGoals.length - visiblePersonalGoals.length;
 
   const contextualCta =
     dailyStatus === "behind"
@@ -274,29 +311,44 @@ function GoalsPulseCard({
     <TiltCard maxTilt={5} className="h-full">
       <GlassPanel className="flex h-full flex-col justify-between p-5">
         <div className="flex items-center justify-between">
-          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-white/55">Goals</p>
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-success-muted text-success">
+          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-foreground/55">Goals</p>
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-foreground/10 bg-success-muted text-success">
             <Target className="h-4 w-4" />
           </span>
         </div>
         <div className="mt-4 space-y-3">
           {dailyGoal && dailyStatus && <GoalRow goal={dailyGoal} status={dailyStatus} />}
           {weeklyGoal && weeklyStatus && <GoalRow goal={weeklyGoal} status={weeklyStatus} />}
+          {visiblePersonalGoals.length > 0 && (
+            <div className="space-y-3 border-t border-foreground/8 pt-3">
+              {visiblePersonalGoals.map((goal) => (
+                <PersonalGoalRow key={goal.id} goal={goal} />
+              ))}
+              {remainingPersonalGoals > 0 && (
+                <Link
+                  href="/goals"
+                  className="inline-flex cursor-pointer items-center gap-1 text-[11px] text-foreground/45 transition-colors duration-200 hover:text-foreground"
+                >
+                  +{remainingPersonalGoals} more personal goal{remainingPersonalGoals === 1 ? "" : "s"}
+                </Link>
+              )}
+            </div>
+          )}
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1">
           {contextualCta && (
             <Link
               href={contextualCta.href}
-              className="inline-flex cursor-pointer items-center gap-1 text-[11px] text-white/70 transition-colors duration-200 hover:text-white"
+              className="inline-flex cursor-pointer items-center gap-1 text-[11px] text-foreground/70 transition-colors duration-200 hover:text-foreground"
             >
               {contextualCta.label} <ArrowRight className="h-3 w-3" />
             </Link>
           )}
           <Link
             href="/goals"
-            className="inline-flex cursor-pointer items-center gap-1 text-[11px] text-white/45 transition-colors duration-200 hover:text-white"
+            className="inline-flex cursor-pointer items-center gap-1 text-[11px] text-foreground/45 transition-colors duration-200 hover:text-foreground"
           >
-            Manage goals <ArrowRight className="h-3 w-3" />
+            {personalGoals.length === 0 ? "Add a personal goal" : "Manage goals"} <ArrowRight className="h-3 w-3" />
           </Link>
         </div>
       </GlassPanel>
@@ -325,14 +377,14 @@ function RankHero({
     <GlassPanel className="p-6">
       <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
-          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-gradient-to-br from-accent-muted to-secondary-muted text-accent">
+          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-foreground/10 bg-gradient-to-br from-accent-muted to-secondary-muted text-accent">
             <Trophy className="h-6 w-6" />
           </span>
           <div>
-            <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-white/45">
+            <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-foreground/45">
               Current rank
             </p>
-            <p className="mt-0.5 text-xl font-semibold tracking-tight text-white">{rankLabel}</p>
+            <p className="mt-0.5 text-xl font-semibold tracking-tight text-foreground">{rankLabel}</p>
           </div>
         </div>
         <div className="flex items-center gap-2.5">
@@ -346,10 +398,10 @@ function RankHero({
       </div>
 
       <div className="mt-5">
-        <div className="mb-1.5 flex items-center justify-between text-xs text-white/55">
+        <div className="mb-1.5 flex items-center justify-between text-xs text-foreground/55">
           <span>{isMaxLevel ? "Max level reached" : "XP to next level"}</span>
           {!isMaxLevel && (
-            <span className="tabular-nums text-white/70">
+            <span className="tabular-nums text-foreground/70">
               {xpIntoLevel.toLocaleString()} / {xpForNextLevel?.toLocaleString()}
             </span>
           )}
@@ -360,7 +412,7 @@ function RankHero({
   );
 }
 
-function ChartTooltip({
+const ChartTooltip = React.memo(function ChartTooltip({
   active,
   payload,
   label,
@@ -372,11 +424,11 @@ function ChartTooltip({
   if (!active || !payload?.length) return null;
   return (
     <div className="glass-panel rounded-lg px-3 py-2 text-xs">
-      <p className="font-medium text-white">{label}</p>
-      <p className="mt-0.5 text-white/60">{payload[0]?.value ?? 0} min focused</p>
+      <p className="font-medium text-foreground">{label}</p>
+      <p className="mt-0.5 text-foreground/60">{payload[0]?.value ?? 0} min focused</p>
     </div>
   );
-}
+});
 
 function LoadingState() {
   return (
@@ -402,7 +454,8 @@ export function DashboardOverview() {
     usePomodoroSessions();
   const { lastStudiedSet, hydrated: flashcardsHydrated } = useFlashcards();
   const { stats, progression, rank, todayXp, hydrated: statsHydrated } = useUserStats();
-  const { dailyGoal, weeklyGoal, hydrated: goalsHydrated } = useGoals();
+  const { dailyGoal, weeklyGoal, personalGoals, hydrated: goalsHydrated } = useGoals();
+  const { displayName } = useDisplayName();
 
   const hydrated =
     objectivesHydrated && sessionsHydrated && flashcardsHydrated && statsHydrated && goalsHydrated;
@@ -416,12 +469,13 @@ export function DashboardOverview() {
     [objectives, sessions, lastStudiedSet]
   );
 
-  const greeting =
+  const greetingBase =
     new Date().getHours() < 12
       ? "Good morning"
       : new Date().getHours() < 18
         ? "Good afternoon"
         : "Good evening";
+  const greeting = displayName ? `${greetingBase}, ${displayName}` : greetingBase;
 
   if (!hydrated) return <LoadingState />;
 
@@ -448,14 +502,14 @@ export function DashboardOverview() {
         className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"
       >
         <div>
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-white/45">
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-foreground/45">
             {new Date().toLocaleDateString(undefined, {
               weekday: "long",
               month: "long",
               day: "numeric",
             })}
           </p>
-          <h1 className="mt-1.5 text-2xl font-semibold tracking-tight text-white md:text-3xl">
+          <h1 className="mt-1.5 text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
             {greeting}
           </h1>
         </div>
@@ -487,15 +541,15 @@ export function DashboardOverview() {
       {/* Compact up-next queue */}
       <motion.div variants={item}>
         <div className="flex flex-col gap-2">
-          <p className="mb-0.5 text-[10px] uppercase tracking-wide text-white/45">Up next</p>
+          <p className="mb-0.5 text-[10px] uppercase tracking-wide text-foreground/45">Up next</p>
           {queue.length === 0 ? (
             <Link
               href="/kanban"
-              className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-white/12 bg-white/[0.03] p-6 text-center transition-colors duration-200 hover:border-white/20 hover:bg-white/[0.05]"
+              className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-foreground/12 bg-foreground/[0.03] p-6 text-center transition-colors duration-200 hover:border-foreground/20 hover:bg-foreground/[0.05]"
             >
-              <Circle className="h-4 w-4 text-white/40" />
-              <p className="text-xs text-white/55">No objectives yet</p>
-              <span className="inline-flex items-center gap-1 text-[11px] text-white/40">
+              <Circle className="h-4 w-4 text-foreground/40" />
+              <p className="text-xs text-foreground/55">No objectives yet</p>
+              <span className="inline-flex items-center gap-1 text-[11px] text-foreground/40">
                 Create one on the board <ArrowRight className="h-3 w-3" />
               </span>
             </Link>
@@ -504,7 +558,7 @@ export function DashboardOverview() {
               {queue.map((objective) => (
                 <div
                   key={objective.id}
-                  className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-white/[0.04] p-3 transition-colors duration-200 hover:border-white/16 hover:bg-white/[0.07]"
+                  className="flex items-center gap-2.5 rounded-lg border border-foreground/8 bg-foreground/[0.04] p-3 transition-colors duration-200 hover:border-foreground/16 hover:bg-foreground/[0.07]"
                 >
                   <span
                     className={cn(
@@ -518,7 +572,7 @@ export function DashboardOverview() {
                   />
                   <Link
                     href="/kanban"
-                    className="min-w-0 flex-1 cursor-pointer truncate text-xs font-medium text-white"
+                    className="min-w-0 flex-1 cursor-pointer truncate text-xs font-medium text-foreground"
                   >
                     {objective.title}
                   </Link>
@@ -526,7 +580,7 @@ export function DashboardOverview() {
                     type="button"
                     aria-label={`Mark "${objective.title}" done`}
                     onClick={() => completeObjective(objective.id)}
-                    className="shrink-0 cursor-pointer rounded-md p-0.5 text-white/40 transition-colors duration-150 hover:text-success"
+                    className="shrink-0 cursor-pointer rounded-md p-0.5 text-foreground/40 transition-colors duration-150 hover:text-success"
                   >
                     <Circle className="h-3.5 w-3.5" />
                   </button>
@@ -573,8 +627,11 @@ export function DashboardOverview() {
       </motion.div>
 
       {/* Daily goal + Current rank / XP — mirrors the homepage pair */}
+      <motion.div variants={item}>
+        <FeatureIntro feature="gamification" />
+      </motion.div>
       <motion.div variants={item} className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
-        <GoalsPulseCard dailyGoal={dailyGoal} weeklyGoal={weeklyGoal} />
+        <GoalsPulseCard dailyGoal={dailyGoal} weeklyGoal={weeklyGoal} personalGoals={personalGoals} />
         <RankHero
           rankLabel={rank.label}
           level={progression.level}
@@ -589,15 +646,15 @@ export function DashboardOverview() {
       <motion.div variants={item}>
         <GlassPanel className="flex h-full flex-col p-6">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-white">Recent</h2>
-            <History className="h-3.5 w-3.5 text-white/40" />
+            <h2 className="text-sm font-semibold text-foreground">Recent</h2>
+            <History className="h-3.5 w-3.5 text-foreground/40" />
           </div>
           {recent.length === 0 ? (
             <div className="flex flex-1 flex-col items-center justify-center gap-3 py-8 text-center">
-              <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/5">
-                <History className="h-5 w-5 text-white/50" />
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-foreground/10 bg-foreground/5">
+                <History className="h-5 w-5 text-foreground/50" />
               </span>
-              <p className="text-sm text-white/60">Nothing to resume yet</p>
+              <p className="text-sm text-foreground/60">Nothing to resume yet</p>
             </div>
           ) : (
             <ul className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
@@ -607,16 +664,16 @@ export function DashboardOverview() {
                   <li key={entry.key}>
                     <Link
                       href={entry.href}
-                      className="flex cursor-pointer items-center gap-3 rounded-xl border border-white/8 bg-white/[0.04] p-3.5 transition-all duration-200 hover:border-white/16 hover:bg-white/[0.07]"
+                      className="flex cursor-pointer items-center gap-3 rounded-xl border border-foreground/8 bg-foreground/[0.04] p-3.5 transition-all duration-200 hover:border-foreground/16 hover:bg-foreground/[0.07]"
                     >
-                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-white/60">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-foreground/10 bg-foreground/5 text-foreground/60">
                         <Icon className="h-4 w-4" />
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium text-white">{entry.title}</p>
-                        <p className="mt-0.5 text-[11px] text-white/45">{entry.subtitle}</p>
+                        <p className="truncate text-sm font-medium text-foreground">{entry.title}</p>
+                        <p className="mt-0.5 text-[11px] text-foreground/45">{entry.subtitle}</p>
                       </div>
-                      <span className="shrink-0 text-[11px] text-white/40">
+                      <span className="shrink-0 text-[11px] text-foreground/40">
                         {formatRelativeTime(entry.timestamp)}
                       </span>
                     </Link>
@@ -633,8 +690,8 @@ export function DashboardOverview() {
         <GlassPanel className="flex flex-col p-6">
           <div className="mb-4 flex items-center justify-between">
             <div>
-              <h2 className="text-sm font-semibold text-white">Focus this week</h2>
-              <p className="mt-0.5 text-xs text-white/45">
+              <h2 className="text-sm font-semibold text-foreground">Focus this week</h2>
+              <p className="mt-0.5 text-xs text-foreground/45">
                 {weekTotal} minutes across the last 7 days
               </p>
             </div>
@@ -644,10 +701,10 @@ export function DashboardOverview() {
           </div>
           {weekTotal === 0 ? (
             <div className="flex flex-1 flex-col items-center justify-center gap-3 py-10 text-center">
-              <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/5">
-                <Timer className="h-5 w-5 text-white/50" />
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-foreground/10 bg-foreground/5">
+                <Timer className="h-5 w-5 text-foreground/50" />
               </span>
-              <p className="text-sm text-white/60">No focus sessions yet this week</p>
+              <p className="text-sm text-foreground/60">No focus sessions yet this week</p>
               <Button asChild size="sm" variant="outline" className="cursor-pointer">
                 <Link href="/pomodoro" className="inline-flex items-center gap-1.5">
                   Start your first session <ArrowRight className="h-3.5 w-3.5" />
@@ -660,28 +717,31 @@ export function DashboardOverview() {
                 <AreaChart data={weekData} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
                   <defs>
                     <linearGradient id="focusFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.4} />
-                      <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.02} />
+                      <stop offset="0%" stopColor="var(--color-accent)" stopOpacity={0.4} />
+                      <stop offset="100%" stopColor="var(--color-accent)" stopOpacity={0.02} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
+                  <CartesianGrid stroke="var(--color-border)" vertical={false} />
                   <XAxis
                     dataKey="label"
-                    tick={{ fill: "rgba(255,255,255,0.45)", fontSize: 11 }}
+                    tick={{ fill: "var(--color-muted-foreground)", fontSize: 11 }}
                     axisLine={false}
                     tickLine={false}
                   />
                   <YAxis
-                    tick={{ fill: "rgba(255,255,255,0.45)", fontSize: 11 }}
+                    tick={{ fill: "var(--color-muted-foreground)", fontSize: 11 }}
                     axisLine={false}
                     tickLine={false}
                     width={46}
                   />
-                  <Tooltip content={<ChartTooltip />} cursor={{ stroke: "rgba(255,255,255,0.15)" }} />
+                  <Tooltip
+                    content={<ChartTooltip />}
+                    cursor={{ stroke: "var(--color-border-strong)" }}
+                  />
                   <Area
                     type="monotone"
                     dataKey="minutes"
-                    stroke="#3b82f6"
+                    stroke="var(--color-accent)"
                     strokeWidth={2}
                     fill="url(#focusFill)"
                     isAnimationActive={!prefersReducedMotion}

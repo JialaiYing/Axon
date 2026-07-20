@@ -188,6 +188,10 @@ export interface Goal {
   id: string;
   title: string;
   type: "daily" | "weekly";
+  /** Study goals auto-track from Pomodoro/Kanban; personal goals are manual. */
+  category?: "study" | "personal";
+  /** How progress is measured — personal goals default to manual. */
+  tracking?: "auto" | "manual";
   target: number;
   progress: number;
   unit: string;

@@ -100,7 +100,7 @@ export function KanbanCard({
       {/* Subtle top sheen for depth — barely visible, echoes the card system's "layered" spec. */}
       <span
         aria-hidden
-        className="pointer-events-none absolute inset-0 rounded-[inherit] bg-gradient-to-b from-white/[0.03] to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+        className="pointer-events-none absolute inset-0 rounded-[inherit] bg-gradient-to-b from-foreground/[0.03] to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100"
       />
 
       {objective.color && (
@@ -219,7 +219,7 @@ export function KanbanCard({
                     "flex items-center gap-1.5 rounded-full border px-2 py-1 text-[11px] font-medium transition-all duration-150",
                     scheduleOverdue
                       ? "border-warning/30 bg-warning-muted text-warning"
-                      : "border-accent/25 bg-accent-muted/50 text-accent-foreground hover:border-accent/40",
+                      : "border-accent/25 bg-accent-muted/50 text-accent hover:border-accent/40",
                     open && "ring-1 ring-accent/40"
                   )}
                 >

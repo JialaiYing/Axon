@@ -56,7 +56,7 @@ export function Gamification() {
             <div className="mt-5">
               <div className="mb-1.5 flex items-center justify-between text-xs text-muted">
                 <span>XP to next level</span>
-                <span>415 / 611</span>
+                <span>640 / 940</span>
               </div>
               <ProgressBar value={68} />
             </div>

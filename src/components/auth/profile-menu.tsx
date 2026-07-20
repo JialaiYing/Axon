@@ -11,7 +11,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { AuthDialog } from "@/components/auth/auth-dialog";
 import { useAuth } from "@/components/auth/auth-provider";
 import { useSync } from "@/components/sync/sync-provider";
 import { cn } from "@/lib/utils";
@@ -61,7 +60,6 @@ function SyncBadge() {
 
 export function ProfileMenu() {
   const { user, loading, signOut, configured } = useAuth();
-  const [authOpen, setAuthOpen] = React.useState(false);
 
   const initials =
     user?.email?.slice(0, 2).toUpperCase() ??
@@ -123,20 +121,15 @@ export function ProfileMenu() {
               Sign out
             </DropdownMenuItem>
           ) : (
-            <DropdownMenuItem
-              onSelect={(e) => {
-                e.preventDefault();
-                setAuthOpen(true);
-              }}
-            >
-              <LogIn className="h-3.5 w-3.5" />
-              Sign in
+            <DropdownMenuItem asChild>
+              <Link href="/login">
+                <LogIn className="h-3.5 w-3.5" />
+                Sign in
+              </Link>
             </DropdownMenuItem>
           )}
         </DropdownMenuContent>
       </DropdownMenu>
-
-      <AuthDialog open={authOpen} onOpenChange={setAuthOpen} />
     </>
   );
 }

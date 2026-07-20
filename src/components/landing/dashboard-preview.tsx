@@ -4,7 +4,7 @@ import * as React from "react";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import Tilt from "react-parallax-tilt";
 import CountUp from "react-countup";
-import { CalendarClock, CheckCircle2, Circle, Flame, Sparkles, Target, Timer, Trophy } from "lucide-react";
+import { CalendarClock, Circle, Flame, Sparkles, Target, Timer, Trophy } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ProgressBar } from "@/components/ui/progress-bar";
@@ -19,12 +19,13 @@ const STATS = [
 
 /** Mini Kanban-column slice — the same priority language as the real board. */
 const BOARD_CARDS = [
-  { title: "Org chem problem set", priority: "high" as const, status: "In progress" },
+  { title: "Org chem problem set", priority: "urgent" as const, status: "In progress" },
   { title: "Read ch. 6 — thermodynamics", priority: "medium" as const, status: "Queued" },
-  { title: "Review flashcard deck", priority: "low" as const, status: "Done" },
+  { title: "Review flashcard deck", priority: "low" as const, status: "Queued" },
 ];
 
 const PRIORITY_DOT: Record<string, string> = {
+  urgent: "bg-danger",
   high: "bg-danger",
   medium: "bg-warning",
   low: "bg-success",
@@ -93,29 +94,7 @@ export function DashboardPreview() {
                 </div>
 
                 <div className="grid grid-cols-1 gap-3.5 md:grid-cols-[1.1fr_0.9fr]">
-                  {/* Board slice */}
-                  <ScrollRevealGroup className="flex flex-col gap-2" stagger={0.08}>
-                    <p className="mb-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
-                      Up next
-                    </p>
-                    {BOARD_CARDS.map((card) => (
-                      <ScrollRevealItem key={card.title}>
-                        <div className="flex items-center gap-2.5 rounded-lg border border-border bg-card p-3 transition-colors duration-300 hover:border-border-strong hover:bg-card-hover">
-                          <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${PRIORITY_DOT[card.priority]}`} />
-                          <p className="min-w-0 flex-1 truncate text-xs font-medium text-foreground">
-                            {card.title}
-                          </p>
-                          {card.status === "Done" ? (
-                            <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-success" />
-                          ) : (
-                            <Circle className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                          )}
-                        </div>
-                      </ScrollRevealItem>
-                    ))}
-                  </ScrollRevealGroup>
-
-                  {/* Agenda slice */}
+                  {/* Agenda slice — leads, same as the real dashboard's primary surface */}
                   <ScrollRevealGroup className="flex flex-col gap-2" stagger={0.08}>
                     <p className="mb-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
                       Today
@@ -142,6 +121,24 @@ export function DashboardPreview() {
                         </Badge>
                       </div>
                     </ScrollRevealItem>
+                  </ScrollRevealGroup>
+
+                  {/* Board slice — "Up next" queue */}
+                  <ScrollRevealGroup className="flex flex-col gap-2" stagger={0.08}>
+                    <p className="mb-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+                      Up next
+                    </p>
+                    {BOARD_CARDS.map((card) => (
+                      <ScrollRevealItem key={card.title}>
+                        <div className="flex items-center gap-2.5 rounded-lg border border-border bg-card p-3 transition-colors duration-300 hover:border-border-strong hover:bg-card-hover">
+                          <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${PRIORITY_DOT[card.priority]}`} />
+                          <p className="min-w-0 flex-1 truncate text-xs font-medium text-foreground">
+                            {card.title}
+                          </p>
+                          <Circle className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                        </div>
+                      </ScrollRevealItem>
+                    ))}
                   </ScrollRevealGroup>
                 </div>
 

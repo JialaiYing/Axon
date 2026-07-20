@@ -8,9 +8,11 @@ import {
   Flame,
   ListTodo,
   Pencil,
+  Plus,
   Sparkles,
   Target,
   Timer,
+  Trash2,
   X,
 } from "lucide-react";
 import { AppPage } from "@/components/layout/app-page";
@@ -271,8 +273,23 @@ function buildInsight(
 }
 
 export function GoalsOverview() {
-  const { dailyGoal, weeklyGoal, history, updateTarget, hydrated } = useGoals();
+  const {
+    dailyGoal,
+    weeklyGoal,
+    personalGoals,
+    history,
+    updateTarget,
+    addPersonalGoal,
+    deleteGoal,
+    setManualProgress,
+    hydrated,
+  } = useGoals();
   const [editingId, setEditingId] = React.useState<string | null>(null);
+  const [createOpen, setCreateOpen] = React.useState(false);
+  const [draftTitle, setDraftTitle] = React.useState("");
+  const [draftType, setDraftType] = React.useState<"daily" | "weekly">("daily");
+  const [draftTarget, setDraftTarget] = React.useState("1");
+  const [draftUnit, setDraftUnit] = React.useState("");
 
   const now = new Date();
   const dailyStatus = dailyGoal ? goalPaceStatus(dailyGoal, dayElapsedFraction(now)) : null;
@@ -315,15 +332,21 @@ export function GoalsOverview() {
       title="Goals"
       description="Daily and weekly targets that update from your real focus and completed objectives."
       actions={
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => setEditingId(dailyGoal?.id ?? weeklyGoal?.id ?? null)}
-          disabled={!hydrated || (!dailyGoal && !weeklyGoal)}
-        >
-          <Pencil className="h-3.5 w-3.5" />
-          Edit targets
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" variant="outline" onClick={() => setCreateOpen((v) => !v)}>
+            <Plus className="h-3.5 w-3.5" />
+            Personal goal
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setEditingId(dailyGoal?.id ?? weeklyGoal?.id ?? null)}
+            disabled={!hydrated || (!dailyGoal && !weeklyGoal)}
+          >
+            <Pencil className="h-3.5 w-3.5" />
+            Edit study targets
+          </Button>
+        </div>
       }
     >
       {!hydrated ? (
@@ -367,7 +390,7 @@ export function GoalsOverview() {
           <Panel variant="glass" className="p-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-start gap-3">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-success-muted text-success">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-success-muted text-success">
                   <Target className="h-5 w-5" />
                 </span>
                 <div>
@@ -422,6 +445,141 @@ export function GoalsOverview() {
             )}
           </div>
 
+          {createOpen && (
+            <Panel variant="interactive" className="space-y-3 p-5">
+              <h2 className="text-sm font-semibold text-foreground">New personal goal</h2>
+              <p className="text-xs text-muted-foreground">
+                Open-ended daily or weekly goals outside of study tracking — habits, chores,
+                fitness, anything you want to hit.
+              </p>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="space-y-1.5 sm:col-span-2">
+                  <Label htmlFor="personal-title">Title</Label>
+                  <Input
+                    id="personal-title"
+                    value={draftTitle}
+                    maxLength={120}
+                    onChange={(e) => setDraftTitle(e.target.value)}
+                    placeholder="e.g. Drink 8 glasses of water"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="personal-type">Cadence</Label>
+                  <select
+                    id="personal-type"
+                    value={draftType}
+                    onChange={(e) => setDraftType(e.target.value as "daily" | "weekly")}
+                    className="flex h-10 w-full rounded-lg border border-border bg-surface px-3 text-sm text-foreground"
+                  >
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="personal-target">Target</Label>
+                  <Input
+                    id="personal-target"
+                    type="number"
+                    min={1}
+                    max={9999}
+                    value={draftTarget}
+                    onChange={(e) => setDraftTarget(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5 sm:col-span-2">
+                  <Label htmlFor="personal-unit">Unit (optional)</Label>
+                  <Input
+                    id="personal-unit"
+                    value={draftUnit}
+                    maxLength={24}
+                    onChange={(e) => setDraftUnit(e.target.value)}
+                    placeholder="times, pages, km…"
+                  />
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    const created = addPersonalGoal({
+                      title: draftTitle,
+                      type: draftType,
+                      target: Number(draftTarget) || 1,
+                      unit: draftUnit,
+                    });
+                    if (created) {
+                      setDraftTitle("");
+                      setDraftTarget("1");
+                      setDraftUnit("");
+                      setCreateOpen(false);
+                    }
+                  }}
+                >
+                  Create goal
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setCreateOpen(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </Panel>
+          )}
+
+          {personalGoals.length > 0 && (
+            <div className="space-y-3">
+              <h2 className="text-sm font-semibold text-foreground">Personal goals</h2>
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                {personalGoals.map((goal) => {
+                  const percent = goal.target > 0 ? (goal.progress / goal.target) * 100 : 0;
+                  return (
+                    <Panel key={goal.id} variant="interactive" className="p-5">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <Badge variant="secondary" className="capitalize">
+                            {goal.type} · personal
+                          </Badge>
+                          <p className="mt-2 text-base font-semibold text-foreground">{goal.title}</p>
+                        </div>
+                        <button
+                          type="button"
+                          aria-label="Delete goal"
+                          onClick={() => deleteGoal(goal.id)}
+                          className="rounded-md p-1.5 text-muted hover:bg-danger-muted hover:text-danger"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                      <p className="mt-3 text-2xl font-semibold tabular-nums text-foreground">
+                        {goal.progress}
+                        <span className="text-lg text-muted-foreground">
+                          /{goal.target}
+                          {goal.unit ? ` ${goal.unit}` : ""}
+                        </span>
+                      </p>
+                      <ProgressBar value={percent} className="mt-3" />
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setManualProgress(goal.id, goal.progress + 1)}
+                          disabled={goal.progress >= goal.target}
+                        >
+                          +1 progress
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setManualProgress(goal.id, 0)}
+                        >
+                          Reset
+                        </Button>
+                      </div>
+                    </Panel>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* History */}
           <Panel variant="glass" className="space-y-6 p-5">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -435,13 +593,13 @@ export function GoalsOverview() {
                 <span className="inline-flex items-center gap-1.5">
                   <Flame className="h-3.5 w-3.5 text-warning" />
                   Daily streak {dailyStreak.current}
-                  <span className="text-white/30">·</span>
+                  <span className="text-muted-foreground/50">·</span>
                   best {dailyStreak.best}
                 </span>
                 <span className="inline-flex items-center gap-1.5">
                   <CheckCircle2 className="h-3.5 w-3.5 text-success" />
                   Weekly streak {weeklyStreak.current}
-                  <span className="text-white/30">·</span>
+                  <span className="text-muted-foreground/50">·</span>
                   best {weeklyStreak.best}
                 </span>
               </div>
@@ -462,7 +620,7 @@ export function GoalsOverview() {
           {/* Insights */}
           <Panel variant="glass" className="p-5">
             <div className="flex items-start gap-3">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-accent-muted text-accent">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-accent-muted text-accent">
                 <Sparkles className="h-4 w-4" />
               </span>
               <div className="min-w-0 flex-1">

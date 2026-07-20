@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import dynamic from "next/dynamic";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   ArrowRight,
@@ -23,10 +24,23 @@ import { CreateSetDialog } from "@/components/flashcards/create-set-dialog";
 import { FolderViewDialog } from "@/components/flashcards/folder-view-dialog";
 import { SetViewDialog } from "@/components/flashcards/set-view-dialog";
 import { StudyView } from "@/components/flashcards/study-view";
-import DomeGallery from "@/components/flashcards/dome-gallery";
 import { FeatureIntro } from "@/components/onboarding/feature-intro";
 import type { FlashcardFolder, FlashcardSet } from "@/types";
 import { cn } from "@/lib/utils";
+
+/**
+ * The dome view pulls in Three.js/OGL + gesture libs, but the default view
+ * is the plain grid — defer that whole chunk until someone actually opens
+ * "Visual gallery" instead of shipping it on every Flashcards page load.
+ */
+const DomeGallery = dynamic(() => import("@/components/flashcards/dome-gallery"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex min-h-0 flex-1 items-center justify-center">
+      <Skeleton className="h-full w-full rounded-xl" />
+    </div>
+  ),
+});
 
 const EASE = [0.21, 0.47, 0.32, 0.98] as const;
 
@@ -51,7 +65,7 @@ function StudyLoader() {
     <div className="flex h-full flex-col items-center justify-center gap-5">
       <div className="relative h-12 w-12">
         <motion.span
-          className="absolute inset-0 rounded-full border-2 border-white/10"
+          className="absolute inset-0 rounded-full border-2 border-foreground/10"
           aria-hidden
         />
         <motion.span
@@ -65,7 +79,7 @@ function StudyLoader() {
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.15, duration: 0.4, ease: EASE }}
-        className="text-xs uppercase tracking-[0.2em] text-white/50"
+        className="text-xs uppercase tracking-[0.2em] text-foreground/50"
       >
         Preparing your set
       </motion.p>
@@ -190,14 +204,14 @@ export function FlashcardsSection() {
       >
         {/* ── Home column (1/4) ─────────────────────────────────────── */}
         <div className="flex max-h-[calc(100dvh-13rem)] min-h-[480px] flex-col gap-4 overflow-y-auto pr-0.5">
-          <h2 className="px-1 pt-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/50">
+          <h2 className="px-1 pt-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-foreground/50">
             Home
           </h2>
           {/* Jump right back in */}
           <HomePanel>
             <div className="mb-3 flex items-center gap-2">
               <Play className="h-3.5 w-3.5 text-accent" />
-              <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-white/60">
+              <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground/60">
                 Jump right back in
               </h2>
             </div>
@@ -205,10 +219,10 @@ export function FlashcardsSection() {
               <button
                 type="button"
                 onClick={() => openSetForStudy(lastStudiedSet)}
-                className="w-full cursor-pointer rounded-xl border border-white/8 bg-white/[0.04] p-3.5 text-left transition-all duration-200 hover:border-white/16 hover:bg-white/[0.07]"
+                className="w-full cursor-pointer rounded-xl border border-foreground/8 bg-foreground/[0.04] p-3.5 text-left transition-all duration-200 hover:border-foreground/16 hover:bg-foreground/[0.07]"
               >
-                <p className="truncate text-sm font-medium text-white">{lastStudiedSet.title}</p>
-                <p className="mt-1 text-xs text-white/45">
+                <p className="truncate text-sm font-medium text-foreground">{lastStudiedSet.title}</p>
+                <p className="mt-1 text-xs text-foreground/45">
                   {lastStudiedSet.subject} · {lastStudiedSet.cards.length} card
                   {lastStudiedSet.cards.length === 1 ? "" : "s"}
                 </p>
@@ -217,7 +231,7 @@ export function FlashcardsSection() {
                 </span>
               </button>
             ) : (
-              <p className="rounded-xl border border-dashed border-white/10 p-3.5 text-xs leading-relaxed text-white/45">
+              <p className="rounded-xl border border-dashed border-foreground/10 p-3.5 text-xs leading-relaxed text-foreground/45">
                 Open a set and it will show up here for quick access.
               </p>
             )}
@@ -227,7 +241,7 @@ export function FlashcardsSection() {
           <HomePanel>
             <div className="mb-3 flex items-center gap-2">
               <Plus className="h-3.5 w-3.5 text-accent" />
-              <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-white/60">
+              <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground/60">
                 Create
               </h2>
             </div>
@@ -258,12 +272,12 @@ export function FlashcardsSection() {
           <HomePanel>
             <div className="mb-3 flex items-center gap-2">
               <Pin className="h-3.5 w-3.5 text-accent" />
-              <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-white/60">
+              <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground/60">
                 Pinned
               </h2>
             </div>
             {pinned.length === 0 ? (
-              <p className="rounded-xl border border-dashed border-white/10 p-3.5 text-xs leading-relaxed text-white/45">
+              <p className="rounded-xl border border-dashed border-foreground/10 p-3.5 text-xs leading-relaxed text-foreground/45">
                 Pin folders or sets below for quick access.
               </p>
             ) : (
@@ -281,7 +295,7 @@ export function FlashcardsSection() {
                           if (set) openSetForStudy(set);
                         }
                       }}
-                      className="flex min-w-0 flex-1 cursor-pointer items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left transition-colors duration-150 hover:bg-white/[0.06]"
+                      className="flex min-w-0 flex-1 cursor-pointer items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left transition-colors duration-150 hover:bg-foreground/[0.06]"
                     >
                       <span className="flex min-w-0 items-center gap-2">
                         {entry.kind === "folder" && entry.color && (
@@ -290,7 +304,7 @@ export function FlashcardsSection() {
                             style={{ backgroundColor: entry.color }}
                           />
                         )}
-                        <span className="truncate text-xs font-medium text-white/80">
+                        <span className="truncate text-xs font-medium text-foreground/80">
                           {entry.title}
                         </span>
                       </span>
@@ -320,12 +334,12 @@ export function FlashcardsSection() {
           <HomePanel>
             <div className="mb-3 flex items-center gap-2">
               <Eye className="h-3.5 w-3.5 text-accent" />
-              <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-white/60">
+              <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground/60">
                 Dome folders
               </h2>
             </div>
             {folders.length === 0 ? (
-              <p className="rounded-xl border border-dashed border-white/10 p-3.5 text-xs leading-relaxed text-white/45">
+              <p className="rounded-xl border border-dashed border-foreground/10 p-3.5 text-xs leading-relaxed text-foreground/45">
                 Create a folder to place it in the dome.
               </p>
             ) : (
@@ -340,13 +354,13 @@ export function FlashcardsSection() {
                       <button
                         type="button"
                         onClick={() => openFolder(folder)}
-                        className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-lg px-1.5 py-1.5 text-left transition-colors duration-150 hover:bg-white/[0.06]"
+                        className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-lg px-1.5 py-1.5 text-left transition-colors duration-150 hover:bg-foreground/[0.06]"
                       >
                         <span
                           className="h-2 w-2 shrink-0 rounded-[2px]"
                           style={{ backgroundColor: folder.color }}
                         />
-                        <span className="truncate text-xs font-medium text-white/80">
+                        <span className="truncate text-xs font-medium text-foreground/80">
                           {folder.title}
                         </span>
                       </button>
@@ -358,7 +372,7 @@ export function FlashcardsSection() {
                           "cursor-pointer rounded-md p-1.5 transition-colors",
                           folder.pinned
                             ? "text-accent"
-                            : "text-white/35 hover:text-white/70"
+                            : "text-foreground/35 hover:text-foreground/70"
                         )}
                       >
                         <Pin className={cn("h-3 w-3", folder.pinned && "fill-current")} />
@@ -373,7 +387,7 @@ export function FlashcardsSection() {
                         onClick={() => toggleFolderInDome(folder.id)}
                         className={cn(
                           "cursor-pointer rounded-md p-1.5 transition-colors",
-                          visible ? "text-accent" : "text-white/35 hover:text-white/70"
+                          visible ? "text-accent" : "text-foreground/35 hover:text-foreground/70"
                         )}
                       >
                         {visible ? (
@@ -388,8 +402,8 @@ export function FlashcardsSection() {
               </ul>
             )}
             {sets.length > 0 && (
-              <div className="mt-3 border-t border-white/8 pt-3">
-                <p className="mb-1.5 text-[10px] uppercase tracking-wide text-white/40">
+              <div className="mt-3 border-t border-foreground/8 pt-3">
+                <p className="mb-1.5 text-[10px] uppercase tracking-wide text-foreground/40">
                   Pin sets
                 </p>
                 <ul className="max-h-36 space-y-1 overflow-y-auto">
@@ -398,7 +412,7 @@ export function FlashcardsSection() {
                       <button
                         type="button"
                         onClick={() => openSetForStudy(set)}
-                        className="min-w-0 flex-1 cursor-pointer truncate rounded-lg px-1.5 py-1.5 text-left text-xs text-white/75 transition-colors hover:bg-white/[0.06]"
+                        className="min-w-0 flex-1 cursor-pointer truncate rounded-lg px-1.5 py-1.5 text-left text-xs text-foreground/75 transition-colors hover:bg-foreground/[0.06]"
                       >
                         {set.title}
                       </button>
@@ -408,7 +422,7 @@ export function FlashcardsSection() {
                         onClick={() => toggleSetPinned(set.id)}
                         className={cn(
                           "cursor-pointer rounded-md p-1.5 transition-colors",
-                          set.pinned ? "text-accent" : "text-white/35 hover:text-white/70"
+                          set.pinned ? "text-accent" : "text-foreground/35 hover:text-foreground/70"
                         )}
                       >
                         <Pin className={cn("h-3 w-3", set.pinned && "fill-current")} />
@@ -424,12 +438,12 @@ export function FlashcardsSection() {
           <HomePanel>
             <div className="mb-3 flex items-center gap-2">
               <Clock className="h-3.5 w-3.5 text-accent" />
-              <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-white/60">
+              <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground/60">
                 Recents
               </h2>
             </div>
             {recents.length === 0 ? (
-              <p className="rounded-xl border border-dashed border-white/10 p-3.5 text-xs leading-relaxed text-white/45">
+              <p className="rounded-xl border border-dashed border-foreground/10 p-3.5 text-xs leading-relaxed text-foreground/45">
                 Folders and sets you open will appear here.
               </p>
             ) : (
@@ -447,9 +461,9 @@ export function FlashcardsSection() {
                           if (set) openSetForStudy(set);
                         }
                       }}
-                      className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left transition-colors duration-150 hover:bg-white/[0.06]"
+                      className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left transition-colors duration-150 hover:bg-foreground/[0.06]"
                     >
-                      <span className="min-w-0 truncate text-xs font-medium text-white/80">
+                      <span className="min-w-0 truncate text-xs font-medium text-foreground/80">
                         {entry.title}
                       </span>
                       <Badge variant={entry.kind === "folder" ? "secondary" : "accent"}>
@@ -466,7 +480,7 @@ export function FlashcardsSection() {
           <HomePanel>
             <div className="mb-3 flex items-center gap-2">
               <Sparkles className="h-3.5 w-3.5 text-accent" />
-              <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-white/60">
+              <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground/60">
                 At a glance
               </h2>
             </div>
@@ -479,10 +493,10 @@ export function FlashcardsSection() {
               ].map((stat) => (
                 <div
                   key={stat.label}
-                  className="rounded-lg border border-white/8 bg-white/[0.04] p-2.5 text-center"
+                  className="rounded-lg border border-foreground/8 bg-foreground/[0.04] p-2.5 text-center"
                 >
-                  <p className="text-sm font-semibold tabular-nums text-white">{stat.value}</p>
-                  <p className="mt-0.5 text-[10px] uppercase tracking-wide text-white/45">
+                  <p className="text-sm font-semibold tabular-nums text-foreground">{stat.value}</p>
+                  <p className="mt-0.5 text-[10px] uppercase tracking-wide text-foreground/45">
                     {stat.label}
                   </p>
                 </div>
@@ -494,7 +508,7 @@ export function FlashcardsSection() {
         {/* ── Library (3/4): grid (default) ↔ dome ↔ study ──────────── */}
         <div
           className={cn(
-            "relative h-[calc(100dvh-13rem)] min-h-[480px] rounded-2xl border border-white/8 bg-background/40 lg:col-span-3",
+            "relative h-[calc(100dvh-13rem)] min-h-[480px] rounded-2xl border border-foreground/8 bg-background/40 lg:col-span-3",
             mode.type === "study" ? "overflow-y-auto p-5 md:p-6" : "overflow-hidden"
           )}
         >
@@ -508,12 +522,12 @@ export function FlashcardsSection() {
                 exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.98 }}
                 transition={{ duration: 0.25, ease: EASE }}
               >
-                <div className="flex items-center justify-between gap-2 border-b border-white/8 bg-white/[0.02] px-4 py-2.5">
-                  <h2 className="text-[11px] font-semibold uppercase tracking-[0.24em] text-white/50">
+                <div className="flex items-center justify-between gap-2 border-b border-foreground/8 bg-foreground/[0.02] px-4 py-2.5">
+                  <h2 className="text-[11px] font-semibold uppercase tracking-[0.24em] text-foreground/50">
                     Library
                   </h2>
                   <div className="flex items-center gap-2">
-                    <div className="inline-flex items-center gap-0.5 rounded-lg border border-white/10 bg-white/[0.03] p-0.5">
+                    <div className="inline-flex items-center gap-0.5 rounded-lg border border-foreground/10 bg-foreground/[0.03] p-0.5">
                       <button
                         type="button"
                         onClick={() => {
@@ -524,7 +538,7 @@ export function FlashcardsSection() {
                           "rounded-md px-2.5 py-1 text-[10px] font-medium transition-colors",
                           mode.view === "grid"
                             ? "bg-accent text-accent-foreground"
-                            : "text-white/50 hover:text-white"
+                            : "text-foreground/50 hover:text-foreground"
                         )}
                       >
                         Grid
@@ -539,13 +553,13 @@ export function FlashcardsSection() {
                           "rounded-md px-2.5 py-1 text-[10px] font-medium transition-colors",
                           mode.view === "dome"
                             ? "bg-accent text-accent-foreground"
-                            : "text-white/50 hover:text-white"
+                            : "text-foreground/50 hover:text-foreground"
                         )}
                       >
                         Visual gallery
                       </button>
                     </div>
-                    <span className="text-[10px] tabular-nums text-white/35">
+                    <span className="text-[10px] tabular-nums text-foreground/35">
                       {sets.length} set{sets.length === 1 ? "" : "s"}
                     </span>
                   </div>
@@ -555,10 +569,10 @@ export function FlashcardsSection() {
                   <div className="min-h-0 flex-1 overflow-y-auto p-4">
                     {sets.length === 0 ? (
                       <div className="flex h-full min-h-[280px] flex-col items-center justify-center gap-3 text-center">
-                        <Layers className="h-8 w-8 text-white/35" />
+                        <Layers className="h-8 w-8 text-foreground/35" />
                         <div>
-                          <p className="text-sm font-medium text-white">No flashcard sets yet</p>
-                          <p className="mt-1 max-w-xs text-xs text-white/45">
+                          <p className="text-sm font-medium text-foreground">No flashcard sets yet</p>
+                          <p className="mt-1 max-w-xs text-xs text-foreground/45">
                             Create a set from the Home column, then study with simple flip cards.
                           </p>
                         </div>
@@ -580,10 +594,10 @@ export function FlashcardsSection() {
                             <button
                               type="button"
                               onClick={() => openSetForStudy(set)}
-                              className="flex h-full w-full cursor-pointer flex-col rounded-xl border border-white/10 bg-white/[0.04] p-4 text-left transition-colors hover:border-white/20 hover:bg-white/[0.07]"
+                              className="flex h-full w-full cursor-pointer flex-col rounded-xl border border-foreground/10 bg-foreground/[0.04] p-4 text-left transition-colors hover:border-foreground/20 hover:bg-foreground/[0.07]"
                             >
-                              <p className="truncate text-sm font-semibold text-white">{set.title}</p>
-                              <p className="mt-1 text-xs text-white/45">
+                              <p className="truncate text-sm font-semibold text-foreground">{set.title}</p>
+                              <p className="mt-1 text-xs text-foreground/45">
                                 {set.subject || "General"} · {set.cards.length} card
                                 {set.cards.length === 1 ? "" : "s"}
                               </p>
@@ -612,8 +626,8 @@ export function FlashcardsSection() {
                         idleSpinDelayMs={10000}
                       />
                     </div>
-                    <div className="flex w-full items-center justify-center border-t border-white/8 bg-white/[0.02] py-2.5">
-                      <p className="text-[11px] uppercase tracking-[0.2em] text-white/40">
+                    <div className="flex w-full items-center justify-center border-t border-foreground/8 bg-foreground/[0.02] py-2.5">
+                      <p className="text-[11px] uppercase tracking-[0.2em] text-foreground/40">
                         Drag to explore · Hold a set to move it · Scroll a column to browse
                       </p>
                     </div>

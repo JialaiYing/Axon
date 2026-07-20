@@ -20,9 +20,9 @@ const panelVariants = cva(
         standard:
           "border-border/50 bg-card shadow-[var(--shadow-elevation-1)]",
         glass:
-          "border-white/8 bg-gradient-to-b from-white/[0.05] to-card/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),var(--shadow-elevation-2)] backdrop-blur-[14px] backdrop-saturate-120",
+          "border-border bg-gradient-to-b from-foreground/[0.04] to-card/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),var(--shadow-elevation-2)] backdrop-blur-[14px] backdrop-saturate-120",
         interactive:
-          "border-white/8 bg-card shadow-[var(--shadow-elevation-1)] hover:border-white/14 hover:bg-card-hover hover:shadow-[var(--shadow-elevation-2)] hover:-translate-y-[2px]",
+          "border-border bg-card shadow-[var(--shadow-elevation-1)] hover:border-border-strong hover:bg-card-hover hover:shadow-[var(--shadow-elevation-2)] hover:-translate-y-[2px]",
       },
     },
     defaultVariants: {

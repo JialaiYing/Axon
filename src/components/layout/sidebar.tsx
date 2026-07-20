@@ -59,8 +59,8 @@ export function Sidebar({ open, onOpenChange }: SidebarProps) {
                 "flex h-10 items-center gap-3 rounded-lg text-sm font-medium transition-colors duration-200",
                 open ? "px-3" : "justify-center px-0",
                 isActive
-                  ? "bg-accent-muted text-accent-foreground"
-                  : "text-white/60 hover:bg-card/60 hover:text-white"
+                  ? "bg-accent-muted text-accent"
+                  : "text-foreground/60 hover:bg-card/60 hover:text-foreground"
               )}
             >
               <Icon className="h-[18px] w-[18px] shrink-0" />
@@ -79,8 +79,8 @@ export function Sidebar({ open, onOpenChange }: SidebarProps) {
                 className={cn(
                   "flex h-10 w-full items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors duration-200",
                   progressActive
-                    ? "bg-accent-muted/50 text-accent-foreground"
-                    : "text-white/60 hover:bg-card/60 hover:text-white"
+                    ? "bg-accent-muted/50 text-accent"
+                    : "text-foreground/60 hover:bg-card/60 hover:text-foreground"
                 )}
                 aria-expanded={progressOpen}
               >
@@ -106,8 +106,8 @@ export function Sidebar({ open, onOpenChange }: SidebarProps) {
                         className={cn(
                           "flex h-9 items-center gap-2.5 rounded-lg px-2.5 text-sm font-medium transition-colors",
                           isActive
-                            ? "bg-accent-muted text-accent-foreground"
-                            : "text-white/55 hover:bg-card/60 hover:text-white"
+                            ? "bg-accent-muted text-accent"
+                            : "text-foreground/55 hover:bg-card/60 hover:text-foreground"
                         )}
                       >
                         <Icon className="h-4 w-4 shrink-0" />
@@ -126,8 +126,8 @@ export function Sidebar({ open, onOpenChange }: SidebarProps) {
               className={cn(
                 "flex h-10 items-center justify-center rounded-lg text-sm font-medium transition-colors duration-200",
                 progressActive
-                  ? "bg-accent-muted text-accent-foreground"
-                  : "text-white/60 hover:bg-card/60 hover:text-white"
+                  ? "bg-accent-muted text-accent"
+                  : "text-foreground/60 hover:bg-card/60 hover:text-foreground"
               )}
             >
               <NAV_PROGRESS.icon className="h-[18px] w-[18px] shrink-0" />
@@ -144,7 +144,7 @@ export function Sidebar({ open, onOpenChange }: SidebarProps) {
           aria-label={open ? "Collapse sidebar" : "Expand sidebar"}
           aria-expanded={open}
           className={cn(
-            "flex h-10 w-full items-center gap-3 rounded-lg text-sm font-medium text-white/60 transition-colors duration-200 hover:bg-card/60 hover:text-white",
+            "flex h-10 w-full items-center gap-3 rounded-lg text-sm font-medium text-foreground/60 transition-colors duration-200 hover:bg-card/60 hover:text-foreground",
             open ? "px-3" : "justify-center px-0"
           )}
         >

@@ -105,7 +105,7 @@ export function SetViewDialog({
                   className={cn(
                     "group flex items-start justify-between gap-3 rounded-lg border p-3.5 transition-colors duration-150",
                     selected
-                      ? "border-white/16 bg-surface"
+                      ? "border-foreground/20 bg-surface"
                       : "border-border bg-surface/60"
                   )}
                 >

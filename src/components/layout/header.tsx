@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { Settings } from "lucide-react";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { NotificationBell } from "@/components/layout/notification-bell";
-import { CommandPaletteTrigger } from "@/components/layout/command-palette";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { ProfileMenu } from "@/components/auth/profile-menu";
 import { cn } from "@/lib/utils";
 
@@ -16,12 +16,12 @@ export function Header() {
     <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between gap-4 border-b border-border/40 bg-background/25 px-4 backdrop-blur-md md:px-6">
       <div className="flex items-center gap-3">
         <MobileNav />
-        <CommandPaletteTrigger />
       </div>
 
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-1">
           <NotificationBell />
+          <ThemeToggle />
           <Link
             href="/settings"
             aria-label="Settings"

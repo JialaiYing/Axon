@@ -77,9 +77,10 @@ export function LandingNav() {
               type="button"
               size="sm"
               variant="outline"
+              asChild
               className="rounded-[7px] border-border/60 bg-transparent shadow-none hover:shadow-none"
             >
-              Login
+              <Link href="/login">Login</Link>
             </Button>
           </BorderGlow>
           <BorderGlow

@@ -52,7 +52,7 @@ export function MobileNav() {
                   className={cn(
                     "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
                     isActive
-                      ? "bg-accent-muted text-accent-foreground"
+                      ? "bg-accent-muted text-accent"
                       : "text-muted hover:bg-card hover:text-foreground"
                   )}
                 >
@@ -75,7 +75,7 @@ export function MobileNav() {
                   className={cn(
                     "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
                     isActive
-                      ? "bg-accent-muted text-accent-foreground"
+                      ? "bg-accent-muted text-accent"
                       : "text-muted hover:bg-card hover:text-foreground"
                   )}
                 >
@@ -95,7 +95,7 @@ export function MobileNav() {
                   className={cn(
                     "mt-3 flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
                     isActive
-                      ? "bg-accent-muted text-accent-foreground"
+                      ? "bg-accent-muted text-accent"
                       : "text-muted hover:bg-card hover:text-foreground"
                   )}
                 >

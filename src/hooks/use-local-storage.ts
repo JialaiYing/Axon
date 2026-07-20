@@ -54,6 +54,15 @@ function readStorage<T>(key: string, fallback: T): T {
     return parsed === null || parsed === undefined ? fallback : (parsed as T);
   } catch (error) {
     console.error(`useLocalStorage: failed to read key "${key}"`, error);
+    // Self-heal: a non-JSON value under this key (e.g. written by older code
+    // that bypassed writeLocalStorage) would otherwise fail JSON.parse on
+    // every single read. Clear it so the key falls back cleanly from now on
+    // instead of erroring forever.
+    try {
+      window.localStorage.removeItem(key);
+    } catch {
+      /* ignore */
+    }
     return fallback;
   }
 }

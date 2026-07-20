@@ -172,7 +172,7 @@ export function AgendaPanel({
 
   return (
     <Panel variant="interactive" className="flex max-h-[calc(100vh-9.5rem)] flex-col overflow-hidden">
-      <div className="border-b border-white/8 px-4 py-3.5">
+      <div className="border-b border-border px-4 py-3.5">
         <p className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
           <Sparkles className="h-3.5 w-3.5 text-accent" />
           Agenda

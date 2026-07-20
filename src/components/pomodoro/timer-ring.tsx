@@ -40,7 +40,7 @@ export function TimerRing({ remainingSeconds, totalSeconds, size = 260 }: TimerR
 
       <div
         aria-hidden
-        className="absolute rounded-full border border-white/8 bg-[radial-gradient(circle_at_35%_25%,rgba(255,255,255,0.09),rgba(255,255,255,0.015)_55%,transparent)] shadow-[inset_0_1px_0_rgba(255,255,255,0.07),0_18px_50px_-28px_rgba(59,130,246,0.7)]"
+        className="absolute rounded-full border border-border bg-[radial-gradient(circle_at_35%_25%,rgba(255,255,255,0.09),rgba(255,255,255,0.015)_55%,transparent)] shadow-[inset_0_1px_0_rgba(255,255,255,0.07),0_18px_50px_-28px_rgba(59,130,246,0.7)]"
         style={{ width: SIZE - 28, height: SIZE - 28 }}
       />
 

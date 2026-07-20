@@ -27,6 +27,8 @@ const DEFAULT_GOALS: Goal[] = [
     id: DAILY_FOCUS_GOAL_ID,
     title: "Focus time",
     type: "daily",
+    category: "study",
+    tracking: "auto",
     target: 90,
     unit: "min",
     progress: 0,
@@ -37,6 +39,8 @@ const DEFAULT_GOALS: Goal[] = [
     id: WEEKLY_OBJECTIVES_GOAL_ID,
     title: "Finish objectives",
     type: "weekly",
+    category: "study",
+    tracking: "auto",
     target: 5,
     unit: "objectives",
     progress: 0,
@@ -44,6 +48,11 @@ const DEFAULT_GOALS: Goal[] = [
     createdAt: new Date().toISOString(),
   },
 ];
+
+function createId() {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
+  return `goal-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
 
 interface GoalsMeta {
   lastDailyKey: string | null;
@@ -56,14 +65,23 @@ function normalizeGoal(value: Goal): Goal | null {
   if (!value || typeof value !== "object" || typeof value.id !== "string") return null;
   const type = GOAL_TYPES.has(value.type) ? value.type : "daily";
   const target = typeof value.target === "number" && Number.isFinite(value.target) ? Math.max(1, Math.round(value.target)) : 1;
+  const category = value.category === "personal" ? "personal" : "study";
+  const tracking =
+    value.tracking === "manual" || category === "personal" ? "manual" : "auto";
+  const progress =
+    tracking === "manual" && typeof value.progress === "number" && Number.isFinite(value.progress)
+      ? Math.max(0, Math.round(value.progress))
+      : 0;
   return {
     ...value,
     title: typeof value.title === "string" && value.title.trim() ? value.title : "Goal",
     type,
+    category,
+    tracking,
     target,
     unit: typeof value.unit === "string" && value.unit.trim() ? value.unit : "",
-    progress: 0,
-    completed: false,
+    progress,
+    completed: progress >= target,
     createdAt: typeof value.createdAt === "string" ? value.createdAt : new Date().toISOString(),
   };
 }
@@ -122,13 +140,17 @@ function normalizeMeta(value: unknown): GoalsMeta {
 }
 
 function withLiveProgress(goal: Goal, todayFocusMinutes: number, weekCompletedCount: number): Goal {
+  if (goal.tracking === "manual" || goal.category === "personal") {
+    const progress = Math.min(goal.target, Math.max(0, goal.progress));
+    return { ...goal, progress, completed: progress >= goal.target };
+  }
   if (goal.id === DAILY_FOCUS_GOAL_ID) {
     const progress = Math.min(goal.target, todayFocusMinutes);
-    return { ...goal, progress, completed: progress >= goal.target };
+    return { ...goal, category: "study", tracking: "auto", progress, completed: progress >= goal.target };
   }
   if (goal.id === WEEKLY_OBJECTIVES_GOAL_ID) {
     const progress = Math.min(goal.target, weekCompletedCount);
-    return { ...goal, progress, completed: progress >= goal.target };
+    return { ...goal, category: "study", tracking: "auto", progress, completed: progress >= goal.target };
   }
   return goal;
 }
@@ -241,6 +263,10 @@ export function useGoals() {
     () => goals.find((g) => g.id === WEEKLY_OBJECTIVES_GOAL_ID) ?? null,
     [goals]
   );
+  const personalGoals = React.useMemo(
+    () => goals.filter((g) => g.category === "personal"),
+    [goals]
+  );
 
   const hydrated =
     goalsHydrated && historyHydrated && metaHydrated && objectivesHydrated && sessionsHydrated;
@@ -329,14 +355,61 @@ export function useGoals() {
     [setRawGoals]
   );
 
+  const addPersonalGoal = React.useCallback(
+    (input: { title: string; type: "daily" | "weekly"; target: number; unit?: string }) => {
+      const title = input.title.trim().slice(0, 120);
+      if (!title) return null;
+      const goal: Goal = {
+        id: createId(),
+        title,
+        type: input.type,
+        category: "personal",
+        tracking: "manual",
+        target: Math.max(1, Math.round(input.target)),
+        unit: (input.unit ?? "").trim().slice(0, 24),
+        progress: 0,
+        completed: false,
+        createdAt: new Date().toISOString(),
+      };
+      setRawGoals((prev) => [...normalizeGoals(prev), goal]);
+      return goal;
+    },
+    [setRawGoals]
+  );
+
+  const deleteGoal = React.useCallback(
+    (goalId: string) => {
+      if (goalId === DAILY_FOCUS_GOAL_ID || goalId === WEEKLY_OBJECTIVES_GOAL_ID) return;
+      setRawGoals((prev) => normalizeGoals(prev).filter((g) => g.id !== goalId));
+    },
+    [setRawGoals]
+  );
+
+  const setManualProgress = React.useCallback(
+    (goalId: string, progress: number) => {
+      setRawGoals((prev) =>
+        normalizeGoals(prev).map((goal) => {
+          if (goal.id !== goalId || goal.tracking !== "manual") return goal;
+          const next = Math.min(goal.target, Math.max(0, Math.round(progress)));
+          return { ...goal, progress: next, completed: next >= goal.target };
+        })
+      );
+    },
+    [setRawGoals]
+  );
+
   return {
     goals,
     dailyGoal,
     weeklyGoal,
+    personalGoals,
     history,
     todayKey,
     weekKey,
     updateTarget,
+    addPersonalGoal,
+    deleteGoal,
+    setManualProgress,
     hydrated,
   };
 }

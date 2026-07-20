@@ -52,7 +52,7 @@ export function UnscheduledRail({ objectives, defaultStart, onSchedule }: Unsche
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2, ease: [0.21, 0.47, 0.32, 0.98] }}
-            className="overflow-hidden border-t border-white/8"
+            className="overflow-hidden border-t border-border"
           >
             <div className="flex max-h-64 flex-col gap-1.5 overflow-y-auto p-3">
               {unscheduled.length === 0 ? (

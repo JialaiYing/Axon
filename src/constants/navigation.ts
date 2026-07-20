@@ -8,6 +8,7 @@ import {
   Settings,
   CalendarDays,
   TrendingUp,
+  Trophy,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { NavItem } from "@/types";
@@ -38,6 +39,7 @@ export const NAV_PROGRESS: NavGroup = {
   children: [
     { label: "Analytics", href: "/analytics", icon: BarChart3 },
     { label: "Goals", href: "/goals", icon: Target },
+    { label: "Rank", href: "/rank", icon: Trophy },
   ],
 };
 

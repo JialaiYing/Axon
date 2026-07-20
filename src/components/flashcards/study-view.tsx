@@ -80,8 +80,8 @@ export function StudyView({ set, onBack, onEdit }: StudyViewProps) {
             <ArrowLeft className="h-3.5 w-3.5" /> Library
           </Button>
           <div className="min-w-0">
-            <h2 className="truncate text-sm font-semibold text-white">{set.title}</h2>
-            <p className="truncate text-xs text-white/45">
+            <h2 className="truncate text-sm font-semibold text-foreground">{set.title}</h2>
+            <p className="truncate text-xs text-muted-foreground">
               {set.subject} · {cards.length} card{cards.length === 1 ? "" : "s"}
             </p>
           </div>
@@ -93,7 +93,7 @@ export function StudyView({ set, onBack, onEdit }: StudyViewProps) {
 
       {!card ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-          <p className="text-sm text-white/60">This set has no cards yet</p>
+          <p className="text-sm text-muted-foreground">This set has no cards yet</p>
           <Button size="sm" className="cursor-pointer" onClick={onEdit}>
             <Plus className="h-3.5 w-3.5" /> Add your first card
           </Button>
@@ -140,10 +140,10 @@ export function StudyView({ set, onBack, onEdit }: StudyViewProps) {
                       style={{ backfaceVisibility: "hidden" }}
                       className="glass-panel absolute inset-0 flex items-center justify-center rounded-2xl p-8"
                     >
-                      <p className="max-h-full overflow-y-auto text-balance text-center text-xl font-medium leading-relaxed text-white md:text-2xl">
+                      <p className="max-h-full overflow-y-auto text-balance text-center text-xl font-medium leading-relaxed text-foreground md:text-2xl">
                         {card.front}
                       </p>
-                      <span className="absolute bottom-4 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.2em] text-white/35">
+                      <span className="absolute bottom-4 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60">
                         Click to flip
                       </span>
                     </div>
@@ -152,7 +152,7 @@ export function StudyView({ set, onBack, onEdit }: StudyViewProps) {
                       style={{ backfaceVisibility: "hidden", transform: "rotateX(180deg)" }}
                       className="glass-panel absolute inset-0 flex items-center justify-center rounded-2xl border-accent/30 p-8"
                     >
-                      <p className="max-h-full overflow-y-auto text-balance text-center text-lg leading-relaxed text-white/90 md:text-xl">
+                      <p className="max-h-full overflow-y-auto text-balance text-center text-lg leading-relaxed text-foreground/90 md:text-xl">
                         {card.back}
                       </p>
                       <span className="absolute bottom-4 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.2em] text-accent/70">
@@ -177,7 +177,7 @@ export function StudyView({ set, onBack, onEdit }: StudyViewProps) {
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <span className="min-w-16 text-center text-sm font-medium tabular-nums text-white/70">
+            <span className="min-w-16 text-center text-sm font-medium tabular-nums text-muted-foreground">
               {index + 1} / {cards.length}
             </span>
             <Button
@@ -197,7 +197,7 @@ export function StudyView({ set, onBack, onEdit }: StudyViewProps) {
 
           {/* All cards below, Quizlet-style */}
           <ScrollReveal className="mx-auto mt-12 w-full max-w-2xl pb-8" y={28}>
-            <h3 className="mb-4 text-xs font-semibold uppercase tracking-[0.14em] text-white/55">
+            <h3 className="mb-4 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
               All cards ({cards.length})
             </h3>
             <AnimatedList
@@ -216,14 +216,14 @@ export function StudyView({ set, onBack, onEdit }: StudyViewProps) {
                     i === index
                       ? "border-accent/40 bg-accent-muted/30"
                       : hovered
-                        ? "border-white/16 bg-white/[0.07]"
-                        : "border-white/8 bg-white/[0.04]"
+                        ? "border-foreground/15 bg-foreground/[0.05]"
+                        : "border-border bg-foreground/[0.02]"
                   )}
                 >
-                  <p className="text-sm font-medium text-white sm:border-r sm:border-white/8 sm:pr-3">
+                  <p className="text-sm font-medium text-foreground sm:border-r sm:border-border sm:pr-3">
                     {c.front}
                   </p>
-                  <p className="text-sm text-white/60">{c.back}</p>
+                  <p className="text-sm text-muted-foreground">{c.back}</p>
                 </div>
               )}
             />

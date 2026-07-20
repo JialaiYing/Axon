@@ -89,7 +89,7 @@ export function MonthEventChip({
             ? "border-success/30 bg-success-muted/40 text-success"
             : isPast
               ? "border-warning/30 bg-warning-muted/30 text-warning"
-              : "border-accent/25 bg-accent-muted/40 text-accent-foreground",
+              : "border-accent/25 bg-accent-muted/40 text-accent",
           isDragging && "opacity-50",
           isHovered && "ring-1 ring-accent/40",
           isLive && "animate-pulse-glow ring-1 ring-accent/60"

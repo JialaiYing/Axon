@@ -4,8 +4,12 @@ import * as React from "react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 
 /**
- * Core-loop tour only (≤4 steps). Legacy per-page tips are collapsed into
- * this single first-run flow focused on Kanban + Pomodoro.
+ * Every feature gets its own dismissible intro tip, shown inline on that
+ * feature's page the moment it's visited — never a separate full-screen
+ * tour that navigates you around. This means the intro always appears
+ * alongside the actual page it describes, and "replay" just clears the
+ * seen-flags so tips reappear naturally as each page is revisited, instead
+ * of forcing you back to a fixed first step.
  */
 export type OnboardingFeature =
   | "dashboard"
@@ -15,10 +19,10 @@ export type OnboardingFeature =
   | "pomodoro"
   | "analytics"
   | "goals"
-  | "core";
+  | "gamification"
+  | "rank";
 
 export const ONBOARDING_FEATURES: OnboardingFeature[] = [
-  "core",
   "dashboard",
   "kanban",
   "calendar",
@@ -26,61 +30,61 @@ export const ONBOARDING_FEATURES: OnboardingFeature[] = [
   "pomodoro",
   "analytics",
   "goals",
+  "gamification",
+  "rank",
 ];
 
-/** Features that still show a lightweight page tip (core loop only). */
-export const PAGE_TIP_FEATURES = ["kanban", "pomodoro"] as const;
-
-export type PageTipFeature = (typeof PAGE_TIP_FEATURES)[number];
-
-export const ONBOARDING_COPY: Record<
-  PageTipFeature,
-  { title: string; body: string }
-> = {
-  kanban: {
-    title: "Track objectives on a board",
-    body: "Create a study objective, then drag it Queued → In progress → Done as you work.",
-  },
-  pomodoro: {
-    title: "Focus with a live timer",
-    body: "Start an objective-linked or personal timer. Focus Mode locks the screen so you stay on task.",
-  },
-};
-
-export interface CoreTourStep {
-  id: string;
+export interface OnboardingTip {
   title: string;
   body: string;
-  href?: string;
-  cta?: string;
+  /**
+   * Only reveal this tip after the given feature's tip has been dismissed.
+   * Used to sequence two tips that live on the same page (e.g. the
+   * dashboard's general welcome, then a follow-up about gamification)
+   * without stacking multiple banners at once.
+   */
+  after?: OnboardingFeature;
 }
 
-export const CORE_TOUR_STEPS: CoreTourStep[] = [
-  {
-    id: "welcome",
-    title: "Welcome to Axon",
-    body: "Your study loop is simple: plan objectives, focus with Pomodoro, and watch progress update automatically.",
+export const ONBOARDING_COPY: Record<OnboardingFeature, OnboardingTip> = {
+  dashboard: {
+    title: "Your dashboard",
+    body: "Today's agenda, streak, and quick actions live here — a glance-and-go home base for the whole app.",
   },
-  {
-    id: "kanban",
-    title: "Plan on the Kanban board",
-    body: "Create your first objective — subject, priority, and an estimate. Drag cards as you make progress.",
-    href: "/kanban",
-    cta: "Open Kanban",
+  kanban: {
+    title: "You're on the Kanban board",
+    body: "Create a study objective with the toolbar, then drag cards Queued → In progress → Done.",
   },
-  {
-    id: "pomodoro",
-    title: "Start a focus session",
-    body: "Link a timer to an objective and enter Focus Mode. Stay in the tab until the session ends.",
-    href: "/pomodoro",
-    cta: "Open Pomodoro",
+  calendar: {
+    title: "You're on the Calendar",
+    body: "Drag any objective onto a day to schedule it, or leave it in the unscheduled rail to plan later.",
   },
-  {
-    id: "done",
-    title: "You’re ready",
-    body: "That’s the core loop. Dashboard shows today’s agenda; Analytics and Goals fill in as you study.",
+  flashcards: {
+    title: "You're on Flashcards",
+    body: "Build a folder and a set, then start a study session to track mastery on each card over time.",
   },
-];
+  pomodoro: {
+    title: "You're on Pomodoro",
+    body: "Pick an objective or a personal timer, then start Focus Mode to stay locked in.",
+  },
+  analytics: {
+    title: "You're on Analytics",
+    body: "Every chart here comes from your real sessions and objectives — plain statistics, not a guess.",
+  },
+  goals: {
+    title: "You're on Goals",
+    body: "Daily and weekly targets track automatically. Add a personal goal for anything you'd like to track manually.",
+  },
+  gamification: {
+    title: "XP, ranks, and streaks",
+    body: "Finishing objectives and focus sessions earns XP automatically. Visit Rank for the full ladder and streak history.",
+    after: "dashboard",
+  },
+  rank: {
+    title: "You're on Rank",
+    body: "The full 30-level ladder, your streaks, and exactly how XP is earned — plus a shortcut to unlock backgrounds.",
+  },
+};
 
 const STORAGE_KEY = "axon:onboarding:seen";
 
@@ -111,8 +115,6 @@ export function useOnboarding() {
     setSeen(next);
   }, [setSeen]);
 
-  const coreComplete = Boolean(seen.core);
-
   return {
     seen,
     hydrated,
@@ -120,6 +122,5 @@ export function useOnboarding() {
     markSeen,
     resetAll,
     markAllSeen,
-    coreComplete,
   };
 }

@@ -93,13 +93,20 @@ export function Hero() {
           />
         </motion.div>
 
-        <h1 className="font-display max-w-4xl text-balance text-5xl font-semibold leading-[1.08] tracking-tight text-foreground md:text-7xl">
+        {/*
+          The hero sits directly on the permanently-dark WebGL background
+          (LandingBackground doesn't adapt to the site theme), so this copy
+          is intentionally hardcoded light rather than following
+          text-foreground/text-muted — those would flip to near-black in
+          light mode and disappear against the unchanged dark backdrop.
+        */}
+        <h1 className="font-display max-w-4xl text-balance text-5xl font-semibold leading-[1.08] tracking-tight text-white md:text-7xl">
           <BlurText
             text="The study dashboard for staying"
             delay={60}
             animateBy="words"
             direction="top"
-            className="font-display justify-center text-5xl font-semibold leading-[1.08] tracking-tight text-foreground md:text-7xl"
+            className="font-display justify-center text-5xl font-semibold leading-[1.08] tracking-tight text-white md:text-7xl"
             as="span"
           />{" "}
           <GradientText
@@ -112,14 +119,14 @@ export function Hero() {
           </GradientText>
         </h1>
 
-        <div className="mt-6 max-w-xl text-balance text-base leading-relaxed text-muted md:text-lg">
+        <div className="mt-6 max-w-xl text-balance text-base leading-relaxed text-white/65 md:text-lg">
           <TextType
             text="Axon turns your objectives, flashcards, and focus sessions into one calm, local-first workspace — with statistics-driven insights instead of noisy AI guesses."
             typingSpeed={20}
             showCursor
             cursorCharacter="_"
             startOnVisible
-            className="text-base leading-relaxed text-muted md:text-lg"
+            className="text-base leading-relaxed text-white/65 md:text-lg"
             as="p"
           />
         </div>
@@ -206,7 +213,7 @@ export function Hero() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.4, duration: 0.8 }}
-        className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2 cursor-pointer text-muted-foreground transition-colors duration-200 hover:text-foreground"
+        className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2 cursor-pointer text-white/45 transition-colors duration-200 hover:text-white/80"
       >
         <motion.span
           animate={prefersReducedMotion ? undefined : { y: [0, 6, 0] }}

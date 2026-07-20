@@ -6,7 +6,7 @@ export function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-border px-6 py-12">
+    <footer className="relative border-t border-border bg-background/92 px-6 py-12 backdrop-blur-sm">
       <div className="mx-auto max-w-6xl">
         <div className="flex flex-col gap-10 md:flex-row md:justify-between">
           <div className="max-w-xs">
@@ -17,8 +17,8 @@ export function Footer() {
               <span className="text-sm font-semibold tracking-tight">Axon</span>
             </div>
             <p className="mt-3 text-sm text-muted">
-              A local-first study dashboard. No AI. No cloud. Just consistent
-              progress you can see.
+              A local-first study dashboard with optional cloud sync. Built for focus —
+              not distraction.
             </p>
           </div>
 
@@ -57,8 +57,26 @@ export function Footer() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="#faq" className="text-sm text-muted transition-colors hover:text-foreground">
-                    FAQ
+                  <Link href="/login" className="text-sm text-muted transition-colors hover:text-foreground">
+                    Login
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Legal
+              </p>
+              <ul className="mt-3 space-y-2">
+                <li>
+                  <Link href="/terms" className="text-sm text-muted transition-colors hover:text-foreground">
+                    Terms of Use
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/privacy" className="text-sm text-muted transition-colors hover:text-foreground">
+                    Privacy Policy
                   </Link>
                 </li>
               </ul>
@@ -68,7 +86,7 @@ export function Footer() {
 
         <div className="mt-10 flex flex-col gap-2 border-t border-border pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <p>© {year} Axon. Built for focus.</p>
-          <p>No AI APIs were used to build this product&apos;s recommendations.</p>
+          <p>Offline-first by default · optional Supabase sync</p>
         </div>
       </div>
     </footer>

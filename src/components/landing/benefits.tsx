@@ -5,12 +5,12 @@ import ScrollFloat from "@/components/effects/scroll-float";
 import BorderGlow from "@/components/effects/border-glow";
 
 const BENEFITS = [
-  "Everything runs locally — no account required to start",
+  "Works fully offline — an account is only needed for cross-device sync",
   "No AI subscriptions or API keys to manage",
   "Built to make small, consistent effort visible",
-  "Kanban, flashcards, and Pomodoro in one workspace",
+  "One connected workspace instead of five disconnected apps",
   "Statistics-driven insights, not opaque predictions",
-  "Designed to scale from localStorage to a real database later",
+  "Your data stays yours — local-first, with optional cloud sync",
 ];
 
 export function Benefits() {
@@ -33,8 +33,8 @@ export function Benefits() {
 
         <ScrollRevealGroup className="mx-auto grid max-w-4xl grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
           {BENEFITS.map((benefit) => (
-            <ScrollRevealItem key={benefit}>
-              <TiltCard maxTilt={4}>
+            <ScrollRevealItem key={benefit} className="h-full">
+              <TiltCard maxTilt={4} className="h-full">
                 <BorderGlow
                   edgeSensitivity={28}
                   glowColor="210 90 75"
@@ -47,9 +47,14 @@ export function Benefits() {
                   fillOpacity={0.35}
                   className="h-full"
                 >
+                  {/* BorderGlow without asButton renders backgroundColor as a
+                      literal, theme-independent fill — this card stays dark
+                      navy in both themes, so its text is hardcoded light
+                      rather than following text-muted (which would flip to
+                      dark gray in light mode and disappear). */}
                   <div className="flex items-start gap-3 p-4">
                     <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success" />
-                    <p className="text-sm leading-relaxed text-muted">{benefit}</p>
+                    <p className="text-sm leading-relaxed text-white/70">{benefit}</p>
                   </div>
                 </BorderGlow>
               </TiltCard>

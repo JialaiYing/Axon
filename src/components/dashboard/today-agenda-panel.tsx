@@ -105,16 +105,16 @@ export function TodayAgendaPanel({
     calendarEvents.length === 0;
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 sm:p-5">
+    <div className="rounded-2xl border border-foreground/10 bg-foreground/[0.04] p-4 sm:p-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-white/45">Today</p>
-          <h2 className="mt-0.5 text-base font-semibold text-white">Your agenda</h2>
+          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-foreground/45">Today</p>
+          <h2 className="mt-0.5 text-base font-semibold text-foreground">Your agenda</h2>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5 rounded-lg border border-accent/30 bg-accent-muted/25 px-2.5 py-1">
             <Flame className="h-3.5 w-3.5 text-warning" />
-            <span className="text-xs font-medium text-white">
+            <span className="text-xs font-medium text-foreground">
               {streak > 0 ? `${streak}-day streak` : "No streak yet"}
             </span>
           </div>
@@ -192,15 +192,15 @@ export function TodayAgendaPanel({
           </AgendaSection>
 
           {isEmpty && overdue.length === 0 && dueToday.length === 0 && (
-            <p className="flex items-center gap-2 rounded-lg border border-dashed border-white/12 px-3 py-4 text-xs text-white/45">
+            <p className="flex items-center gap-2 rounded-lg border border-dashed border-foreground/12 px-3 py-4 text-xs text-foreground/45">
               <Sun className="h-3.5 w-3.5 shrink-0" />
               Clear day — add an objective or schedule a focus block to fill this view.
             </p>
           )}
         </div>
 
-        <div className="space-y-3 rounded-xl border border-white/8 bg-white/[0.03] p-3.5">
-          <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-white/45">
+        <div className="space-y-3 rounded-xl border border-foreground/8 bg-foreground/[0.03] p-3.5">
+          <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-foreground/45">
             <Target className="h-3.5 w-3.5" />
             Goal progress
           </p>
@@ -212,7 +212,7 @@ export function TodayAgendaPanel({
           )}
           <Link
             href="/goals"
-            className="inline-flex items-center gap-1 text-[11px] text-white/45 transition-colors hover:text-white"
+            className="inline-flex items-center gap-1 text-[11px] text-foreground/45 transition-colors hover:text-foreground"
           >
             Manage goals <ArrowRight className="h-3 w-3" />
           </Link>
@@ -239,17 +239,17 @@ function AgendaSection({
     <div>
       <div className="mb-1.5 flex items-center gap-1.5 px-0.5">
         <Icon
-          className={cn("h-3.5 w-3.5", tone === "danger" ? "text-danger" : "text-white/45")}
+          className={cn("h-3.5 w-3.5", tone === "danger" ? "text-danger" : "text-foreground/45")}
         />
         <p
           className={cn(
             "text-[11px] font-semibold uppercase tracking-wide",
-            tone === "danger" ? "text-danger" : "text-white/45"
+            tone === "danger" ? "text-danger" : "text-foreground/45"
           )}
         >
           {label}
         </p>
-        <span className="rounded-full bg-white/10 px-1.5 py-0.5 text-[10px] font-medium text-white/55">
+        <span className="rounded-full bg-foreground/10 px-1.5 py-0.5 text-[10px] font-medium text-foreground/55">
           {count}
         </span>
       </div>
@@ -282,7 +282,7 @@ function AgendaLink({
           ? "border-success/25 bg-success-muted/15 hover:border-success/40"
           : tone === "danger"
             ? "border-danger/25 bg-danger-muted/10 hover:border-danger/40"
-            : "border-white/8 bg-white/[0.04] hover:border-white/16 hover:bg-white/[0.07]"
+            : "border-foreground/8 bg-foreground/[0.04] hover:border-foreground/16 hover:bg-foreground/[0.07]"
       )}
     >
       {done ? (
@@ -298,8 +298,8 @@ function AgendaLink({
       <div className="min-w-0 flex-1">
         <p
           className={cn(
-            "truncate text-sm font-medium text-white",
-            done && "text-white/70 line-through"
+            "truncate text-sm font-medium text-foreground",
+            done && "text-foreground/70 line-through"
           )}
         >
           {title}
@@ -308,7 +308,7 @@ function AgendaLink({
           <Badge variant={priorityBadgeVariant(priority)} className="capitalize">
             {priority}
           </Badge>
-          <span className="text-[11px] text-white/45">{meta}</span>
+          <span className="text-[11px] text-foreground/45">{meta}</span>
         </div>
       </div>
     </Link>
@@ -319,7 +319,7 @@ function EmptyHint({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="flex items-center gap-2 rounded-lg border border-dashed border-white/12 px-3 py-2.5 text-xs text-white/40 transition-colors hover:border-white/20 hover:text-white/60"
+      className="flex items-center gap-2 rounded-lg border border-dashed border-foreground/12 px-3 py-2.5 text-xs text-foreground/40 transition-colors hover:border-foreground/20 hover:text-foreground/60"
     >
       {label} <ArrowRight className="h-3 w-3" />
     </Link>
@@ -336,20 +336,20 @@ function GoalMini({
   const percent = goal.target > 0 ? (goal.progress / goal.target) * 100 : 0;
   return (
     <div>
-      <div className="flex items-center justify-between gap-2 text-[11px] text-white/55">
+      <div className="flex items-center justify-between gap-2 text-[11px] text-foreground/55">
         <span className="truncate">{goal.title}</span>
         <span className="flex shrink-0 items-center gap-2">
           <span
             className={cn(
               "text-[10px] font-medium uppercase tracking-[0.08em]",
               status === "done" && "text-success",
-              status === "on-track" && "text-white/50",
+              status === "on-track" && "text-foreground/50",
               status === "behind" && "text-warning"
             )}
           >
             {PACE_LABEL[status]}
           </span>
-          <span className="tabular-nums text-white/70">
+          <span className="tabular-nums text-foreground/70">
             {goal.progress}/{goal.target}
             {goal.unit ? ` ${goal.unit}` : ""}
           </span>

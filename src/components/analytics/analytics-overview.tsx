@@ -181,7 +181,7 @@ function heatmapLevel(minutes: number) {
 }
 
 const HEAT_COLORS = [
-  "bg-white/[0.06]",
+  "bg-foreground/[0.06]",
   "bg-accent/30",
   "bg-accent/50",
   "bg-accent/75",
@@ -201,7 +201,7 @@ function GlassPanel({ className, children }: { className?: string; children: Rea
   );
 }
 
-function ChartTooltip({
+const ChartTooltip = React.memo(function ChartTooltip({
   active,
   payload,
   label,
@@ -215,15 +215,15 @@ function ChartTooltip({
   if (!active || !payload?.length) return null;
   return (
     <div className="glass-panel rounded-lg px-3 py-2 text-xs">
-      <p className="font-medium text-white">{label ?? payload[0]?.name}</p>
-      <p className="mt-0.5 text-white/60">
+      <p className="font-medium text-foreground">{label ?? payload[0]?.name}</p>
+      <p className="mt-0.5 text-foreground/60">
         {payload[0]?.value ?? 0} {unit}
       </p>
     </div>
   );
-}
+});
 
-function StatCard({
+const StatCard = React.memo(function StatCard({
   icon: Icon,
   label,
   value,
@@ -239,12 +239,12 @@ function StatCard({
   return (
     <GlassPanel className="flex h-full flex-col justify-between p-5">
       <div className="flex items-center justify-between">
-        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-white/55">
+        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-foreground/55">
           {label}
         </p>
         <span
           className={cn(
-            "flex h-8 w-8 items-center justify-center rounded-lg border border-white/10",
+            "flex h-8 w-8 items-center justify-center rounded-lg border border-foreground/10",
             iconClassName
           )}
         >
@@ -252,12 +252,12 @@ function StatCard({
         </span>
       </div>
       <div className="mt-4">
-        <p className="text-2xl font-semibold tabular-nums text-white">{value}</p>
-        <p className="mt-1 text-xs text-white/45">{hint}</p>
+        <p className="text-2xl font-semibold tabular-nums text-foreground">{value}</p>
+        <p className="mt-1 text-xs text-foreground/45">{hint}</p>
       </div>
     </GlassPanel>
   );
-}
+});
 
 function ChartPanel({
   title,
@@ -273,16 +273,16 @@ function ChartPanel({
   return (
     <GlassPanel className={cn("flex flex-col p-6", className)}>
       <div className="mb-4">
-        <h2 className="text-sm font-semibold text-white">{title}</h2>
-        {subtitle && <p className="mt-0.5 text-xs text-white/45">{subtitle}</p>}
+        <h2 className="text-sm font-semibold text-foreground">{title}</h2>
+        {subtitle && <p className="mt-0.5 text-xs text-foreground/45">{subtitle}</p>}
       </div>
       {children}
     </GlassPanel>
   );
 }
 
-const AXIS_TICK = { fill: "rgba(255,255,255,0.45)", fontSize: 11 };
-const GRID_STROKE = "rgba(255,255,255,0.06)";
+const AXIS_TICK = { fill: "var(--color-muted-foreground)", fontSize: 11 };
+const GRID_STROKE = "var(--color-border)";
 
 function LoadingState() {
   return (
@@ -395,14 +395,14 @@ export function AnalyticsOverview() {
         className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"
       >
         <div>
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-white/45">
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-foreground/45">
             Long-term trends
           </p>
-          <h1 className="mt-1.5 text-2xl font-semibold tracking-tight text-white md:text-3xl">
+          <h1 className="mt-1.5 text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
             Analytics
           </h1>
         </div>
-        <div className="flex items-center gap-1 rounded-xl border border-white/10 bg-white/[0.04] p-1">
+        <div className="flex items-center gap-1 rounded-xl border border-foreground/10 bg-foreground/[0.04] p-1">
           {RANGES.map((r) => (
             <button
               key={r.days}
@@ -410,8 +410,8 @@ export function AnalyticsOverview() {
               className={cn(
                 "cursor-pointer rounded-lg px-3.5 py-1.5 text-xs font-medium transition-all duration-200",
                 rangeDays === r.days
-                  ? "bg-white/10 text-white"
-                  : "text-white/50 hover:text-white/80"
+                  ? "bg-foreground/10 text-foreground"
+                  : "text-foreground/50 hover:text-foreground/80"
               )}
             >
               {r.label}
@@ -467,8 +467,8 @@ export function AnalyticsOverview() {
               <AreaChart data={trend} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
                 <defs>
                   <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.4} />
-                    <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.02} />
+                    <stop offset="0%" stopColor="var(--color-accent)" stopOpacity={0.4} />
+                    <stop offset="100%" stopColor="var(--color-accent)" stopOpacity={0.02} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid stroke={GRID_STROKE} vertical={false} />
@@ -483,12 +483,12 @@ export function AnalyticsOverview() {
                 <YAxis tick={AXIS_TICK} axisLine={false} tickLine={false} width={46} />
                 <Tooltip
                   content={<ChartTooltip />}
-                  cursor={{ stroke: "rgba(255,255,255,0.15)" }}
+                  cursor={{ stroke: "var(--color-border-strong)" }}
                 />
                 <Area
                   type="monotone"
                   dataKey="minutes"
-                  stroke="#3b82f6"
+                  stroke="var(--color-accent)"
                   strokeWidth={2}
                   fill="url(#trendFill)"
                   isAnimationActive={!prefersReducedMotion}
@@ -515,7 +515,7 @@ export function AnalyticsOverview() {
                     innerRadius="62%"
                     outerRadius="90%"
                     strokeWidth={0}
-                    fill="rgba(255,255,255,0.06)"
+                    fill="var(--color-border)"
                     isAnimationActive={false}
                   />
                   <Pie
@@ -538,13 +538,13 @@ export function AnalyticsOverview() {
             </div>
             <ul className="mt-3 space-y-1.5">
               {donut.map((entry) => (
-                <li key={entry.name} className="flex items-center gap-2 text-xs text-white/60">
+                <li key={entry.name} className="flex items-center gap-2 text-xs text-foreground/60">
                   <span
                     className="h-2 w-2 rounded-full"
                     style={{ backgroundColor: entry.color }}
                   />
                   <span className="capitalize">{entry.name}</span>
-                  <span className="ml-auto tabular-nums text-white/45">{entry.value}</span>
+                  <span className="ml-auto tabular-nums text-foreground/45">{entry.value}</span>
                 </li>
               ))}
             </ul>
@@ -569,13 +569,13 @@ export function AnalyticsOverview() {
                 );
               })}
             </div>
-            <div className="mt-3 flex items-center gap-1.5 text-[10px] text-white/40">
+            <div className="mt-3 flex items-center gap-1.5 text-[10px] text-foreground/40">
               <span>Less</span>
               {HEAT_COLORS.map((c, i) => (
                 <span key={i} className={cn("h-2.5 w-2.5 rounded-[2px]", c)} />
               ))}
               <span>More</span>
-              <span className="ml-auto tabular-nums text-white/50">
+              <span className="ml-auto tabular-nums text-foreground/50">
                 {activeDays} active day{activeDays === 1 ? "" : "s"} in range
               </span>
             </div>
@@ -587,7 +587,7 @@ export function AnalyticsOverview() {
         <button
           type="button"
           onClick={() => setShowMore((v) => !v)}
-          className="cursor-pointer rounded-lg border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-medium text-white/70 transition-colors hover:border-white/20 hover:text-white"
+          className="cursor-pointer rounded-lg border border-foreground/10 bg-foreground/[0.04] px-4 py-2 text-xs font-medium text-foreground/70 transition-colors hover:border-foreground/20 hover:text-foreground"
         >
           {showMore ? "Hide extra insights" : "More insights"}
         </button>
@@ -604,8 +604,8 @@ export function AnalyticsOverview() {
                       <CartesianGrid stroke={GRID_STROKE} vertical={false} />
                       <XAxis dataKey="label" tick={AXIS_TICK} axisLine={false} tickLine={false} interval={2} />
                       <YAxis tick={AXIS_TICK} axisLine={false} tickLine={false} width={46} />
-                      <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(255,255,255,0.05)" }} />
-                      <Bar dataKey="minutes" fill="#a855f7" radius={[4, 4, 0, 0]} isAnimationActive={!prefersReducedMotion} />
+                      <Tooltip content={<ChartTooltip />} cursor={{ fill: "var(--color-card-hover)" }} />
+                      <Bar dataKey="minutes" fill="var(--color-secondary)" radius={[4, 4, 0, 0]} isAnimationActive={!prefersReducedMotion} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -619,8 +619,8 @@ export function AnalyticsOverview() {
                       <CartesianGrid stroke={GRID_STROKE} vertical={false} />
                       <XAxis dataKey="label" tick={AXIS_TICK} axisLine={false} tickLine={false} />
                       <YAxis tick={AXIS_TICK} axisLine={false} tickLine={false} width={46} />
-                      <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(255,255,255,0.05)" }} />
-                      <Bar dataKey="minutes" fill="#3b82f6" radius={[4, 4, 0, 0]} isAnimationActive={!prefersReducedMotion} />
+                      <Tooltip content={<ChartTooltip />} cursor={{ fill: "var(--color-card-hover)" }} />
+                      <Bar dataKey="minutes" fill="var(--color-accent)" radius={[4, 4, 0, 0]} isAnimationActive={!prefersReducedMotion} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -637,10 +637,10 @@ export function AnalyticsOverview() {
                     return (
                       <li key={s.subject}>
                         <div className="mb-1.5 flex items-center justify-between text-xs">
-                          <span className="truncate text-white/70">{s.subject}</span>
-                          <span className="tabular-nums text-white/45">{formatHours(s.minutes)}</span>
+                          <span className="truncate text-foreground/70">{s.subject}</span>
+                          <span className="tabular-nums text-foreground/45">{formatHours(s.minutes)}</span>
                         </div>
-                        <div className="h-2 overflow-hidden rounded-full bg-white/[0.06]">
+                        <div className="h-2 overflow-hidden rounded-full bg-foreground/[0.06]">
                           <motion.div
                             initial={prefersReducedMotion ? false : { width: 0 }}
                             animate={{ width: `${(s.minutes / max) * 100}%` }}
@@ -664,13 +664,13 @@ export function AnalyticsOverview() {
                     { icon: Layers, label: "Cards", value: String(totalCards), hint: `Across ${sets.length} set${sets.length === 1 ? "" : "s"}`, color: "text-secondary" },
                     { icon: BookOpen, label: "Sets", value: String(sets.length), hint: "Total created", color: "text-warning" },
                   ].map((entry) => (
-                    <div key={entry.label} className="rounded-xl border border-white/8 bg-white/[0.04] p-4">
+                    <div key={entry.label} className="rounded-xl border border-foreground/8 bg-foreground/[0.04] p-4">
                       <div className="flex items-center gap-2">
                         <entry.icon className={cn("h-3.5 w-3.5", entry.color)} />
-                        <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-white/55">{entry.label}</p>
+                        <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-foreground/55">{entry.label}</p>
                       </div>
-                      <p className="mt-2 text-xl font-semibold tabular-nums text-white">{entry.value}</p>
-                      <p className="mt-0.5 text-[11px] text-white/45">{entry.hint}</p>
+                      <p className="mt-2 text-xl font-semibold tabular-nums text-foreground">{entry.value}</p>
+                      <p className="mt-0.5 text-[11px] text-foreground/45">{entry.hint}</p>
                     </div>
                   ))}
                 </div>
@@ -680,7 +680,7 @@ export function AnalyticsOverview() {
 
           <motion.div variants={item}>
             <GlassPanel className="p-6">
-              <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-white/55">All time</p>
+              <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-foreground/55">All time</p>
               <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
                 {[
                   { icon: Sparkles, label: "Total XP", value: stats.xp, suffix: " XP" },
@@ -694,14 +694,14 @@ export function AnalyticsOverview() {
                   },
                 ].map((entry) => (
                   <div key={entry.label} className="flex items-center gap-3">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-white/60">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-foreground/10 bg-foreground/5 text-foreground/60">
                       <entry.icon className="h-4 w-4" />
                     </span>
                     <div>
-                      <p className="text-base font-semibold tabular-nums text-white">
+                      <p className="text-base font-semibold tabular-nums text-foreground">
                         <AnimatedCounter value={entry.value} suffix={entry.suffix} />
                       </p>
-                      <p className="text-[11px] text-white/45">{entry.label}</p>
+                      <p className="text-[11px] text-foreground/45">{entry.label}</p>
                     </div>
                   </div>
                 ))}

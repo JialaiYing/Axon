@@ -9,13 +9,31 @@ interface AuthContextValue {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signInWithPassword: (email: string, password: string) => Promise<{ error?: string }>;
-  signUpWithPassword: (email: string, password: string) => Promise<{ error?: string }>;
+  signInWithPassword: (
+    email: string,
+    password: string
+  ) => Promise<{ error?: string }>;
+  signUpWithPassword: (
+    email: string,
+    password: string,
+    displayName?: string
+  ) => Promise<{ error?: string; needsEmailConfirmation?: boolean }>;
   signInWithGoogle: () => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
+  updateDisplayName: (name: string) => Promise<{ error?: string }>;
 }
 
 const AuthContext = React.createContext<AuthContextValue | null>(null);
+
+async function applySessionFromApi(session: Session | null) {
+  if (!session) return;
+  const supabase = getSupabaseBrowserClient();
+  if (!supabase) return;
+  await supabase.auth.setSession({
+    access_token: session.access_token,
+    refresh_token: session.refresh_token,
+  });
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const configured = isSupabaseConfigured();
@@ -49,18 +67,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [configured]);
 
   const signInWithPassword = React.useCallback(async (email: string, password: string) => {
-    const supabase = getSupabaseBrowserClient();
-    if (!supabase) return { error: "Supabase is not configured." };
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return error ? { error: error.message } : {};
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const payload = (await res.json()) as { error?: string; session?: Session };
+      if (!res.ok) return { error: payload.error || "Sign in failed." };
+      await applySessionFromApi(payload.session ?? null);
+      return {};
+    } catch {
+      return { error: "Network error. Try again." };
+    }
   }, []);
 
-  const signUpWithPassword = React.useCallback(async (email: string, password: string) => {
-    const supabase = getSupabaseBrowserClient();
-    if (!supabase) return { error: "Supabase is not configured." };
-    const { error } = await supabase.auth.signUp({ email, password });
-    return error ? { error: error.message } : {};
-  }, []);
+  const signUpWithPassword = React.useCallback(
+    async (email: string, password: string, displayName?: string) => {
+      try {
+        const res = await fetch("/api/auth/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password, displayName }),
+        });
+        const payload = (await res.json()) as {
+          error?: string;
+          session?: Session;
+          needsEmailConfirmation?: boolean;
+        };
+        if (!res.ok) return { error: payload.error || "Sign up failed." };
+        await applySessionFromApi(payload.session ?? null);
+        if (displayName) {
+          try {
+            // Must match the JSON contract used by useLocalStorage/readStorage —
+            // a raw string here would fail JSON.parse on next read.
+            window.localStorage.setItem("axon:profile:displayName", JSON.stringify(displayName));
+          } catch {
+            /* ignore */
+          }
+        }
+        return { needsEmailConfirmation: Boolean(payload.needsEmailConfirmation) };
+      } catch {
+        return { error: "Network error. Try again." };
+      }
+    },
+    []
+  );
 
   const signInWithGoogle = React.useCallback(async () => {
     const supabase = getSupabaseBrowserClient();
@@ -78,6 +130,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await supabase.auth.signOut();
   }, []);
 
+  const updateDisplayName = React.useCallback(async (name: string) => {
+    const trimmed = name.trim();
+    if (!trimmed || trimmed.length > 60) return { error: "Enter a name under 60 characters." };
+    // Local persistence is handled by useDisplayName's useLocalStorage setter
+    // (which JSON-encodes the value) before this runs — writing the raw
+    // string here would clobber it with a non-JSON value and break the next
+    // JSON.parse read. This only needs to sync the name to Supabase.
+    const supabase = getSupabaseBrowserClient();
+    if (supabase && user) {
+      const { error } = await supabase
+        .from("profiles")
+        .upsert({ id: user.id, email: user.email, display_name: trimmed });
+      if (error) return { error: error.message };
+      await supabase.auth.updateUser({ data: { display_name: trimmed } });
+    }
+    return {};
+  }, [user]);
+
   const value = React.useMemo<AuthContextValue>(
     () => ({
       configured,
@@ -88,6 +158,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signUpWithPassword,
       signInWithGoogle,
       signOut,
+      updateDisplayName,
     }),
     [
       configured,
@@ -98,6 +169,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signUpWithPassword,
       signInWithGoogle,
       signOut,
+      updateDisplayName,
     ]
   );
 
