@@ -22,6 +22,7 @@ import {
   Layers,
   List,
   Pin,
+  Trash2,
 } from "lucide-react";
 import { FolderIcon } from "@/components/flashcards/folder";
 import {
@@ -59,6 +60,8 @@ interface FlashcardsGridLibraryProps {
   onToggleSetPin: (id: string) => void;
   onShowInDome?: (id: string) => void;
   onDeleteFolder: () => void;
+  onRecycleFolder: (folder: FlashcardFolder) => void;
+  onRecycleSet: (set: FlashcardSet) => void;
   onMoveSet: (setId: string, folderId: string | undefined) => void;
   setsInFolder: (folderId: string) => FlashcardSet[];
 }
@@ -94,6 +97,8 @@ export function FlashcardsGridLibrary({
   onToggleSetPin,
   onShowInDome,
   onDeleteFolder,
+  onRecycleFolder,
+  onRecycleSet,
   onMoveSet,
   setsInFolder,
 }: FlashcardsGridLibraryProps) {
@@ -205,7 +210,7 @@ export function FlashcardsGridLibrary({
           {folder ? (
             <button
               type="button"
-              aria-label={`Delete folder ${folder.title}`}
+              aria-label={`Move folder ${folder.title} to recycle bin`}
               onClick={onDeleteFolder}
               className="cursor-pointer rounded-md px-2 py-1.5 text-[11px] text-foreground/35 transition-colors hover:bg-foreground/[0.06] hover:text-destructive"
             >
@@ -246,6 +251,7 @@ export function FlashcardsGridLibrary({
                         layout="icons"
                         onOpen={() => onOpenSet(set)}
                         onTogglePin={() => onToggleSetPin(set.id)}
+                        onRecycle={() => onRecycleSet(set)}
                       />
                     </li>
                   ))
@@ -259,6 +265,7 @@ export function FlashcardsGridLibrary({
                             layout="icons"
                             onOpen={() => onOpenFolder(f)}
                             onTogglePin={() => onToggleFolderPin(f.id)}
+                            onRecycle={() => onRecycleFolder(f)}
                             onShowInDome={
                               f.showInDome === false && onShowInDome
                                 ? () => onShowInDome(f.id)
@@ -274,6 +281,7 @@ export function FlashcardsGridLibrary({
                             layout="icons"
                             onOpen={() => onOpenSet(set)}
                             onTogglePin={() => onToggleSetPin(set.id)}
+                            onRecycle={() => onRecycleSet(set)}
                           />
                         </li>
                       ))}
@@ -296,6 +304,7 @@ export function FlashcardsGridLibrary({
                           layout="list"
                           onOpen={() => onOpenSet(set)}
                           onTogglePin={() => onToggleSetPin(set.id)}
+                          onRecycle={() => onRecycleSet(set)}
                         />
                       </li>
                     ))
@@ -309,6 +318,7 @@ export function FlashcardsGridLibrary({
                               layout="list"
                               onOpen={() => onOpenFolder(f)}
                               onTogglePin={() => onToggleFolderPin(f.id)}
+                              onRecycle={() => onRecycleFolder(f)}
                               onShowInDome={
                                 f.showInDome === false && onShowInDome
                                   ? () => onShowInDome(f.id)
@@ -324,6 +334,7 @@ export function FlashcardsGridLibrary({
                               layout="list"
                               onOpen={() => onOpenSet(set)}
                               onTogglePin={() => onToggleSetPin(set.id)}
+                              onRecycle={() => onRecycleSet(set)}
                             />
                           </li>
                         ))}
@@ -403,12 +414,42 @@ function MiniPinButton({
   );
 }
 
+function MiniTrashButton({
+  label,
+  onClick,
+  className,
+}: {
+  label: string;
+  onClick: () => void;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={`Move ${label} to recycle bin`}
+      title="Move to recycle bin"
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
+      onPointerDown={(e) => e.stopPropagation()}
+      className={cn(
+        "cursor-pointer rounded-md p-1.5 text-foreground/30 opacity-0 transition-colors group-hover:opacity-100 hover:text-destructive focus-visible:opacity-100",
+        className
+      )}
+    >
+      <Trash2 className="h-3.5 w-3.5" />
+    </button>
+  );
+}
+
 function FolderItem({
   folder,
   setCount,
   layout,
   onOpen,
   onTogglePin,
+  onRecycle,
   onShowInDome,
 }: {
   folder: FlashcardFolder;
@@ -416,6 +457,7 @@ function FolderItem({
   layout: GridLayoutMode;
   onOpen: () => void;
   onTogglePin: () => void;
+  onRecycle: () => void;
   onShowInDome?: () => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({
@@ -460,6 +502,7 @@ function FolderItem({
               </button>
             )}
             <MiniPinButton pinned={folder.pinned} label={folder.title} onClick={onTogglePin} />
+            <MiniTrashButton label={folder.title} onClick={onRecycle} />
           </div>
         </div>
         <span className="text-xs text-foreground/45">Folder</span>
@@ -494,6 +537,7 @@ function FolderItem({
           </button>
         )}
         <MiniPinButton pinned={folder.pinned} label={folder.title} onClick={onTogglePin} />
+        <MiniTrashButton label={folder.title} onClick={onRecycle} />
       </div>
       <button
         type="button"
@@ -523,11 +567,13 @@ function SetItem({
   layout,
   onOpen,
   onTogglePin,
+  onRecycle,
 }: {
   set: FlashcardSet;
   layout: GridLayoutMode;
   onOpen: () => void;
   onTogglePin: () => void;
+  onRecycle: () => void;
 }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: setDragId(set.id),
@@ -557,6 +603,7 @@ function SetItem({
             <span className="truncate text-sm font-medium text-foreground">{set.title}</span>
           </button>
           <MiniPinButton pinned={set.pinned} label={set.title} onClick={onTogglePin} />
+          <MiniTrashButton label={set.title} onClick={onRecycle} />
         </div>
         <span className="text-xs text-foreground/45">Set</span>
         <span className="truncate text-right text-xs text-foreground/45">
@@ -568,12 +615,10 @@ function SetItem({
 
   return (
     <div ref={setNodeRef} style={style} className="group relative h-full">
-      <MiniPinButton
-        pinned={set.pinned}
-        label={set.title}
-        onClick={onTogglePin}
-        className="absolute right-2 top-2 z-10"
-      />
+      <div className="absolute right-2 top-2 z-10 flex items-center gap-0.5">
+        <MiniPinButton pinned={set.pinned} label={set.title} onClick={onTogglePin} />
+        <MiniTrashButton label={set.title} onClick={onRecycle} />
+      </div>
       <button
         type="button"
         {...attributes}
@@ -581,7 +626,7 @@ function SetItem({
         onClick={onOpen}
         className="flex h-full w-full cursor-grab flex-col rounded-xl border border-foreground/10 bg-foreground/[0.04] p-4 text-left transition-colors hover:border-foreground/20 hover:bg-foreground/[0.07] active:cursor-grabbing"
       >
-        <p className="truncate pr-7 text-sm font-semibold text-foreground">{set.title}</p>
+        <p className="truncate pr-14 text-sm font-semibold text-foreground">{set.title}</p>
         <p className="mt-1 text-xs text-foreground/45">
           {set.subject || "General"} · {set.cards.length} card
           {set.cards.length === 1 ? "" : "s"}

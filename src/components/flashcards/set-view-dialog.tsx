@@ -133,7 +133,7 @@ export function SetViewDialog({
               className="cursor-pointer text-danger hover:text-danger"
               onClick={() => setConfirmDelete(true)}
             >
-              <Trash2 className="h-3.5 w-3.5" /> Delete set
+              <Trash2 className="h-3.5 w-3.5" /> Move to recycle bin
             </Button>
           </div>
         </DialogContent>
@@ -142,9 +142,9 @@ export function SetViewDialog({
       <ConfirmDialog
         open={confirmDelete}
         onOpenChange={setConfirmDelete}
-        title="Delete this set?"
-        description="All cards in this set will be permanently deleted."
-        confirmLabel="Delete set"
+        title="Move set to recycle bin?"
+        description="This set and its cards will move to the recycle bin. You can restore them within 30 days."
+        confirmLabel="Move to recycle bin"
         onConfirm={() => {
           onDeleteSet(set.id);
           setConfirmDelete(false);

@@ -11,6 +11,7 @@ import {
   Pin,
   Play,
   Plus,
+  RotateCcw,
   Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -30,6 +31,7 @@ import {
   FlashcardsGridLibrary,
   type GridLayoutMode,
 } from "@/components/flashcards/grid-library";
+import { FlashcardsRecycleBinDialog } from "@/components/flashcards/recycle-bin-dialog";
 import { SetViewDialog } from "@/components/flashcards/set-view-dialog";
 import { StudyView } from "@/components/flashcards/study-view";
 import { TestView } from "@/components/flashcards/test-view";
@@ -102,13 +104,20 @@ export function FlashcardsSection() {
   const {
     folders,
     sets,
+    recycledFolders,
+    recycledSets,
     hydrated,
     addFolder,
-    deleteFolder,
+    sendFolderToRecycleBin,
+    restoreFolderFromRecycleBin,
+    permanentlyDeleteFolder,
     touchFolder,
     addSet,
     updateSet,
-    deleteSet,
+    sendSetToRecycleBin,
+    restoreSetFromRecycleBin,
+    permanentlyDeleteSet,
+    clearRecycleBin,
     touchSet,
     addCard,
     deleteCard,
@@ -130,6 +139,10 @@ export function FlashcardsSection() {
   const [gridFolderId, setGridFolderId] = React.useState<string | null>(null);
   const [gridLayout, setGridLayout] = React.useState<GridLayoutMode>("icons");
   const [confirmDeleteFolder, setConfirmDeleteFolder] = React.useState(false);
+  const [pendingRecycleFolder, setPendingRecycleFolder] = React.useState<FlashcardFolder | null>(
+    null
+  );
+  const [recycleBinOpen, setRecycleBinOpen] = React.useState(false);
   const [editSetId, setEditSetId] = React.useState<string | null>(null);
   const [mode, setMode] = React.useState<LibraryMode>({ type: "library", view: "grid" });
   const [libraryView, setLibraryView] = React.useState<LibraryView>("grid");
@@ -148,6 +161,27 @@ export function FlashcardsSection() {
     [sets, folders]
   );
   const folderSets = gridFolder ? setsInFolder(gridFolder.id) : [];
+  const recycledCount = React.useMemo(() => {
+    const nestedIds = new Set(
+      recycledSets
+        .filter((set) => set.folderId && recycledFolders.some((f) => f.id === set.folderId))
+        .map((set) => set.id)
+    );
+    return recycledFolders.length + recycledSets.filter((set) => !nestedIds.has(set.id)).length;
+  }, [recycledFolders, recycledSets]);
+
+  const requestRecycleFolder = React.useCallback((folder: FlashcardFolder) => {
+    setPendingRecycleFolder(folder);
+    setConfirmDeleteFolder(true);
+  }, []);
+
+  const confirmRecycleFolder = React.useCallback(() => {
+    const target = pendingRecycleFolder ?? gridFolder;
+    if (!target) return;
+    sendFolderToRecycleBin(target.id);
+    if (gridFolderId === target.id) setGridFolderId(null);
+    setPendingRecycleFolder(null);
+  }, [pendingRecycleFolder, gridFolder, gridFolderId, sendFolderToRecycleBin]);
 
   React.useEffect(() => {
     return () => {
@@ -457,6 +491,21 @@ export function FlashcardsSection() {
                     Library
                   </h2>
                   <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-7 cursor-pointer gap-1.5 px-2.5 text-[11px]"
+                      onClick={() => setRecycleBinOpen(true)}
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" />
+                      Recycle bin
+                      {recycledCount > 0 ? (
+                        <span className="rounded-full bg-surface px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                          {recycledCount}
+                        </span>
+                      ) : null}
+                    </Button>
                     <div className="inline-flex items-center gap-0.5 rounded-lg border border-foreground/10 bg-foreground/[0.03] p-0.5">
                       <button
                         type="button"
@@ -510,7 +559,11 @@ export function FlashcardsSection() {
                       onToggleFolderPin={toggleFolderPinned}
                       onToggleSetPin={toggleSetPinned}
                       onShowInDome={toggleFolderInDome}
-                      onDeleteFolder={() => setConfirmDeleteFolder(true)}
+                      onDeleteFolder={() => {
+                        if (gridFolder) requestRecycleFolder(gridFolder);
+                      }}
+                      onRecycleFolder={requestRecycleFolder}
+                      onRecycleSet={(set) => sendSetToRecycleBin(set.id)}
                       onMoveSet={(setId, folderId) => updateSet(setId, { folderId })}
                       setsInFolder={setsInFolder}
                     />
@@ -633,20 +686,30 @@ export function FlashcardsSection() {
 
       <ConfirmDialog
         open={confirmDeleteFolder}
-        onOpenChange={setConfirmDeleteFolder}
-        title="Delete folder?"
-        description={
-          gridFolder
-            ? `“${gridFolder.title}” will be removed. Sets inside become unfiled and stay in your library.`
-            : "This folder will be removed. Sets inside become unfiled."
-        }
-        confirmLabel="Delete folder"
-        onConfirm={() => {
-          if (gridFolder) {
-            deleteFolder(gridFolder.id);
-            setGridFolderId(null);
-          }
+        onOpenChange={(open) => {
+          setConfirmDeleteFolder(open);
+          if (!open) setPendingRecycleFolder(null);
         }}
+        title="Move folder to recycle bin?"
+        description={
+          (pendingRecycleFolder ?? gridFolder)
+            ? `“${(pendingRecycleFolder ?? gridFolder)!.title}” and the sets inside it will move to the recycle bin. You can restore them within 30 days.`
+            : "This folder and its sets will move to the recycle bin."
+        }
+        confirmLabel="Move to recycle bin"
+        onConfirm={confirmRecycleFolder}
+      />
+
+      <FlashcardsRecycleBinDialog
+        open={recycleBinOpen}
+        onOpenChange={setRecycleBinOpen}
+        folders={recycledFolders}
+        sets={recycledSets}
+        onRestoreFolder={(folder) => restoreFolderFromRecycleBin(folder.id)}
+        onRestoreSet={(set) => restoreSetFromRecycleBin(set.id)}
+        onDeleteForeverFolder={(folder) => permanentlyDeleteFolder(folder.id)}
+        onDeleteForeverSet={(set) => permanentlyDeleteSet(set.id)}
+        onClearAll={clearRecycleBin}
       />
 
       <SetViewDialog
@@ -656,7 +719,7 @@ export function FlashcardsSection() {
         }}
         onAddCard={addCard}
         onDeleteCard={deleteCard}
-        onDeleteSet={deleteSet}
+        onDeleteSet={sendSetToRecycleBin}
       />
     </>
   );

@@ -25,6 +25,9 @@ export default function LandingPage() {
           <Footer />
         </PageTransition>
       </div>
+      {/* Above solid sections so grain reads on black; below dialogs (z-50). */}
+      <div aria-hidden className="grain-overlay !z-20" />
+      <div aria-hidden className="vignette-overlay !z-20" />
     </div>
   );
 }

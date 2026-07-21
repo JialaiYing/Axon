@@ -18,6 +18,7 @@ import {
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { ScrollReveal, ScrollRevealGroup, ScrollRevealItem } from "@/components/ui/scroll-reveal";
 import { cn } from "@/lib/utils";
+import { DURATION, EASE } from "@/lib/motion";
 
 /** Mirrors the real dashboard: greeting → agenda → up next → stats strip → goals + rank. */
 
@@ -218,7 +219,14 @@ function PreviewChrome({
                     <stat.icon className={cn("h-3.5 w-3.5", stat.iconClass)} />
                   </div>
                   <p className="mt-3 text-lg font-semibold tabular-nums text-foreground">
-                    <CountUp end={stat.value} duration={1.4} suffix={stat.suffix} />
+                    {prefersReducedMotion ? (
+                      <>
+                        {stat.value}
+                        {stat.suffix}
+                      </>
+                    ) : (
+                      <CountUp end={stat.value} duration={1.4} suffix={stat.suffix} />
+                    )}
                   </p>
                 </div>
               </ScrollRevealItem>
@@ -294,7 +302,11 @@ function EmbeddedPreview() {
       <motion.div
         initial={prefersReducedMotion ? false : { opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, delay: 0.15, ease: [0.21, 0.47, 0.32, 0.98] }}
+        transition={{
+          duration: DURATION.section,
+          delay: prefersReducedMotion ? 0 : 0.15,
+          ease: EASE,
+        }}
         className="origin-center"
       >
         <PreviewChrome prefersReducedMotion={prefersReducedMotion} tiltMax={2} />

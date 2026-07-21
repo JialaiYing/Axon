@@ -96,6 +96,8 @@ export interface FlashcardFolder {
   showInDome?: boolean;
   /** Whether this folder appears in the home "Pinned" list. */
   pinned?: boolean;
+  /** Set when the folder is sent to the recycle bin. Drives the 30-day auto-delete. */
+  recycledAt?: string;
 }
 
 export interface FlashcardSet {
@@ -119,6 +121,8 @@ export interface FlashcardSet {
     total: number;
     completedAt: string;
   };
+  /** Set when the set is sent to the recycle bin. Drives the 30-day auto-delete. */
+  recycledAt?: string;
   cards: Flashcard[];
 }
 

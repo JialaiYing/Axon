@@ -56,9 +56,9 @@ export function LandingNav() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-30 border-b transition-all duration-300",
+        "sticky top-0 z-30 border-b transition-[background-color,border-color,box-shadow] duration-300",
         scrolled || pathname === "/faq"
-          ? "border-white/10 bg-black/70 shadow-[0_1px_0_rgba(255,255,255,0.04),0_12px_30px_-16px_rgba(0,0,0,0.6)] backdrop-blur-xl"
+          ? "border-white/10 bg-black/70 shadow-[var(--shadow-elevation-2)] backdrop-blur-xl"
           : "border-transparent bg-transparent"
       )}
     >
@@ -67,7 +67,7 @@ export function LandingNav() {
           href="/"
           onClick={scrollToTop}
           aria-label="Axon home"
-          className="flex shrink-0 items-center transition-opacity hover:opacity-80"
+          className="flex shrink-0 items-center rounded-sm transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
         >
           <AxonLogo
             withWordmark
@@ -85,8 +85,9 @@ export function LandingNav() {
                 <Link
                   key={item.href}
                   href={item.href}
+                  aria-current={isActive ? "page" : undefined}
                   className={cn(
-                    "rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors",
+                    "rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-black",
                     isActive
                       ? "text-white"
                       : "text-white/55 hover:text-white"

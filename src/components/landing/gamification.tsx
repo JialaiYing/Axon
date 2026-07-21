@@ -11,25 +11,31 @@ import { ScrollReveal, ScrollRevealGroup, ScrollRevealItem } from "@/components/
  */
 export function Gamification() {
   return (
-    <section className="bg-black px-6 py-24 md:py-28">
+    <section className="border-t border-white/[0.06] bg-black px-6 py-24 md:py-28">
       <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 md:grid-cols-2 md:gap-16">
         <ScrollReveal className="text-left">
-          <h2 className="font-display text-2xl font-semibold tracking-tight text-white md:text-3xl">
+          <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-white/45">
+            Progress
+          </p>
+          <h2 className="mt-3 font-display text-2xl font-semibold tracking-tight text-white md:text-3xl">
             Progress you can actually see
           </h2>
-          <p className="mt-4 text-sm leading-relaxed text-white/55 md:text-base">
+          <p className="mt-4 text-sm leading-relaxed text-white/60 md:text-base">
             XP, ranks, and streaks aren&apos;t decoration — they&apos;re a direct readout of
             finished objectives, completed intervals, and reviewed flashcards.
           </p>
-          <ul className="mt-7 space-y-3.5 text-sm text-white/55">
+          <ul className="mt-7 space-y-3.5 text-sm text-white/60">
             <li className="flex items-center gap-2.5">
-              <Star className="h-4 w-4 text-white" /> XP earned per completed objective and session
+              <Star className="h-4 w-4 shrink-0 text-white/80" aria-hidden />
+              XP earned per completed objective and session
             </li>
             <li className="flex items-center gap-2.5">
-              <Flame className="h-4 w-4 text-white" /> Daily and weekly streaks tracked automatically
+              <Flame className="h-4 w-4 shrink-0 text-white/80" aria-hidden />
+              Daily and weekly streaks tracked automatically
             </li>
             <li className="flex items-center gap-2.5">
-              <Trophy className="h-4 w-4 text-white" /> Ranks and milestones unlocked from real activity
+              <Trophy className="h-4 w-4 shrink-0 text-white/80" aria-hidden />
+              Ranks and milestones unlocked from real activity
             </li>
           </ul>
         </ScrollReveal>
@@ -37,10 +43,10 @@ export function Gamification() {
         <ScrollReveal delay={0.1}>
           <div data-theme="dark" className="space-y-3">
             {/* RankHero — matches dashboard-overview RankHero */}
-            <div className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-elevation-2)] sm:p-6">
+            <div className="rounded-[var(--radius-lg)] border border-border bg-card p-5 shadow-[var(--shadow-elevation-2)] sm:p-6">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-3.5">
-                  <Trophy className="h-8 w-8 shrink-0 text-foreground/70" />
+                  <Trophy className="h-8 w-8 shrink-0 text-foreground/70" aria-hidden />
                   <div>
                     <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-foreground/60">
                       Current rank
@@ -50,9 +56,9 @@ export function Gamification() {
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 rounded-lg border border-border bg-background px-2.5 py-1">
+                <div className="flex items-center gap-2 rounded-[var(--radius-sm)] border border-border bg-background px-2.5 py-1">
                   <span className="flex items-center gap-1.5 text-xs font-medium text-accent">
-                    <Sparkles className="h-3.5 w-3.5" />
+                    <Sparkles className="h-3.5 w-3.5" aria-hidden />
                     +42 XP today
                   </span>
                   <span className="h-3 w-px bg-border" aria-hidden />
@@ -71,12 +77,12 @@ export function Gamification() {
 
             {/* Personal goals mini + streak strip — same language as dashboard */}
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1.2fr_0.8fr]">
-              <div className="rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-elevation-2)]">
+              <div className="rounded-[var(--radius-lg)] border border-border bg-card p-4 shadow-[var(--shadow-elevation-2)]">
                 <div className="flex items-center justify-between">
                   <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-foreground/55">
                     Personal goals
                   </p>
-                  <Target className="h-3.5 w-3.5 text-success" />
+                  <Target className="h-3.5 w-3.5 text-success" aria-hidden />
                 </div>
                 <div className="mt-3 space-y-3">
                   <div>
@@ -98,8 +104,8 @@ export function Gamification() {
 
               <ScrollRevealGroup className="grid grid-cols-3 gap-2 sm:grid-cols-1" stagger={0.08}>
                 <ScrollRevealItem>
-                  <div className="rounded-xl border border-border bg-card p-3 text-center shadow-[var(--shadow-elevation-1)] sm:flex sm:items-center sm:gap-2.5 sm:text-left">
-                    <Flame className="mx-auto h-4 w-4 text-warning sm:mx-0" />
+                  <div className="rounded-[var(--radius-lg)] border border-border bg-card p-3 text-center shadow-[var(--shadow-elevation-1)] sm:flex sm:items-center sm:gap-2.5 sm:text-left">
+                    <Flame className="mx-auto h-4 w-4 text-warning sm:mx-0" aria-hidden />
                     <div>
                       <p className="text-sm font-semibold tabular-nums text-foreground">
                         <AnimatedCounter value={12} />
@@ -109,8 +115,8 @@ export function Gamification() {
                   </div>
                 </ScrollRevealItem>
                 <ScrollRevealItem>
-                  <div className="rounded-xl border border-border bg-card p-3 text-center shadow-[var(--shadow-elevation-1)] sm:flex sm:items-center sm:gap-2.5 sm:text-left">
-                    <Trophy className="mx-auto h-4 w-4 text-foreground/70 sm:mx-0" />
+                  <div className="rounded-[var(--radius-lg)] border border-border bg-card p-3 text-center shadow-[var(--shadow-elevation-1)] sm:flex sm:items-center sm:gap-2.5 sm:text-left">
+                    <Trophy className="mx-auto h-4 w-4 text-foreground/70 sm:mx-0" aria-hidden />
                     <div>
                       <p className="text-sm font-semibold tabular-nums text-foreground">
                         <AnimatedCounter value={9} />
@@ -120,8 +126,8 @@ export function Gamification() {
                   </div>
                 </ScrollRevealItem>
                 <ScrollRevealItem>
-                  <div className="rounded-xl border border-border bg-card p-3 text-center shadow-[var(--shadow-elevation-1)] sm:flex sm:items-center sm:gap-2.5 sm:text-left">
-                    <Star className="mx-auto h-4 w-4 text-foreground/70 sm:mx-0" />
+                  <div className="rounded-[var(--radius-lg)] border border-border bg-card p-3 text-center shadow-[var(--shadow-elevation-1)] sm:flex sm:items-center sm:gap-2.5 sm:text-left">
+                    <Star className="mx-auto h-4 w-4 text-foreground/70 sm:mx-0" aria-hidden />
                     <div>
                       <p className="text-sm font-semibold tabular-nums text-foreground">
                         <AnimatedCounter value={340} />

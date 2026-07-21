@@ -58,23 +58,29 @@ const FEATURES = [
 
 export function Features() {
   return (
-    <section id="features" className="bg-black px-6 py-24 md:py-28">
+    <section
+      id="features"
+      className="border-t border-white/[0.06] bg-black px-6 py-24 md:py-28"
+    >
       <div className="mx-auto max-w-6xl">
         <ScrollReveal className="mb-14 max-w-xl text-left md:mb-16">
-          <h2 className="font-display text-2xl font-semibold tracking-tight text-white md:text-3xl">
+          <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-white/45">
+            Workspace
+          </p>
+          <h2 className="mt-3 font-display text-2xl font-semibold tracking-tight text-white md:text-3xl">
             Everything you need. Nothing you don&apos;t.
           </h2>
-          <p className="mt-3.5 text-sm leading-relaxed text-white/55 md:text-base">
+          <p className="mt-3.5 text-sm leading-relaxed text-white/60 md:text-base">
             Eight focused tools, one consistent workspace.
           </p>
         </ScrollReveal>
 
-        <ScrollRevealGroup className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <ScrollRevealGroup className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4">
           {FEATURES.map((feature) => (
             <ScrollRevealItem key={feature.title} className="h-full">
               <SpecularButton
                 size="card"
-                radius={18}
+                radius={16}
                 tint="#ffffff"
                 tintOpacity={0}
                 blur={0}
@@ -91,8 +97,8 @@ export function Features() {
                 autoAnimate={false}
                 className="h-full min-h-[11rem]"
               >
-                <span className="mb-3 flex h-9 w-9 items-center justify-center rounded-md border border-white/15 bg-white/5">
-                  <feature.icon className="h-4 w-4 text-white" />
+                <span className="mb-3 flex h-9 w-9 items-center justify-center rounded-[var(--radius-sm)] border border-white/12 bg-white/[0.04]">
+                  <feature.icon className="h-4 w-4 text-white/85" aria-hidden />
                 </span>
                 <span className="text-sm font-semibold text-white">{feature.title}</span>
                 <span className="mt-2 text-sm font-normal leading-relaxed text-white/55">

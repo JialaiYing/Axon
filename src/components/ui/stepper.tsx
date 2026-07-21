@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { DURATION, EASE, STAGGER, enterVariants } from "@/lib/motion";
 
 export interface StepperStep {
   /** Pre-rendered icon element (e.g. `<Brain className="h-5 w-5" />`) — kept
@@ -26,6 +27,7 @@ interface VerticalStepperProps {
  */
 export function VerticalStepper({ steps, className }: VerticalStepperProps) {
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const prefersReducedMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start center", "end center"],
@@ -34,11 +36,11 @@ export function VerticalStepper({ steps, className }: VerticalStepperProps) {
 
   return (
     <div ref={containerRef} className={cn("relative", className)}>
-      <div className="absolute left-6 top-6 bottom-6 w-px bg-white/20" aria-hidden />
+      <div className="absolute bottom-6 left-6 top-6 w-px bg-white/20" aria-hidden />
       <motion.div
         aria-hidden
-        style={{ scaleY: fillScale }}
-        className="absolute left-6 top-6 bottom-6 w-px origin-top bg-white"
+        style={prefersReducedMotion ? { scaleY: 1 } : { scaleY: fillScale }}
+        className="absolute bottom-6 left-6 top-6 w-px origin-top bg-white"
       />
 
       <ol className="flex flex-col gap-14">
@@ -51,16 +53,15 @@ export function VerticalStepper({ steps, className }: VerticalStepperProps) {
 }
 
 function StepperRow({ step, index }: { step: StepperStep; index: number }) {
+  const prefersReducedMotion = useReducedMotion();
+
   return (
     <motion.li
-      initial="hidden"
+      initial={prefersReducedMotion ? false : "hidden"}
       whileInView="visible"
       viewport={{ once: true, amount: 0.6, margin: "0px 0px -80px 0px" }}
-      variants={{
-        hidden: { opacity: 0, y: 16 },
-        visible: { opacity: 1, y: 0 },
-      }}
-      transition={{ duration: 0.5, ease: [0.21, 0.47, 0.32, 0.98] }}
+      variants={enterVariants(16)}
+      transition={{ duration: DURATION.section, ease: EASE }}
       className="relative flex gap-5 pl-0"
     >
       <span className="relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/40 bg-black text-white shadow-[0_0_0_4px_rgba(0,0,0,1)]">
@@ -91,6 +92,7 @@ interface HorizontalStepperProps {
  */
 export function HorizontalStepper({ steps, className }: HorizontalStepperProps) {
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const prefersReducedMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start 0.85", "end 0.45"],
@@ -104,7 +106,7 @@ export function HorizontalStepper({ steps, className }: HorizontalStepperProps) 
           <div className="absolute left-6 right-6 top-6 h-px bg-white/20" aria-hidden />
           <motion.div
             aria-hidden
-            style={{ scaleX: fillScale }}
+            style={prefersReducedMotion ? { scaleX: 1 } : { scaleX: fillScale }}
             className="absolute left-6 right-6 top-6 h-px origin-left bg-white"
           />
 
@@ -112,17 +114,14 @@ export function HorizontalStepper({ steps, className }: HorizontalStepperProps) 
             {steps.map((step, index) => (
               <motion.li
                 key={step.title}
-                initial="hidden"
+                initial={prefersReducedMotion ? false : "hidden"}
                 whileInView="visible"
                 viewport={{ once: true, amount: 0.4 }}
-                variants={{
-                  hidden: { opacity: 0, y: 14 },
-                  visible: { opacity: 1, y: 0 },
-                }}
+                variants={enterVariants(14)}
                 transition={{
-                  duration: 0.5,
-                  delay: index * 0.08,
-                  ease: [0.21, 0.47, 0.32, 0.98],
+                  duration: DURATION.section,
+                  delay: prefersReducedMotion ? 0 : index * STAGGER.base,
+                  ease: EASE,
                 }}
                 className="flex flex-col"
               >

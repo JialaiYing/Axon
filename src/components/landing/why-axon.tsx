@@ -27,13 +27,16 @@ const POINTS = [
 
 export function WhyAxon() {
   return (
-    <section id="why-axon" className="bg-black px-6 py-24 md:py-28">
+    <section
+      id="why-axon"
+      className="border-t border-white/[0.06] bg-black px-6 py-24 md:py-28"
+    >
       <div className="mx-auto max-w-6xl">
         <ScrollReveal className="mb-14 max-w-3xl text-left md:mb-16">
-          <p className="font-display text-2xl font-semibold tracking-tight text-white md:text-3xl">
+          <h2 className="font-display text-2xl font-semibold tracking-tight text-white md:text-3xl">
             Built for students who don&apos;t need another feed to scroll — they need a
             reason to sit down and study.
-          </p>
+          </h2>
         </ScrollReveal>
 
         <VerticalStepper steps={POINTS} />

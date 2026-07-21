@@ -1,7 +1,8 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { DURATION, EASE, STAGGER, enterVariants } from "@/lib/motion";
 
 interface ScrollRevealProps {
   children: React.ReactNode;
@@ -10,8 +11,6 @@ interface ScrollRevealProps {
   /** Distance in px the content travels into place. */
   y?: number;
 }
-
-const EASE = [0.21, 0.47, 0.32, 0.98] as const;
 
 /**
  * Fades/slides a section into place the first time it enters the viewport.
@@ -22,16 +21,15 @@ const EASE = [0.21, 0.47, 0.32, 0.98] as const;
  * content stuck invisible after client-side navigations.
  */
 export function ScrollReveal({ children, className, delay = 0, y = 24 }: ScrollRevealProps) {
+  const prefersReducedMotion = useReducedMotion();
+
   return (
     <motion.div
-      initial="hidden"
+      initial={prefersReducedMotion ? false : "hidden"}
       whileInView="visible"
       viewport={{ once: true, amount: 0.15, margin: "0px 0px -40px 0px" }}
-      variants={{
-        hidden: { opacity: 0, y, scale: 0.98 },
-        visible: { opacity: 1, y: 0, scale: 1 },
-      }}
-      transition={{ duration: 0.65, delay, ease: EASE }}
+      variants={enterVariants(y)}
+      transition={{ duration: DURATION.section, delay, ease: EASE }}
       className={cn(className)}
     >
       {children}
@@ -46,18 +44,20 @@ export function ScrollReveal({ children, className, delay = 0, y = 24 }: ScrollR
 export function ScrollRevealGroup({
   children,
   className,
-  stagger = 0.08,
+  stagger = STAGGER.base,
 }: {
   children: React.ReactNode;
   className?: string;
   stagger?: number;
 }) {
+  const prefersReducedMotion = useReducedMotion();
+
   return (
     <motion.div
-      initial="hidden"
+      initial={prefersReducedMotion ? false : "hidden"}
       whileInView="visible"
       viewport={{ once: true, amount: 0.15, margin: "0px 0px -40px 0px" }}
-      transition={{ staggerChildren: stagger }}
+      transition={{ staggerChildren: prefersReducedMotion ? 0 : stagger }}
       className={cn(className)}
     >
       {children}
@@ -76,11 +76,8 @@ export function ScrollRevealItem({
 }) {
   return (
     <motion.div
-      variants={{
-        hidden: { opacity: 0, y, scale: 0.98 },
-        visible: { opacity: 1, y: 0, scale: 1 },
-      }}
-      transition={{ duration: 0.5, ease: EASE }}
+      variants={enterVariants(y)}
+      transition={{ duration: DURATION.base, ease: EASE }}
       className={cn(className)}
     >
       {children}

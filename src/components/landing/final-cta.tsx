@@ -9,15 +9,18 @@ export function FinalCTA() {
   const router = useRouter();
 
   return (
-    <section className="bg-black px-6 py-24 md:py-28">
-      <ScrollReveal className="mx-auto flex max-w-6xl flex-col items-center text-center">
+    <section className="border-t border-white/[0.06] bg-black px-6 py-24 md:py-32">
+      <ScrollReveal className="mx-auto flex max-w-3xl flex-col items-center text-center">
         <h2 className="font-display text-4xl font-semibold tracking-tight text-white md:text-5xl lg:text-6xl">
           Start your first streak today.
         </h2>
+        <p className="mt-5 max-w-md text-base leading-relaxed text-white/60 md:text-lg">
+          Open the dashboard and turn one quiet session into a habit.
+        </p>
         <div className="mt-10">
           <SpecularButton
             size="lg"
-            radius={18}
+            radius={16}
             tint="#ffffff"
             tintOpacity={0}
             blur={0}

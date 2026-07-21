@@ -1,12 +1,18 @@
 "use client";
 
 import * as React from "react";
+import { RECYCLE_BIN_RETENTION_DAYS } from "@/constants/kanban";
 import { asArray, dedupeById, useLocalStorage } from "@/hooks/use-local-storage";
+import { daysSince } from "@/lib/kanban-utils";
 import { recordTombstone } from "@/lib/sync/tombstones";
 import type { Flashcard, FlashcardFolder, FlashcardSet } from "@/types";
 
 const FOLDERS_KEY = "axon:flashcards:folders";
 const SETS_KEY = "axon:flashcards:sets";
+
+function isRecycled(item: { recycledAt?: string }) {
+  return Boolean(item.recycledAt);
+}
 
 export const FOLDER_COLORS = [
   "#5227FF",
@@ -42,6 +48,7 @@ function normalizeFolder(value: FlashcardFolder): FlashcardFolder | null {
     // Omit = visible. Only an explicit `false` hides the folder from the dome.
     showInDome: value.showInDome === false ? false : true,
     pinned: Boolean(value.pinned),
+    recycledAt: validIso(value.recycledAt),
   };
 }
 
@@ -86,6 +93,7 @@ function normalizeSet(value: FlashcardSet): FlashcardSet | null {
     pinned: Boolean(value.pinned),
     completedAt: validIso(value.completedAt),
     lastTestResult: normalizeTestResult(value.lastTestResult),
+    recycledAt: validIso(value.recycledAt),
     cards: dedupeById(asArray<Flashcard>(value.cards))
       .map(normalizeCard)
       .filter((card): card is Flashcard => card !== null),
@@ -111,8 +119,17 @@ export function useFlashcards() {
   );
   const [rawSets, setRawSets, setsHydrated] = useLocalStorage<FlashcardSet[]>(SETS_KEY, []);
 
-  const folders = React.useMemo(() => normalizeFolders(rawFolders), [rawFolders]);
-  const sets = React.useMemo(() => normalizeSets(rawSets), [rawSets]);
+  const allFolders = React.useMemo(() => normalizeFolders(rawFolders), [rawFolders]);
+  const allSets = React.useMemo(() => normalizeSets(rawSets), [rawSets]);
+  /** Active (non-recycled) folders — what the library and dome show. */
+  const folders = React.useMemo(() => allFolders.filter((f) => !isRecycled(f)), [allFolders]);
+  /** Active (non-recycled) sets. */
+  const sets = React.useMemo(() => allSets.filter((s) => !isRecycled(s)), [allSets]);
+  const recycledFolders = React.useMemo(
+    () => allFolders.filter((f) => isRecycled(f)),
+    [allFolders]
+  );
+  const recycledSets = React.useMemo(() => allSets.filter((s) => isRecycled(s)), [allSets]);
   const hydrated = foldersHydrated && setsHydrated;
 
   const setFolders = React.useCallback(
@@ -174,14 +191,104 @@ export function useFlashcards() {
     [setFolders]
   );
 
-  /** Deletes the folder; its sets become unfiled rather than being destroyed. */
+  /**
+   * Soft-deletes a folder into the recycle bin, along with every set still inside it.
+   * Sets keep their `folderId` so restoring the folder brings them back together.
+   */
+  const sendFolderToRecycleBin = React.useCallback(
+    (id: string) => {
+      const now = new Date().toISOString();
+      setFolders((prev) =>
+        prev.map((folder) =>
+          folder.id === id && !isRecycled(folder) ? { ...folder, recycledAt: now } : folder
+        )
+      );
+      setSets((prev) =>
+        prev.map((set) =>
+          set.folderId === id && !isRecycled(set)
+            ? { ...set, recycledAt: now, updatedAt: now }
+            : set
+        )
+      );
+    },
+    [setFolders, setSets]
+  );
+
+  /** Soft-deletes a single set into the recycle bin. */
+  const sendSetToRecycleBin = React.useCallback(
+    (id: string) => {
+      const now = new Date().toISOString();
+      setSets((prev) =>
+        prev.map((set) =>
+          set.id === id && !isRecycled(set)
+            ? { ...set, recycledAt: now, updatedAt: now }
+            : set
+        )
+      );
+    },
+    [setSets]
+  );
+
+  const restoreFolderFromRecycleBin = React.useCallback(
+    (id: string) => {
+      setFolders((prev) =>
+        prev.map((folder) =>
+          folder.id === id ? { ...folder, recycledAt: undefined } : folder
+        )
+      );
+      setSets((prev) =>
+        prev.map((set) =>
+          set.folderId === id && isRecycled(set)
+            ? { ...set, recycledAt: undefined, updatedAt: new Date().toISOString() }
+            : set
+        )
+      );
+    },
+    [setFolders, setSets]
+  );
+
+  const restoreSetFromRecycleBin = React.useCallback(
+    (id: string) => {
+      setSets((prev) =>
+        prev.map((set) => {
+          if (set.id !== id) return set;
+          // If the parent folder is still recycled (or gone), unfile so the set reappears.
+          const parentRecycled = set.folderId
+            ? allFolders.some((f) => f.id === set.folderId && isRecycled(f))
+            : false;
+          const parentMissing = set.folderId
+            ? !allFolders.some((f) => f.id === set.folderId)
+            : false;
+          return {
+            ...set,
+            recycledAt: undefined,
+            folderId: parentRecycled || parentMissing ? undefined : set.folderId,
+            updatedAt: new Date().toISOString(),
+          };
+        })
+      );
+    },
+    [allFolders, setSets]
+  );
+
+  /** Permanently deletes the folder; any remaining sets with this folderId become unfiled. */
   const deleteFolder = React.useCallback(
     (id: string) => {
       recordTombstone(FOLDERS_KEY, id);
       setFolders((prev) => prev.filter((folder) => folder.id !== id));
-      setSets((prev) =>
-        prev.map((set) => (set.folderId === id ? { ...set, folderId: undefined } : set))
-      );
+      setSets((prev) => {
+        const remaining: FlashcardSet[] = [];
+        for (const set of prev) {
+          if (set.folderId === id && isRecycled(set)) {
+            recordTombstone(SETS_KEY, set.id);
+            continue;
+          }
+          remaining.push(
+            set.folderId === id ? { ...set, folderId: undefined } : set
+          );
+        }
+        return remaining;
+      });
     },
     [setFolders, setSets]
   );
@@ -234,6 +341,76 @@ export function useFlashcards() {
     },
     [setSets]
   );
+
+  const permanentlyDeleteFolder = deleteFolder;
+  const permanentlyDeleteSet = deleteSet;
+
+  const clearRecycleBin = React.useCallback(() => {
+    setFolders((prev) => {
+      const remaining: FlashcardFolder[] = [];
+      for (const folder of prev) {
+        if (isRecycled(folder)) {
+          recordTombstone(FOLDERS_KEY, folder.id);
+        } else {
+          remaining.push(folder);
+        }
+      }
+      return remaining;
+    });
+    setSets((prev) => {
+      const remaining: FlashcardSet[] = [];
+      for (const set of prev) {
+        if (isRecycled(set)) {
+          recordTombstone(SETS_KEY, set.id);
+        } else {
+          remaining.push(set);
+        }
+      }
+      return remaining;
+    });
+  }, [setFolders, setSets]);
+
+  /** Permanently deletes recycled folders/sets older than the retention window. */
+  const runHousekeeping = React.useCallback(() => {
+    const expiredFolderIds = new Set(
+      allFolders
+        .filter((folder) => {
+          if (!isRecycled(folder)) return false;
+          const elapsed = daysSince(folder.recycledAt);
+          return elapsed !== null && elapsed >= RECYCLE_BIN_RETENTION_DAYS;
+        })
+        .map((folder) => folder.id)
+    );
+    const expiredSetIds = new Set(
+      allSets
+        .filter((set) => {
+          if (set.folderId && expiredFolderIds.has(set.folderId)) return true;
+          if (!isRecycled(set)) return false;
+          const elapsed = daysSince(set.recycledAt);
+          return elapsed !== null && elapsed >= RECYCLE_BIN_RETENTION_DAYS;
+        })
+        .map((set) => set.id)
+    );
+
+    if (expiredFolderIds.size === 0 && expiredSetIds.size === 0) return;
+
+    for (const id of expiredFolderIds) recordTombstone(FOLDERS_KEY, id);
+    for (const id of expiredSetIds) recordTombstone(SETS_KEY, id);
+
+    if (expiredFolderIds.size > 0) {
+      setFolders((prev) => prev.filter((folder) => !expiredFolderIds.has(folder.id)));
+    }
+    if (expiredSetIds.size > 0) {
+      setSets((prev) => prev.filter((set) => !expiredSetIds.has(set.id)));
+    }
+  }, [allFolders, allSets, setFolders, setSets]);
+
+  React.useEffect(() => {
+    if (!hydrated) return;
+    runHousekeeping();
+    const interval = setInterval(runHousekeeping, 60_000);
+    return () => clearInterval(interval);
+  }, [hydrated, runHousekeeping]);
 
   const touchSet = React.useCallback(
     (id: string) => {
@@ -434,14 +611,23 @@ export function useFlashcards() {
   return {
     folders,
     sets,
+    recycledFolders,
+    recycledSets,
     hydrated,
     addFolder,
     updateFolder,
     deleteFolder,
+    sendFolderToRecycleBin,
+    restoreFolderFromRecycleBin,
+    permanentlyDeleteFolder,
     touchFolder,
     addSet,
     updateSet,
     deleteSet,
+    sendSetToRecycleBin,
+    restoreSetFromRecycleBin,
+    permanentlyDeleteSet,
+    clearRecycleBin,
     touchSet,
     addCard,
     deleteCard,
