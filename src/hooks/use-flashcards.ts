@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { asArray, dedupeById, useLocalStorage } from "@/hooks/use-local-storage";
+import { recordTombstone } from "@/lib/sync/tombstones";
 import type { Flashcard, FlashcardFolder, FlashcardSet } from "@/types";
 
 const FOLDERS_KEY = "axon:flashcards:folders";
@@ -176,6 +177,7 @@ export function useFlashcards() {
   /** Deletes the folder; its sets become unfiled rather than being destroyed. */
   const deleteFolder = React.useCallback(
     (id: string) => {
+      recordTombstone(FOLDERS_KEY, id);
       setFolders((prev) => prev.filter((folder) => folder.id !== id));
       setSets((prev) =>
         prev.map((set) => (set.folderId === id ? { ...set, folderId: undefined } : set))
@@ -227,6 +229,7 @@ export function useFlashcards() {
 
   const deleteSet = React.useCallback(
     (id: string) => {
+      recordTombstone(SETS_KEY, id);
       setSets((prev) => prev.filter((set) => set.id !== id));
     },
     [setSets]

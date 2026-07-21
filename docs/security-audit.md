@@ -1,6 +1,6 @@
 # Security audit report — Axon
 
-**Date:** July 20, 2026 (updated same day — added security headers + dependency/secret re-scan)  
+**Date:** July 21, 2026 (updated — tombstone cloud deletes, storage purge on account delete, attachment URL normalize, generic signup errors)  
 **Scope:** Application source under `src/`, Supabase schema, env handling, auth flows, HTTP response headers, dependency tree.
 
 ## Executive summary
@@ -41,12 +41,13 @@ Searched `src/`, `supabase/`, docs, README for hardcoded keys/tokens. Findings w
 ## Remaining risks / recommendations
 
 1. **In-memory rate limiter** resets on cold serverless instances. Pair with Supabase Auth dashboard rate limits and/or an edge KV store for multi-region production.
-2. **XSS via unsanitized rich text** — titles/notes are React-escaped when rendered as text; avoid `dangerouslySetInnerHTML` for user content (none found in critical paths).
-3. **localStorage XSS theft** — any future XSS could read offline data; CSP is now in place (see below) to reduce that risk, though `script-src`/`style-src` still allow `'unsafe-inline'` (required by the inline theme-flash script and by Framer Motion's inline styles). A stricter nonce-based CSP is possible later but not required to deploy safely.
+2. **XSS via unsanitized rich text** — titles/notes are React-escaped when rendered as text; attachment URLs are filtered to http(s) in `normalizeAttachments` / `safeExternalHttpUrl`. Avoid `dangerouslySetInnerHTML` for user content.
+3. **localStorage XSS theft** — any future XSS could read offline data; CSP is in place (see below). `script-src`/`style-src` still allow `'unsafe-inline'` (theme-flash script + Framer Motion). Nonce-based CSP is a later hardening step.
 4. **Google OAuth redirect** — ensure Supabase redirect allow-list matches production origin.
-5. **Email enumeration** — login API returns a generic “Invalid email or password” message (good); keep it that way.
+5. **Email enumeration** — login and signup APIs return generic failure messages.
 6. **No middleware forcing auth** — intentional for offline-first. If you later require accounts, add cookie-based middleware.
-7. **`npm audit` moderate advisories** — both trace to `postcss` bundled *inside* `next`'s own dependency tree (build tooling), not a dependency of the shipped app code. No action needed beyond watching for a Next.js point release.
+7. **`npm audit` moderate advisories** — both trace to `postcss` bundled *inside* `next`'s dependency tree (build tooling). No action beyond watching for a Next.js point release.
+8. **Cloud deletes** — hard-deletes record sync tombstones; push removes matching Supabase rows. Pull drops rows that disappeared from the server since the last successful pull (tracked per collection). Soft-deleted / recycled objectives still sync as payloads until permanently purged.
 
 ## Security headers (added)
 

@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useLocalStorage, writeLocalStorage, asArray, dedupeById } from "@/hooks/use-local-storage";
+import { recordTombstone } from "@/lib/sync/tombstones";
 import type { PomodoroTimerInstance, TimerSource } from "@/types";
 
 export const POMODORO_TIMERS_STORAGE_KEY = "axon:pomodoro:timers";
@@ -97,7 +98,17 @@ export function elapsedMinutesOf(timer: PomodoroTimerInstance, now: number = Dat
  * useObjectives), and safe to call even if no mounted instance exists.
  */
 export function removeActiveTimersForObjective(objectiveId: string) {
-  write((prev) => prev.filter((t) => !(t.objectiveId === objectiveId && t.status !== "finished")));
+  write((prev) => {
+    const next: PomodoroTimerInstance[] = [];
+    for (const t of prev) {
+      if (t.objectiveId === objectiveId && t.status !== "finished") {
+        recordTombstone(POMODORO_TIMERS_STORAGE_KEY, t.id);
+        continue;
+      }
+      next.push(t);
+    }
+    return next;
+  });
 }
 
 /**
@@ -191,6 +202,7 @@ export function usePomodoroTimers() {
     (id: string) => {
       const timer = timers.find((t) => t.id === id);
       const minutes = timer ? elapsedMinutesOf(timer) : 0;
+      recordTombstone(POMODORO_TIMERS_STORAGE_KEY, id);
       write((prev) => prev.filter((t) => t.id !== id));
       return minutes;
     },
@@ -198,6 +210,7 @@ export function usePomodoroTimers() {
   );
 
   const removeTimer = React.useCallback((id: string) => {
+    recordTombstone(POMODORO_TIMERS_STORAGE_KEY, id);
     write((prev) => prev.filter((t) => t.id !== id));
   }, []);
 

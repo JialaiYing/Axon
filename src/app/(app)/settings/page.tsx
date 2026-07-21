@@ -497,8 +497,9 @@ export default function SettingsPage() {
         <DialogHeader>
           <DialogTitle>Delete your account?</DialogTitle>
           <DialogDescription>
-            This permanently deletes your Axon account and all cloud-synced study data. This
-            browser&apos;s local copy is cleared too. This cannot be undone.
+            This permanently deletes your Axon account, cloud-synced study rows, and flashcard
+            images stored for your account. This browser&apos;s local copy is cleared too. This
+            cannot be undone.
           </DialogDescription>
         </DialogHeader>
         {deleteError && <p className="text-sm text-danger">{deleteError}</p>}

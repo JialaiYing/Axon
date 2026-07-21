@@ -3,6 +3,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { readLocalStorage, writeLocalStorage } from "@/hooks/use-local-storage";
 import { SYNC_COLLECTIONS, type SyncCollection } from "@/lib/sync/collections";
+import {
+  clearTombstonesForTable,
+  readLastRemoteIds,
+  readTombstonesForTable,
+  writeLastRemoteIds,
+} from "@/lib/sync/tombstones";
 
 export type SyncStatus = "idle" | "syncing" | "synced" | "offline" | "error";
 
@@ -69,29 +75,42 @@ async function pushArray(
   collection: SyncCollection
 ): Promise<void> {
   const items = readArray(collection);
-  if (items.length === 0) return;
+  const tombstones = readTombstonesForTable(collection.table);
+  const tombstoneIds = Object.keys(tombstones);
 
-  const rows: EntityRow[] = items.map((item) => ({
-    id: String(item.id),
-    user_id: userId,
-    payload: item,
-    updated_at: new Date(entityUpdatedAt(item) || Date.now()).toISOString(),
-  }));
+  if (items.length > 0) {
+    const rows: EntityRow[] = items.map((item) => ({
+      id: String(item.id),
+      user_id: userId,
+      payload: item,
+      updated_at: new Date(entityUpdatedAt(item) || Date.now()).toISOString(),
+    }));
 
-  // Chunk to avoid payload limits. Rows are keyed per user: (user_id, id).
-  const chunkSize = 50;
-  for (let i = 0; i < rows.length; i += chunkSize) {
-    const chunk = rows.slice(i, i + chunkSize);
-    const { error } = await supabase
-      .from(collection.table)
-      .upsert(chunk, { onConflict: "user_id,id" });
-    if (error) throw error;
+    const chunkSize = 50;
+    for (let i = 0; i < rows.length; i += chunkSize) {
+      const chunk = rows.slice(i, i + chunkSize);
+      const { error } = await supabase
+        .from(collection.table)
+        .upsert(chunk, { onConflict: "user_id,id" });
+      if (error) throw error;
+    }
   }
 
-  // Intentionally do NOT delete remote rows that are missing locally.
-  // Auto-deleting "missing" IDs wiped other-device data under last-write-wins
-  // when one browser had a thinner copy. Soft-deleted / recycled entities
-  // still sync via payload; hard-delete propagation needs tombstones later.
+  // Explicit tombstones only — never delete remote ids merely because this
+  // browser's local list is shorter.
+  if (tombstoneIds.length > 0) {
+    const chunkSize = 50;
+    for (let i = 0; i < tombstoneIds.length; i += chunkSize) {
+      const chunk = tombstoneIds.slice(i, i + chunkSize);
+      const { error } = await supabase
+        .from(collection.table)
+        .delete()
+        .eq("user_id", userId)
+        .in("id", chunk);
+      if (error) throw error;
+    }
+    clearTombstonesForTable(collection.table, tombstoneIds);
+  }
 }
 
 async function pullArray(
@@ -112,9 +131,35 @@ async function pullArray(
     return payload;
   });
 
-  const local = readArray(collection);
-  const merged = mergeByUpdatedAt(local, remote);
+  const remoteIdList = remote.map((item) => String(item.id));
+  const remoteIdSet = new Set(remoteIdList);
+  const previouslyKnown = readLastRemoteIds(collection.table);
+  const deletedRemotely = [...previouslyKnown].filter((id) => !remoteIdSet.has(id));
+
+  const local = readArray(collection).filter((item) => !deletedRemotely.includes(String(item.id)));
+  let merged = mergeByUpdatedAt(local, remote);
+
+  // Drop anything we explicitly deleted locally, unless the remote copy is newer
+  // (another device recreated / restored it after our tombstone).
+  const tombstones = readTombstonesForTable(collection.table);
+  const clearedTombstoneIds: string[] = [];
+  merged = merged.filter((item) => {
+    const id = String(item.id);
+    const deletedAt = tombstones[id];
+    if (!deletedAt) return true;
+    const deletedTs = Date.parse(deletedAt) || 0;
+    if (entityUpdatedAt(item) > deletedTs) {
+      clearedTombstoneIds.push(id);
+      return true;
+    }
+    return false;
+  });
+  if (clearedTombstoneIds.length > 0) {
+    clearTombstonesForTable(collection.table, clearedTombstoneIds);
+  }
+
   writeLocalStorage(collection.key, () => merged, collection.fallback as never);
+  writeLastRemoteIds(collection.table, remoteIdList);
 }
 
 async function pushSingleton(

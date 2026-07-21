@@ -6,9 +6,6 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   ArrowRight,
   CheckCircle2,
-  Clock,
-  Eye,
-  EyeOff,
   FolderPlus,
   Layers,
   Pin,
@@ -19,10 +16,20 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useFlashcards } from "@/hooks/use-flashcards";
 import { CreateFolderDialog } from "@/components/flashcards/create-folder-dialog";
 import { CreateSetDialog } from "@/components/flashcards/create-set-dialog";
-import { FolderViewDialog } from "@/components/flashcards/folder-view-dialog";
+import {
+  FlashcardsGridLibrary,
+  type GridLayoutMode,
+} from "@/components/flashcards/grid-library";
 import { SetViewDialog } from "@/components/flashcards/set-view-dialog";
 import { StudyView } from "@/components/flashcards/study-view";
 import { TestView } from "@/components/flashcards/test-view";
@@ -108,7 +115,6 @@ export function FlashcardsSection() {
     recordCardResult,
     completeSet,
     setsInFolder,
-    recents,
     lastStudiedSet,
     completedSets,
     totalCards,
@@ -121,19 +127,27 @@ export function FlashcardsSection() {
   const [createFolderOpen, setCreateFolderOpen] = React.useState(false);
   const [createSetOpen, setCreateSetOpen] = React.useState(false);
   const [createSetFolderId, setCreateSetFolderId] = React.useState<string | undefined>(undefined);
-  const [viewFolderId, setViewFolderId] = React.useState<string | null>(null);
+  const [gridFolderId, setGridFolderId] = React.useState<string | null>(null);
+  const [gridLayout, setGridLayout] = React.useState<GridLayoutMode>("icons");
+  const [confirmDeleteFolder, setConfirmDeleteFolder] = React.useState(false);
   const [editSetId, setEditSetId] = React.useState<string | null>(null);
   const [mode, setMode] = React.useState<LibraryMode>({ type: "library", view: "grid" });
   const [libraryView, setLibraryView] = React.useState<LibraryView>("grid");
   const loadTimerRef = React.useRef<number | null>(null);
 
   // Resolve live objects from ids so views always show fresh data.
-  const viewFolder = folders.find((f) => f.id === viewFolderId) ?? null;
+  const gridFolder = folders.find((f) => f.id === gridFolderId) ?? null;
   const editSet = sets.find((s) => s.id === editSetId) ?? null;
   const studySet =
     mode.type === "study" || mode.type === "loading" || mode.type === "test"
       ? sets.find((s) => s.id === mode.setId) ?? null
       : null;
+
+  const unfiledSets = React.useMemo(
+    () => sets.filter((set) => !set.folderId || !folders.some((f) => f.id === set.folderId)),
+    [sets, folders]
+  );
+  const folderSets = gridFolder ? setsInFolder(gridFolder.id) : [];
 
   React.useEffect(() => {
     return () => {
@@ -141,10 +155,19 @@ export function FlashcardsSection() {
     };
   }, []);
 
+  // If the open folder was deleted, return to the grid root.
+  React.useEffect(() => {
+    if (gridFolderId && !folders.some((f) => f.id === gridFolderId)) {
+      setGridFolderId(null);
+    }
+  }, [gridFolderId, folders]);
+
   const openFolder = React.useCallback(
     (folder: FlashcardFolder) => {
       touchFolder(folder.id);
-      setViewFolderId(folder.id);
+      setLibraryView("grid");
+      setMode({ type: "library", view: "grid" });
+      setGridFolderId(folder.id);
     },
     [touchFolder]
   );
@@ -153,7 +176,6 @@ export function FlashcardsSection() {
   const openSetForStudy = React.useCallback(
     (set: FlashcardSet) => {
       touchSet(set.id);
-      setViewFolderId(null);
       if (loadTimerRef.current) window.clearTimeout(loadTimerRef.current);
       if (libraryView === "dome" && !prefersReducedMotion) {
         setMode({ type: "loading", setId: set.id });
@@ -288,7 +310,7 @@ export function FlashcardsSection() {
             </div>
             {pinned.length === 0 ? (
               <p className="rounded-xl border border-dashed border-foreground/10 p-3.5 text-xs leading-relaxed text-foreground/45">
-                Pin folders or sets below for quick access.
+                Pin folders or sets in the library for quick access.
               </p>
             ) : (
               <ul className="space-y-1.5">
@@ -333,152 +355,6 @@ export function FlashcardsSection() {
                       className="cursor-pointer rounded-md p-1.5 text-accent opacity-70 transition-opacity hover:opacity-100"
                     >
                       <Pin className="h-3 w-3 fill-current" />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </HomePanel>
-
-          {/* Dome visibility — hide / add folders to the gallery */}
-          <HomePanel>
-            <div className="mb-3 flex items-center gap-2">
-              <Eye className="h-3.5 w-3.5 text-accent" />
-              <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground/60">
-                Dome folders
-              </h2>
-            </div>
-            {folders.length === 0 ? (
-              <p className="rounded-xl border border-dashed border-foreground/10 p-3.5 text-xs leading-relaxed text-foreground/45">
-                Create a folder to place it in the dome.
-              </p>
-            ) : (
-              <ul className="space-y-1.5">
-                {folders.map((folder) => {
-                  const visible = folder.showInDome !== false;
-                  return (
-                    <li
-                      key={folder.id}
-                      className="flex items-center gap-1 rounded-lg px-1 py-0.5"
-                    >
-                      <button
-                        type="button"
-                        onClick={() => openFolder(folder)}
-                        className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-lg px-1.5 py-1.5 text-left transition-colors duration-150 hover:bg-foreground/[0.06]"
-                      >
-                        <span
-                          className="h-2 w-2 shrink-0 rounded-[2px]"
-                          style={{ backgroundColor: folder.color }}
-                        />
-                        <span className="truncate text-xs font-medium text-foreground/80">
-                          {folder.title}
-                        </span>
-                      </button>
-                      <button
-                        type="button"
-                        aria-label={folder.pinned ? `Unpin ${folder.title}` : `Pin ${folder.title}`}
-                        onClick={() => toggleFolderPinned(folder.id)}
-                        className={cn(
-                          "cursor-pointer rounded-md p-1.5 transition-colors",
-                          folder.pinned
-                            ? "text-accent"
-                            : "text-foreground/35 hover:text-foreground/70"
-                        )}
-                      >
-                        <Pin className={cn("h-3 w-3", folder.pinned && "fill-current")} />
-                      </button>
-                      <button
-                        type="button"
-                        aria-label={
-                          visible
-                            ? `Hide ${folder.title} from dome`
-                            : `Show ${folder.title} in dome`
-                        }
-                        onClick={() => toggleFolderInDome(folder.id)}
-                        className={cn(
-                          "cursor-pointer rounded-md p-1.5 transition-colors",
-                          visible ? "text-accent" : "text-foreground/35 hover:text-foreground/70"
-                        )}
-                      >
-                        {visible ? (
-                          <Eye className="h-3.5 w-3.5" />
-                        ) : (
-                          <EyeOff className="h-3.5 w-3.5" />
-                        )}
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-            {sets.length > 0 && (
-              <div className="mt-3 border-t border-foreground/8 pt-3">
-                <p className="mb-1.5 text-[10px] uppercase tracking-wide text-foreground/40">
-                  Pin sets
-                </p>
-                <ul className="max-h-36 space-y-1 overflow-y-auto">
-                  {sets.map((set) => (
-                    <li key={set.id} className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => openSetForStudy(set)}
-                        className="min-w-0 flex-1 cursor-pointer truncate rounded-lg px-1.5 py-1.5 text-left text-xs text-foreground/75 transition-colors hover:bg-foreground/[0.06]"
-                      >
-                        {set.title}
-                      </button>
-                      <button
-                        type="button"
-                        aria-label={set.pinned ? `Unpin ${set.title}` : `Pin ${set.title}`}
-                        onClick={() => toggleSetPinned(set.id)}
-                        className={cn(
-                          "cursor-pointer rounded-md p-1.5 transition-colors",
-                          set.pinned ? "text-accent" : "text-foreground/35 hover:text-foreground/70"
-                        )}
-                      >
-                        <Pin className={cn("h-3 w-3", set.pinned && "fill-current")} />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </HomePanel>
-
-          {/* Recents */}
-          <HomePanel>
-            <div className="mb-3 flex items-center gap-2">
-              <Clock className="h-3.5 w-3.5 text-accent" />
-              <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground/60">
-                Recents
-              </h2>
-            </div>
-            {recents.length === 0 ? (
-              <p className="rounded-xl border border-dashed border-foreground/10 p-3.5 text-xs leading-relaxed text-foreground/45">
-                Folders and sets you open will appear here.
-              </p>
-            ) : (
-              <ul className="space-y-1.5">
-                {recents.map((entry) => (
-                  <li key={`${entry.kind}-${entry.id}`}>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (entry.kind === "folder") {
-                          const folder = folders.find((f) => f.id === entry.id);
-                          if (folder) openFolder(folder);
-                        } else {
-                          const set = sets.find((s) => s.id === entry.id);
-                          if (set) openSetForStudy(set);
-                        }
-                      }}
-                      className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left transition-colors duration-150 hover:bg-foreground/[0.06]"
-                    >
-                      <span className="min-w-0 truncate text-xs font-medium text-foreground/80">
-                        {entry.title}
-                      </span>
-                      <Badge variant={entry.kind === "folder" ? "secondary" : "accent"}>
-                        {entry.kind}
-                      </Badge>
                     </button>
                   </li>
                 ))}
@@ -620,49 +496,32 @@ export function FlashcardsSection() {
                 </div>
 
                 {mode.view === "grid" ? (
-                  <div className="min-h-0 flex-1 overflow-y-auto p-4">
-                    {sets.length === 0 ? (
-                      <div className="flex h-full min-h-[280px] flex-col items-center justify-center gap-3 text-center">
-                        <Layers className="h-8 w-8 text-foreground/35" />
-                        <div>
-                          <p className="text-sm font-medium text-foreground">No flashcard sets yet</p>
-                          <p className="mt-1 max-w-xs text-xs text-foreground/45">
-                            Create a set from the Home column, then study with simple flip cards.
-                          </p>
-                        </div>
-                        <Button
-                          size="sm"
-                          onClick={() => {
-                            setCreateSetFolderId(undefined);
-                            setCreateSetOpen(true);
-                          }}
-                        >
-                          <Plus className="h-3.5 w-3.5" />
-                          Create first set
-                        </Button>
-                      </div>
-                    ) : (
-                      <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                        {sets.map((set) => (
-                          <li key={set.id}>
-                            <button
-                              type="button"
-                              onClick={() => openSetForStudy(set)}
-                              className="flex h-full w-full cursor-pointer flex-col rounded-xl border border-foreground/10 bg-foreground/[0.04] p-4 text-left transition-colors hover:border-foreground/20 hover:bg-foreground/[0.07]"
-                            >
-                              <p className="truncate text-sm font-semibold text-foreground">{set.title}</p>
-                              <p className="mt-1 text-xs text-foreground/45">
-                                {set.subject || "General"} · {set.cards.length} card
-                                {set.cards.length === 1 ? "" : "s"}
-                              </p>
-                              <span className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-accent">
-                                Study <ArrowRight className="h-3 w-3" />
-                              </span>
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+                  <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+                    <FlashcardsGridLibrary
+                      folders={folders}
+                      unfiledSets={unfiledSets}
+                      folder={gridFolder}
+                      folderSets={folderSets}
+                      layout={gridLayout}
+                      onLayoutChange={setGridLayout}
+                      onOpenFolder={openFolder}
+                      onBack={() => setGridFolderId(null)}
+                      onOpenSet={openSetForStudy}
+                      onToggleFolderPin={toggleFolderPinned}
+                      onToggleSetPin={toggleSetPinned}
+                      onShowInDome={toggleFolderInDome}
+                      onDeleteFolder={() => setConfirmDeleteFolder(true)}
+                      onMoveSet={(setId, folderId) => updateSet(setId, { folderId })}
+                      setsInFolder={setsInFolder}
+                    />
+                    <LibraryCreateBar
+                      folder={gridFolder}
+                      onNewFolder={() => setCreateFolderOpen(true)}
+                      onNewSet={(folderId) => {
+                        setCreateSetFolderId(folderId);
+                        setCreateSetOpen(true);
+                      }}
+                    />
                   </div>
                 ) : (
                   <>
@@ -676,15 +535,24 @@ export function FlashcardsSection() {
                           setCreateSetOpen(true);
                         }}
                         onMoveSet={(setId, folderId) => updateSet(setId, { folderId })}
+                        onHideFolder={(folderId) => {
+                          // Only hide — never re-show from the dome label (hidden folders leave the gallery).
+                          const folder = folders.find((f) => f.id === folderId);
+                          if (folder && folder.showInDome !== false) toggleFolderInDome(folderId);
+                        }}
                         dragDampening={2}
                         idleSpinDelayMs={10000}
                       />
                     </div>
-                    <div className="flex w-full items-center justify-center border-t border-foreground/8 bg-foreground/[0.02] py-2.5">
-                      <p className="text-[11px] uppercase tracking-[0.2em] text-foreground/40">
-                        Drag to explore · Hold a set to move it · Scroll a column to browse
-                      </p>
-                    </div>
+                    <LibraryCreateBar
+                      folder={gridFolder}
+                      hint="Drag to explore · Hold a set to move it · Scroll a column to browse"
+                      onNewFolder={() => setCreateFolderOpen(true)}
+                      onNewSet={(folderId) => {
+                        setCreateSetFolderId(folderId);
+                        setCreateSetOpen(true);
+                      }}
+                    />
                   </>
                 )}
               </motion.div>
@@ -756,30 +624,29 @@ export function FlashcardsSection() {
         defaultFolderId={createSetFolderId}
         onCreateFolder={(title) => addFolder({ title })}
         onCreate={(input) => {
-          // Deliberately not touchSet() here — creating a set opens it for
-          // editing (adding cards), not studying it, so it shouldn't jump
-          // to the top of "Recents" or become the dashboard's "Jump back
-          // in" target until it's actually been opened to study.
+          // Creating a set opens it for editing (adding cards), not studying —
+          // so it shouldn't become the dashboard's "Jump back in" target yet.
           const set = addSet(input);
           setEditSetId(set.id);
         }}
       />
 
-      <FolderViewDialog
-        folder={viewFolder}
-        sets={viewFolder ? setsInFolder(viewFolder.id) : []}
-        onOpenChange={(open) => {
-          if (!open) setViewFolderId(null);
-        }}
-        onOpenSet={openSetForStudy}
-        onNewSet={() => {
-          if (viewFolder) {
-            setCreateSetFolderId(viewFolder.id);
-            setViewFolderId(null);
-            setCreateSetOpen(true);
+      <ConfirmDialog
+        open={confirmDeleteFolder}
+        onOpenChange={setConfirmDeleteFolder}
+        title="Delete folder?"
+        description={
+          gridFolder
+            ? `“${gridFolder.title}” will be removed. Sets inside become unfiled and stay in your library.`
+            : "This folder will be removed. Sets inside become unfiled."
+        }
+        confirmLabel="Delete folder"
+        onConfirm={() => {
+          if (gridFolder) {
+            deleteFolder(gridFolder.id);
+            setGridFolderId(null);
           }
         }}
-        onDeleteFolder={deleteFolder}
       />
 
       <SetViewDialog
@@ -792,5 +659,55 @@ export function FlashcardsSection() {
         onDeleteSet={deleteSet}
       />
     </>
+  );
+}
+
+function LibraryCreateBar({
+  folder,
+  hint,
+  onNewFolder,
+  onNewSet,
+}: {
+  /** When set, "New set" is created inside this folder. */
+  folder: FlashcardFolder | null;
+  hint?: string;
+  onNewFolder: () => void;
+  onNewSet: (folderId?: string) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 border-t border-foreground/8 bg-foreground/[0.02] px-4 py-2.5">
+      <p className="min-w-0 truncate text-[11px] uppercase tracking-[0.2em] text-foreground/40">
+        {hint ??
+          (folder
+            ? `Inside ${folder.title}`
+            : "Folders and unfiled sets")}
+      </p>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            size="sm"
+            className="h-8 shrink-0 cursor-pointer gap-1.5 rounded-full px-3"
+            aria-label={
+              folder
+                ? `Create in ${folder.title}`
+                : "Create folder or flashcard set"
+            }
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Create
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" side="top" className="min-w-[11.5rem]">
+          <DropdownMenuItem onSelect={onNewFolder}>
+            <FolderPlus className="h-3.5 w-3.5" />
+            New folder
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => onNewSet(folder?.id)}>
+            <Layers className="h-3.5 w-3.5" />
+            {folder ? `New set in ${folder.title}` : "New flashcard set"}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 }

@@ -8,6 +8,7 @@ import { awardObjectiveCompletionXp } from "@/lib/progress/store";
 import { MOCK_OBJECTIVES } from "@/lib/mock-objectives";
 import { daysSince } from "@/lib/kanban-utils";
 import { safeExternalHttpUrl } from "@/lib/security/urls";
+import { recordTombstone } from "@/lib/sync/tombstones";
 import { AUTO_RECYCLE_AFTER_DAYS, RECYCLE_BIN_RETENTION_DAYS } from "@/constants/kanban";
 import type {
   Attachment,
@@ -294,6 +295,7 @@ export function useObjectives() {
 
   const deleteObjective = React.useCallback(
     (id: string) => {
+      recordTombstone(STORAGE_KEY, id);
       setObjectives((prev) => prev.filter((objective) => objective.id !== id));
     },
     [setObjectives]
@@ -652,6 +654,7 @@ export function useObjectives() {
       const spawned: Objective[] = [];
       // Avoid spawning twice in one pass for the same parent.
       const spawnedParents = new Set<string>();
+      const permanentlyDeletedIds: string[] = [];
 
       const next = prev
         .map((objective) => {
@@ -718,12 +721,17 @@ export function useObjectives() {
           if (objective.status === "recycled") {
             const elapsed = daysSince(objective.recycledAt);
             if (elapsed !== null && elapsed >= RECYCLE_BIN_RETENTION_DAYS) {
+              permanentlyDeletedIds.push(objective.id);
               changed = true;
               return false;
             }
           }
           return true;
         });
+
+      for (const id of permanentlyDeletedIds) {
+        recordTombstone(STORAGE_KEY, id);
+      }
 
       if (spawned.length > 0) {
         changed = true;

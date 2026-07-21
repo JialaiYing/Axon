@@ -11,6 +11,7 @@ import {
   mondayWeekKey,
   objectivesCompletedInWeek,
 } from "@/lib/goals-utils";
+import { recordTombstone } from "@/lib/sync/tombstones";
 import type { Goal, GoalHistoryEntry, Objective, PomodoroSession } from "@/types";
 
 const GOALS_STORAGE_KEY = "axon:goals";
@@ -380,6 +381,7 @@ export function useGoals() {
   const deleteGoal = React.useCallback(
     (goalId: string) => {
       if (goalId === DAILY_FOCUS_GOAL_ID || goalId === WEEKLY_OBJECTIVES_GOAL_ID) return;
+      recordTombstone(GOALS_STORAGE_KEY, goalId);
       setRawGoals((prev) => normalizeGoals(prev).filter((g) => g.id !== goalId));
     },
     [setRawGoals]

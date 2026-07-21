@@ -87,7 +87,7 @@ export interface FlashcardFolder {
   /** Accent color for the folder icon. */
   color: string;
   createdAt: string;
-  /** Bumped whenever the folder is opened — drives the "Recents" list. */
+  /** Bumped whenever the folder is opened. */
   lastOpenedAt?: string;
   /**
    * Whether this folder appears as a column in the dome gallery.

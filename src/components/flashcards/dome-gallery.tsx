@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useGesture } from "@use-gesture/react";
-import { Layers, Plus } from "lucide-react";
+import { EyeOff, Layers, Plus } from "lucide-react";
 import type { FlashcardFolder, FlashcardSet } from "@/types";
 import { useTheme } from "@/components/providers/theme-provider";
 import { cn } from "@/lib/utils";
@@ -128,6 +128,8 @@ export interface DomeGalleryProps {
   onCreateSet?: (folderId?: string) => void;
   /** Move a set into a folder, or pass undefined to unfile it as its own column. */
   onMoveSet?: (setId: string, folderId: string | undefined) => void;
+  /** Hide a folder column from the dome (sets `showInDome` false). */
+  onHideFolder?: (folderId: string) => void;
   dragSensitivity?: number;
   dragDampening?: number;
   idleSpinDelayMs?: number;
@@ -153,6 +155,7 @@ export default function DomeGallery({
   onSetClick,
   onCreateSet,
   onMoveSet,
+  onHideFolder,
   dragSensitivity = 5,
   dragDampening = 2,
   idleSpinDelayMs = 10000,
@@ -719,7 +722,9 @@ export default function DomeGallery({
             {column.label && (
               <div
                 ref={registerLabel(column.key)}
-                className={`sphere-face__label${isDropFolder ? " sphere-face__label--drop" : ""}`}
+                className={`sphere-face__label${isDropFolder ? " sphere-face__label--drop" : ""}${
+                  column.folder && onHideFolder ? " sphere-face__label--interactive" : ""
+                }`}
                 style={{ opacity: 0 }}
               >
                 {column.folder && (
@@ -729,6 +734,21 @@ export default function DomeGallery({
                   />
                 )}
                 <span className="sphere-face__label-text">{column.label}</span>
+                {column.folder && onHideFolder && (
+                  <button
+                    type="button"
+                    className="sphere-face__label-hide"
+                    aria-label={`Hide ${column.folder.title} from dome`}
+                    title="Hide folder from dome"
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onHideFolder(column.folder!.id);
+                    }}
+                  >
+                    <EyeOff className="h-3 w-3" />
+                  </button>
+                )}
               </div>
             )}
             {column.tiles.map((tile, r) => {

@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useLocalStorage, writeLocalStorage, asArray, dedupeById } from "@/hooks/use-local-storage";
 import { safeInternalPathOrNull } from "@/lib/security/urls";
+import { recordTombstone } from "@/lib/sync/tombstones";
 import type { TimerNotification } from "@/types";
 
 const STORAGE_KEY = "axon:notifications";
@@ -80,13 +81,21 @@ export function useNotifications() {
         createdAt: new Date().toISOString(),
         read: false,
       };
-      write((prev) => [notification, ...prev].slice(0, MAX_ARCHIVED));
+      write((prev) => {
+        const next = [notification, ...prev];
+        const kept = next.slice(0, MAX_ARCHIVED);
+        for (const dropped of next.slice(MAX_ARCHIVED)) {
+          recordTombstone(STORAGE_KEY, dropped.id);
+        }
+        return kept;
+      });
       return notification;
     },
     []
   );
 
   const removeNotification = React.useCallback((id: string) => {
+    recordTombstone(STORAGE_KEY, id);
     write((prev) => prev.filter((n) => n.id !== id));
   }, []);
 

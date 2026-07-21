@@ -1,5 +1,6 @@
 import { readLocalStorage, writeLocalStorage } from "@/hooks/use-local-storage";
 import { SYNC_COLLECTIONS } from "@/lib/sync/collections";
+import { clearSyncDeleteState } from "@/lib/sync/tombstones";
 
 /** Remembers which account last synced on this device. */
 export const LAST_USER_KEY = "axon:sync:lastUserId";
@@ -70,5 +71,6 @@ export function clearLocalSyncedData() {
   } catch {
     /* ignore */
   }
+  clearSyncDeleteState();
   writeLastUserId(null);
 }

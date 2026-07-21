@@ -13,7 +13,7 @@ export default function PrivacyPage() {
         ← Back to Axon
       </Link>
       <h1 className="mt-6 text-3xl font-semibold tracking-tight">Privacy Policy</h1>
-      <p className="mt-2 text-sm text-muted-foreground">Last updated: July 20, 2026</p>
+      <p className="mt-2 text-sm text-muted-foreground">Last updated: July 21, 2026</p>
 
       <div className="mt-8 space-y-6 text-sm leading-relaxed text-muted">
         <section>
@@ -65,8 +65,11 @@ export default function PrivacyPage() {
           <p>
             Local data remains until you clear browser storage or sign out (sign-out clears
             synced study data from that browser). Cloud data persists while your account exists.
-            You can permanently delete your account and associated cloud rows from Settings →
-            Delete account (requires a properly configured deployment).
+            Day-to-day deletes (objectives, flashcard sets, etc.) are pushed to the cloud via sync
+            tombstones so other devices drop the same rows. You can permanently delete your account
+            from Settings → Delete account; that removes your auth user, cascaded cloud table rows,
+            and flashcard images stored under your user id (requires a properly configured
+            deployment with a server-only service role key).
           </p>
         </section>
         <section>

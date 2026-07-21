@@ -14,6 +14,8 @@ const sansation = Sansation({
   weight: ["300", "400", "700"],
   variable: "--font-display",
   display: "swap",
+  // Sansation isn't in Next's capsize metrics DB — skip auto fallback overrides.
+  adjustFontFallback: false,
 });
 
 const fragmentMono = Fragment_Mono({
