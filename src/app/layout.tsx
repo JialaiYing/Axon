@@ -73,11 +73,10 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            // Light mode is a dashboard-only preference — the homepage
-            // always renders dark, so this only reads/applies the stored
-            // theme when we're not on `/`. Keeps this in sync with
-            // ThemeProvider's isThemeableRoute check.
-            __html: `(function(){try{if(window.location.pathname==='/'){return;}var t=localStorage.getItem('axon:theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);document.documentElement.style.colorScheme=t;}}catch(e){}})();`,
+            // Light mode is a dashboard-only preference — marketing/auth
+            // routes always render dark. Keep in sync with ThemeProvider's
+            // ALWAYS_DARK_ROUTES / isThemeableRoute check.
+            __html: `(function(){try{var p=window.location.pathname;if(p==='/'||p==='/login'||p==='/privacy'||p==='/terms'||p==='/faq'){return;}var t=localStorage.getItem('axon:theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);document.documentElement.style.colorScheme=t;}}catch(e){}})();`,
           }}
         />
       </head>

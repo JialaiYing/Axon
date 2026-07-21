@@ -7,6 +7,7 @@ import { removeActiveTimersForObjective } from "@/hooks/use-pomodoro-timers";
 import { awardObjectiveCompletionXp } from "@/lib/progress/store";
 import { MOCK_OBJECTIVES } from "@/lib/mock-objectives";
 import { daysSince } from "@/lib/kanban-utils";
+import { safeExternalHttpUrl } from "@/lib/security/urls";
 import { AUTO_RECYCLE_AFTER_DAYS, RECYCLE_BIN_RETENTION_DAYS } from "@/constants/kanban";
 import type {
   Attachment,
@@ -101,12 +102,16 @@ function normalizeAttachments(value: Objective["attachments"]): Attachment[] {
         typeof item.name === "string" &&
         typeof item.url === "string"
     )
-    .map((item) => ({
-      id: item.id,
-      name: item.name.trim() || "Link",
-      url: item.url.trim(),
-    }))
-    .filter((item) => item.url.length > 0);
+    .map((item) => {
+      const url = safeExternalHttpUrl(item.url);
+      if (!url) return null;
+      return {
+        id: item.id,
+        name: item.name.trim() || "Link",
+        url,
+      };
+    })
+    .filter((item): item is Attachment => item !== null);
 }
 
 function normalizeDependencies(value: Objective["dependencies"]): string[] {

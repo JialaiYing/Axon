@@ -23,7 +23,7 @@ export function UnscheduledRail({ objectives, defaultStart, onSchedule }: Unsche
   const unscheduled = React.useMemo(
     () =>
       objectives.filter(
-        (o) => !o.scheduledStart && o.status !== "done" && o.status !== "recycled" && o.showOnKanban !== false
+        (o) => !o.scheduledStart && o.status !== "done" && o.status !== "recycled"
       ),
     [objectives]
   );

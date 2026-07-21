@@ -14,6 +14,7 @@ import {
   Shield,
   Sparkles,
   Sun,
+  Trash2,
   UserRound,
 } from "lucide-react";
 import { AppPage } from "@/components/layout/app-page";
@@ -22,6 +23,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useOnboarding } from "@/hooks/use-onboarding";
 import { useFocusPreferences } from "@/hooks/use-focus-preferences";
 import { useDisplayName } from "@/hooks/use-display-name";
@@ -30,6 +39,8 @@ import { useTheme } from "@/components/providers/theme-provider";
 import { useAuth } from "@/components/auth/auth-provider";
 import { useSync } from "@/components/sync/sync-provider";
 import { isBackgroundUnlocked } from "@/lib/backgrounds/catalog";
+import { clearLocalSyncedData } from "@/lib/sync/local-data";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
   areBrowserNotificationsSupported,
   getBrowserNotificationPermission,
@@ -51,13 +62,16 @@ export default function SettingsPage() {
   const { displayName, setDisplayName } = useDisplayName();
   const { theme, setTheme } = useTheme();
   const { backgroundId, setBackgroundId, catalog, level } = useDashboardBackground();
-  const { user, configured, signOut } = useAuth();
+  const { user, session, configured, signOut } = useAuth();
   const { status, syncNow } = useSync();
 
   const [permission, setPermission] = React.useState<BrowserNotificationPermission>("default");
   const [prefEnabled, setPrefEnabled] = React.useState(false);
   const [dueSoonEnabled, setDueSoonEnabled] = React.useState(false);
   const [tourReset, setTourReset] = React.useState(false);
+  const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const [deleteBusy, setDeleteBusy] = React.useState(false);
+  const [deleteError, setDeleteError] = React.useState<string | null>(null);
   const [nameDraft, setNameDraft] = React.useState(displayName);
   const [nameMsg, setNameMsg] = React.useState<string | null>(null);
   // Starts false (matches the server, which has no `window`/`Notification`)
@@ -92,7 +106,75 @@ export default function SettingsPage() {
     setPrefEnabled(false);
   };
 
+  const deleteAccount = async () => {
+    setDeleteBusy(true);
+    setDeleteError(null);
+    try {
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) {
+        setDeleteError("Auth is not configured in this environment.");
+        setDeleteBusy(false);
+        return;
+      }
+
+      // Always refresh — a stale access_token is the most common delete failure.
+      const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession();
+      const token =
+        refreshed.session?.access_token ??
+        (await supabase.auth.getSession()).data.session?.access_token ??
+        session?.access_token;
+
+      if (refreshError && !token) {
+        setDeleteError("Session expired. Sign in again, then retry.");
+        setDeleteBusy(false);
+        return;
+      }
+      if (!token) {
+        setDeleteError("Sign in again, then retry.");
+        setDeleteBusy(false);
+        return;
+      }
+
+      const res = await fetch("/api/auth/delete-account", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      let payload: { error?: string } = {};
+      try {
+        payload = (await res.json()) as { error?: string };
+      } catch {
+        setDeleteError(
+          res.status === 404
+            ? "Delete API is missing on this deploy. Push latest code and redeploy."
+            : `Delete failed (HTTP ${res.status}).`
+        );
+        setDeleteBusy(false);
+        return;
+      }
+
+      if (!res.ok) {
+        setDeleteError(payload.error || `Could not delete account (HTTP ${res.status}).`);
+        setDeleteBusy(false);
+        return;
+      }
+
+      clearLocalSyncedData();
+      setDeleteOpen(false);
+      try {
+        await signOut();
+      } catch {
+        /* session may already be invalid after delete */
+      }
+      window.location.assign("/");
+    } catch {
+      setDeleteError("Network error. Try again.");
+      setDeleteBusy(false);
+    }
+  };
+
   return (
+    <>
     <AppPage
       title="Settings"
       description="Appearance, profile, privacy, and study preferences."
@@ -248,7 +330,26 @@ export default function SettingsPage() {
               <Button type="button" variant="ghost" size="sm" onClick={() => void signOut()}>
                 Sign out
               </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-danger hover:text-danger"
+                onClick={() => {
+                  setDeleteError(null);
+                  setDeleteOpen(true);
+                }}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                Delete account
+              </Button>
             </div>
+          )}
+          {user && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Sign out clears synced study data from this browser. Delete account permanently
+              removes your cloud account and data.
+            </p>
           )}
           {!user && (
             <Button asChild size="sm" className="mt-3">
@@ -390,5 +491,37 @@ export default function SettingsPage() {
         </Panel>
       </div>
     </AppPage>
+
+    <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Delete your account?</DialogTitle>
+          <DialogDescription>
+            This permanently deletes your Axon account and all cloud-synced study data. This
+            browser&apos;s local copy is cleared too. This cannot be undone.
+          </DialogDescription>
+        </DialogHeader>
+        {deleteError && <p className="text-sm text-danger">{deleteError}</p>}
+        <DialogFooter className="gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            disabled={deleteBusy}
+            onClick={() => setDeleteOpen(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            variant="destructive"
+            disabled={deleteBusy}
+            onClick={() => void deleteAccount()}
+          >
+            {deleteBusy ? "Deleting…" : "Delete account"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }

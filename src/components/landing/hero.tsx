@@ -32,7 +32,10 @@ export function Hero() {
         </motion.div>
 
         <div className="mx-auto mt-14 w-full max-w-[52rem] md:mt-20 lg:max-w-[56rem]">
-          <div className="relative shadow-[0_2px_8px_rgba(0,0,0,0.2),0_24px_48px_-12px_rgba(0,0,0,0.55),0_48px_96px_-24px_rgba(0,0,0,0.45)]">
+          <div
+            data-theme="dark"
+            className="relative shadow-[0_2px_8px_rgba(0,0,0,0.2),0_24px_48px_-12px_rgba(0,0,0,0.55),0_48px_96px_-24px_rgba(0,0,0,0.45)]"
+          >
             <DashboardPreview embedded />
           </div>
         </div>

@@ -88,24 +88,10 @@ async function pushArray(
     if (error) throw error;
   }
 
-  // Delete remote rows the user removed locally
-  const localIds = new Set(items.map((item) => String(item.id)));
-  const { data: remoteIds, error: listError } = await supabase
-    .from(collection.table)
-    .select("id")
-    .eq("user_id", userId);
-  if (listError) throw listError;
-  const toDelete = (remoteIds ?? [])
-    .map((r) => r.id as string)
-    .filter((id) => !localIds.has(id));
-  if (toDelete.length > 0) {
-    const { error } = await supabase
-      .from(collection.table)
-      .delete()
-      .eq("user_id", userId)
-      .in("id", toDelete);
-    if (error) throw error;
-  }
+  // Intentionally do NOT delete remote rows that are missing locally.
+  // Auto-deleting "missing" IDs wiped other-device data under last-write-wins
+  // when one browser had a thinner copy. Soft-deleted / recycled entities
+  // still sync via payload; hard-delete propagation needs tombstones later.
 }
 
 async function pullArray(

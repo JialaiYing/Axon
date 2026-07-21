@@ -7,6 +7,7 @@ import { Bell, X, Timer as TimerIcon, BellOff, Flag, ImageIcon } from "lucide-re
 import { useNotifications } from "@/hooks/use-notifications";
 import { usePomodoroTimers } from "@/hooks/use-pomodoro-timers";
 import type { TimerNotification } from "@/types";
+import { safeInternalPathOrNull } from "@/lib/security/urls";
 import { cn } from "@/lib/utils";
 
 function timeAgo(iso: string): string {
@@ -22,7 +23,8 @@ function timeAgo(iso: string): string {
 }
 
 function notificationHref(n: TimerNotification): string {
-  if (n.href) return n.href;
+  const fromPayload = safeInternalPathOrNull(n.href);
+  if (fromPayload) return fromPayload;
   if (n.kind === "due-soon") return "/kanban";
   if (n.kind === "background-unlock") return "/settings";
   return "/pomodoro";

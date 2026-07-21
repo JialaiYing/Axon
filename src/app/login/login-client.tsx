@@ -7,11 +7,12 @@ import { X } from "lucide-react";
 import { AuthForm } from "@/components/auth/auth-form";
 import { AxonLogo } from "@/components/brand/axon-logo";
 import { Panel } from "@/components/ui/panel";
+import { safeInternalPath } from "@/lib/security/urls";
 
 export default function LoginClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") || "/dashboard";
+  const next = safeInternalPath(searchParams.get("next"), "/dashboard");
   const initialMode = searchParams.get("mode") === "signup" ? "signup" : "signin";
   const [mode, setMode] = React.useState<"signin" | "signup">(initialMode);
 
@@ -63,7 +64,7 @@ export default function LoginClient() {
           initialMode={mode}
           onModeChange={setMode}
           onSuccess={() => {
-            router.replace(next.startsWith("/") ? next : "/dashboard");
+            router.replace(next);
           }}
         />
       </Panel>

@@ -63,9 +63,10 @@ export default function PrivacyPage() {
         <section>
           <h2 className="text-base font-semibold text-foreground">5. Retention</h2>
           <p>
-            Local data remains until you clear browser storage. Cloud data persists while your
-            account exists; deleting your account (via Supabase / operator process) removes
-            associated rows subject to backup retention windows.
+            Local data remains until you clear browser storage or sign out (sign-out clears
+            synced study data from that browser). Cloud data persists while your account exists.
+            You can permanently delete your account and associated cloud rows from Settings →
+            Delete account (requires a properly configured deployment).
           </p>
         </section>
         <section>
@@ -87,8 +88,8 @@ export default function PrivacyPage() {
           <h2 className="text-base font-semibold text-foreground">8. Your rights</h2>
           <p>
             Depending on your region (e.g. GDPR/CCPA), you may request access, correction, or
-            deletion of personal data held in your cloud account. Contact the project maintainers
-            with your account email.
+            deletion of personal data. Use Settings → Delete account for self-serve deletion, or
+            contact the project maintainers with your account email.
           </p>
         </section>
         <section>

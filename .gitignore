@@ -13,3 +13,6 @@ docs/demo/raw
 docs/demo/work
 docs/demo/*.mp4
 docs/demo/*.gif
+
+.vercel
+.env*

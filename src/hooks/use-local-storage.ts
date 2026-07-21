@@ -43,6 +43,26 @@ export function subscribeLocalStorageWrites(listener: (key: string) => void) {
   };
 }
 
+type StorageFailureReason = "quota" | "unknown";
+
+const storageFailureListeners = new Set<(reason: StorageFailureReason) => void>();
+
+/** Subscribe to failed localStorage writes (quota full, private mode, etc.). */
+export function subscribeStorageFailures(listener: (reason: StorageFailureReason) => void) {
+  storageFailureListeners.add(listener);
+  return () => {
+    storageFailureListeners.delete(listener);
+  };
+}
+
+function notifyStorageFailure(error: unknown) {
+  const isQuota =
+    error instanceof DOMException &&
+    (error.name === "QuotaExceededError" || error.name === "NS_ERROR_DOM_QUOTA_REACHED");
+  const reason: StorageFailureReason = isQuota ? "quota" : "unknown";
+  storageFailureListeners.forEach((listener) => listener(reason));
+}
+
 function readStorage<T>(key: string, fallback: T): T {
   try {
     const item = window.localStorage.getItem(key);
@@ -158,6 +178,7 @@ export function writeLocalStorage<T>(key: string, updater: (prev: T) => T, fallb
     broadcast(key);
   } catch (error) {
     console.error(`writeLocalStorage: failed to write key "${key}"`, error);
+    notifyStorageFailure(error);
   }
   return next;
 }

@@ -149,7 +149,7 @@ export function CalendarPage() {
         onPrev={goPrev}
         onNext={goNext}
         onToday={goToday}
-        onAddExisting={() => setAddTarget(currentDate)}
+        onAddExisting={() => setAddTarget(withMinutesSinceMidnight(currentDate, 9 * 60))}
         scheduledObjectives={visibleObjectives}
       />
 
@@ -265,14 +265,14 @@ export function CalendarPage() {
           onOpenChange={(open) => !open && setAddTarget(null)}
           objectives={visibleObjectives}
           targetDate={addTarget}
-          onPick={(objective) => {
+          onPick={(objective, start) => {
             const duration =
               objective.scheduledDurationMinutes ??
               (objective.estimatedStudyTime && objective.estimatedStudyTime > 0
                 ? objective.estimatedStudyTime
                 : 30);
             scheduleObjective(objective.id, {
-              start: addTarget.toISOString(),
+              start: start.toISOString(),
               durationMinutes: duration,
             });
             setAddTarget(null);
@@ -286,8 +286,8 @@ export function CalendarPage() {
               labels: [],
               status: "todo",
               estimatedStudyTime: input.durationMinutes,
-              scheduledStart: addTarget.toISOString(),
-              scheduledDurationMinutes: input.durationMinutes,
+              scheduledStart: input.start?.toISOString(),
+              scheduledDurationMinutes: input.start ? input.durationMinutes : undefined,
               showOnKanban: input.showOnKanban,
             });
             setAddTarget(null);

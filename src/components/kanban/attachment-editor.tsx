@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import type { Attachment } from "@/types";
+import { safeExternalHttpUrl } from "@/lib/security/urls";
 
 interface AttachmentEditorProps {
   attachments: Attachment[];
@@ -22,16 +23,23 @@ function createId() {
 export function AttachmentEditor({ attachments, onChange }: AttachmentEditorProps) {
   const [name, setName] = React.useState("");
   const [url, setUrl] = React.useState("");
+  const [urlError, setUrlError] = React.useState<string | null>(null);
 
   const add = () => {
     const trimmedUrl = url.trim();
     if (!trimmedUrl) return;
+    const safe = safeExternalHttpUrl(trimmedUrl);
+    if (!safe) {
+      setUrlError("Use an http:// or https:// link.");
+      return;
+    }
     onChange([
       ...attachments,
-      { id: createId(), name: name.trim() || "Link", url: trimmedUrl },
+      { id: createId(), name: name.trim() || "Link", url: safe },
     ]);
     setName("");
     setUrl("");
+    setUrlError(null);
   };
 
   return (
@@ -75,7 +83,10 @@ export function AttachmentEditor({ attachments, onChange }: AttachmentEditorProp
         />
         <Input
           value={url}
-          onChange={(e) => setUrl(e.target.value)}
+          onChange={(e) => {
+            setUrl(e.target.value);
+            setUrlError(null);
+          }}
           placeholder="https://..."
           className="h-8 text-sm"
           onKeyDown={(e) => {
@@ -89,6 +100,7 @@ export function AttachmentEditor({ attachments, onChange }: AttachmentEditorProp
           <Plus className="h-3.5 w-3.5" />
         </Button>
       </div>
+      {urlError && <p className="text-[11px] text-danger">{urlError}</p>}
     </div>
   );
 }

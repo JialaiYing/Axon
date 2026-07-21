@@ -52,11 +52,14 @@ Copy [`.env.example`](.env.example) to `.env.local` for optional cloud sync:
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+NEXT_PUBLIC_SITE_URL=https://your-deployment-url.vercel.app
+SUPABASE_SERVICE_ROLE_KEY=  # server-only; enables Settings → Delete account
 ```
 
 - The **anon key is public by design** (browser clients). Never put the **service role** key in `NEXT_PUBLIC_*` or commit `.env.local` (gitignored).
-- Without these vars the app still runs fully offline.
+- Without the public Supabase vars the app still runs fully offline.
 - Schema + RLS: [`supabase/schema.sql`](supabase/schema.sql) and [`docs/supabase-setup.md`](docs/supabase-setup.md).
+- Before a public deploy: [`docs/deploy-checklist.md`](docs/deploy-checklist.md).
 
 ### Run
 

@@ -61,7 +61,11 @@ export async function POST(request: Request) {
   });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    // Generic message — avoid leaking "User already registered" (email enumeration).
+    return NextResponse.json(
+      { error: "Could not create account. Try a different email or sign in instead." },
+      { status: 400 }
+    );
   }
 
   // Best-effort profile name update when session exists (email confirm may delay session).

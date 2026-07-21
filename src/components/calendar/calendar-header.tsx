@@ -93,7 +93,7 @@ export function CalendarHeader({
         </Button>
         <Button variant="outline" onClick={onAddExisting}>
           <CalendarPlus className="h-4 w-4" />
-          Add existing objective
+          Add event
         </Button>
       </div>
     </div>

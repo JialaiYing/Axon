@@ -4,6 +4,8 @@ import * as React from "react";
 import { useGesture } from "@use-gesture/react";
 import { Layers, Plus } from "lucide-react";
 import type { FlashcardFolder, FlashcardSet } from "@/types";
+import { useTheme } from "@/components/providers/theme-provider";
+import { cn } from "@/lib/utils";
 import "./dome-gallery.css";
 
 /** Rows of tiles visible in the section at once. */
@@ -129,7 +131,7 @@ export interface DomeGalleryProps {
   dragSensitivity?: number;
   dragDampening?: number;
   idleSpinDelayMs?: number;
-  /** Background color the horizon fades into. */
+  /** Background color the horizon fades into. Defaults to the active theme canvas. */
   backgroundColor?: string;
 }
 
@@ -154,8 +156,11 @@ export default function DomeGallery({
   dragSensitivity = 5,
   dragDampening = 2,
   idleSpinDelayMs = 10000,
-  backgroundColor = "#08090c",
+  backgroundColor,
 }: DomeGalleryProps) {
+  const { theme } = useTheme();
+  const sphereBg =
+    backgroundColor ?? (theme === "light" ? "#f7f6f2" : "#0a0a0a");
   const rootRef = React.useRef<HTMLDivElement>(null);
   const tileRefs = React.useRef(new Map<string, HTMLDivElement>());
   const labelRefs = React.useRef(new Map<string, HTMLDivElement>());
@@ -697,7 +702,7 @@ export default function DomeGallery({
     <div
       ref={rootRef}
       className={`sphere-face${setDrag ? " sphere-face--dragging-set" : ""}`}
-      style={{ "--sphere-bg": backgroundColor } as React.CSSProperties}
+      style={{ "--sphere-bg": sphereBg } as React.CSSProperties}
       data-drop={
         setDrag
           ? setDrag.drop?.kind === "folder"
@@ -752,14 +757,14 @@ export default function DomeGallery({
                       className="glass-panel glass-panel-hover flex h-[84px] w-40 cursor-pointer flex-col justify-between rounded-xl p-3 text-left touch-none select-none"
                     >
                       <div>
-                        <p className="truncate text-xs font-semibold text-white">
+                        <p className="truncate text-xs font-semibold text-foreground">
                           {tile.set.title}
                         </p>
-                        <p className="mt-0.5 truncate text-[10px] text-white/50">
+                        <p className="mt-0.5 truncate text-[10px] text-muted-foreground">
                           {tile.set.subject}
                         </p>
                       </div>
-                      <span className="inline-flex items-center gap-1 text-[10px] text-white/60">
+                      <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
                         <Layers className="h-3 w-3" />
                         {tile.set.cards.length}
                       </span>
@@ -775,13 +780,14 @@ export default function DomeGallery({
                       onClick={() => {
                         if (guardClick()) onCreateSet?.(tile.folderId);
                       }}
-                      className={`flex h-[84px] w-40 cursor-pointer items-center justify-center rounded-xl border border-dashed bg-white/[0.045] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.03)] backdrop-blur-md transition-colors duration-200 ${
+                      className={cn(
+                        "flex h-[84px] w-40 cursor-pointer items-center justify-center rounded-xl border border-dashed backdrop-blur-md transition-colors duration-200",
                         isDropFolder
                           ? "border-accent/50 bg-accent/10"
-                          : "border-white/20 hover:border-white/35 hover:bg-white/[0.08]"
-                      }`}
+                          : "border-border bg-card/60 hover:border-border-strong hover:bg-card"
+                      )}
                     >
-                      <Plus className="h-4 w-4 text-white/60" />
+                      <Plus className="h-4 w-4 text-muted-foreground" />
                     </button>
                   )}
                 </div>
@@ -807,12 +813,12 @@ export default function DomeGallery({
               top: setDrag.y,
             }}
           >
-            <div className="glass-panel flex h-[84px] w-40 flex-col justify-between rounded-xl p-3 text-left shadow-[0_12px_40px_rgba(0,0,0,0.45)]">
+            <div className="glass-panel flex h-[84px] w-40 flex-col justify-between rounded-xl p-3 text-left shadow-[var(--shadow-elevation-3)]">
               <div>
-                <p className="truncate text-xs font-semibold text-white">{setDrag.set.title}</p>
-                <p className="mt-0.5 truncate text-[10px] text-white/50">{setDrag.set.subject}</p>
+                <p className="truncate text-xs font-semibold text-foreground">{setDrag.set.title}</p>
+                <p className="mt-0.5 truncate text-[10px] text-muted-foreground">{setDrag.set.subject}</p>
               </div>
-              <span className="inline-flex items-center gap-1 text-[10px] text-white/60">
+              <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
                 <Layers className="h-3 w-3" />
                 {setDrag.set.cards.length}
               </span>

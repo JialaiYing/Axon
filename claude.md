@@ -40,7 +40,7 @@ src/
 ├── components/
 │   ├── ui/                      # Radix-based primitives (Button, Card, Dialog, Panel, etc.)
 │   ├── layout/                  # DashboardShell, sidebar, header, notifications
-│   ├── auth/                    # AuthProvider, AuthDialog, ProfileMenu
+│   ├── auth/                    # AuthProvider, AuthForm, ProfileMenu
 │   ├── sync/                    # SyncProvider for cloud sync
 │   ├── providers/               # AppProviders (Auth + Sync stack)
 │   ├── onboarding/              # Feature intro tours
@@ -401,7 +401,7 @@ Landing page (`/`) is separate from `(app)` shell.
 | Update Supabase schema | `supabase/schema.sql`, re-deploy to Supabase project |
 | Add sync for new table | `src/lib/sync/collections.ts` (map key ↔ table) + `engine.ts` |
 | Update navigation | `src/constants/navigation.ts` |
-| Modify auth flow | `src/components/auth/auth-provider.tsx`, `auth-dialog.tsx` |
+| Modify auth flow | `src/components/auth/auth-provider.tsx`, `auth-form.tsx`, `src/app/login/` |
 
 ---
 

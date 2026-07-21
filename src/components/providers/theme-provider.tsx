@@ -7,11 +7,12 @@ export type ThemeMode = "dark" | "light";
 
 const STORAGE_KEY = "axon:theme";
 
-// The marketing homepage is always dark — light mode is a dashboard-only
-// preference. Anything outside the `(app)` route group (just `/` today)
-// forces dark regardless of the stored preference.
+// Light mode is a dashboard-only preference. Marketing + auth surfaces
+// always force dark regardless of the stored preference.
+const ALWAYS_DARK_ROUTES = new Set(["/", "/login", "/privacy", "/terms", "/faq"]);
+
 function isThemeableRoute(pathname: string | null) {
-  return pathname !== null && pathname !== "/";
+  return pathname !== null && !ALWAYS_DARK_ROUTES.has(pathname);
 }
 
 interface ThemeContextValue {

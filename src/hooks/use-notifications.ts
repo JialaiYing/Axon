@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useLocalStorage, writeLocalStorage, asArray, dedupeById } from "@/hooks/use-local-storage";
+import { safeInternalPathOrNull } from "@/lib/security/urls";
 import type { TimerNotification } from "@/types";
 
 const STORAGE_KEY = "axon:notifications";
@@ -34,7 +35,7 @@ function normalizeNotification(value: TimerNotification): TimerNotification | nu
     ...value,
     timerId: typeof value.timerId === "string" ? value.timerId : "",
     kind,
-    href: typeof value.href === "string" ? value.href : undefined,
+    href: typeof value.href === "string" ? safeInternalPathOrNull(value.href) ?? undefined : undefined,
     title: typeof value.title === "string" && value.title.trim() ? value.title : "Notification",
     message: typeof value.message === "string" ? value.message : "",
     createdAt:

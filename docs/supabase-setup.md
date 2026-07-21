@@ -353,13 +353,15 @@ Sign out, create a second account, sign in. That second account should **not** s
 
 ## Part G — Production / Vercel (when you deploy)
 
-Do this only when you have a live URL.
+Do this only when you have a live URL. Full checklist: [`deploy-checklist.md`](./deploy-checklist.md).
 
 1. **Vercel project → Settings → Environment Variables**  
-   Add the same two keys:
+   Add:
 
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `NEXT_PUBLIC_SITE_URL` = `https://your-production-domain.com` (no trailing slash)
+   - `SUPABASE_SERVICE_ROLE_KEY` = service role key from Project Settings → API (server-only; enables Settings → Delete account)
 
    Apply to Production (and Preview if you want). Redeploy after saving.
 
@@ -369,20 +371,25 @@ Do this only when you have a live URL.
    - Redirect URLs include `https://your-production-domain.com/**`
    - Keep localhost URLs if you still develop locally
 
-3. **Email confirmations**  
+3. **Supabase Auth rate limits**  
+   Enable dashboard Auth rate limits — Axon’s in-memory limiter is not enough alone on serverless.
+
+4. **Email confirmations**  
    Turn **Confirm email** back ON for real users.
 
-4. **Google (if used)**  
+5. **Google (if used)**  
    In Google Cloud OAuth client, add production origins/redirects as needed. The Supabase callback URL itself usually stays the same (`https://PROJECT_REF.supabase.co/auth/v1/callback`).
 
 ### Production checklist
 
-- [ ] `.env` / Vercel env vars set (URL + anon key only)
+- [ ] Vercel env vars set (public trio + optional service role for delete-account)
 - [ ] Schema already run once on this project
 - [ ] Site URL + redirect URLs include production
+- [ ] Auth rate limits enabled in Supabase
 - [ ] Email confirmation enabled for public use
 - [ ] Google OAuth updated (if using Google)
 - [ ] Test: sign up → create objective → row appears in Table Editor
+- [ ] Test: sign out clears local study data; Delete account works if service role is set
 
 ---
 
@@ -438,6 +445,7 @@ Synced collections:
 | [`.env.example`](../.env.example) | Template for env vars |
 | `.env.local` | Your real keys (you create this; not committed) |
 | [`supabase/schema.sql`](../supabase/schema.sql) | Paste into SQL Editor once |
+| [`deploy-checklist.md`](./deploy-checklist.md) | Preflight before a public URL |
 | This doc | The setup steps you’re reading |
 
 When all of Parts A–F succeed, you’re done: Supabase is live for Axon.
