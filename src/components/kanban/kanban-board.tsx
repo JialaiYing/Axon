@@ -29,7 +29,7 @@ import { Button } from "@/components/ui/button";
 import { KanbanBoardSkeleton } from "@/components/ui/skeleton";
 import { ConfettiBurst } from "@/components/ui/confetti";
 import { KANBAN_COLUMNS } from "@/constants/kanban";
-import { sortByPriority } from "@/lib/kanban-utils";
+import { canMarkObjectiveDone, sortByPriority } from "@/lib/kanban-utils";
 import { useObjectives, isOnKanbanBoard, type ObjectiveInput } from "@/hooks/use-objectives";
 import type { Objective, KanbanStatus } from "@/types";
 
@@ -53,6 +53,7 @@ export function KanbanBoard() {
     sendToRecycleBin,
     restoreFromRecycleBin,
     permanentlyDelete,
+    clearRecycleBin,
   } = useObjectives();
 
   const [search, setSearch] = React.useState("");
@@ -139,6 +140,7 @@ export function KanbanBoard() {
     // Dropping directly over a column (empty space) moves it to that column.
     const overColumn = KANBAN_COLUMNS.find((c) => c.id === over.id);
     if (overColumn && activeObjective.status !== overColumn.id) {
+      if (overColumn.id === "done" && !canMarkObjectiveDone(activeObjective)) return;
       moveObjective(activeObjective.id, overColumn.id);
       if (overColumn.id === "done") setCelebrateKey((k) => k + 1);
       return;
@@ -147,6 +149,7 @@ export function KanbanBoard() {
     // Dropping over another card: if it's in a different column, adopt that column.
     const overObjective = objectives.find((o) => o.id === over.id);
     if (overObjective && overObjective.status !== activeObjective.status) {
+      if (overObjective.status === "done" && !canMarkObjectiveDone(activeObjective)) return;
       moveObjective(activeObjective.id, overObjective.status);
       if (overObjective.status === "done") setCelebrateKey((k) => k + 1);
     }
@@ -166,6 +169,11 @@ export function KanbanBoard() {
   function handleFormSubmit(input: ObjectiveInput) {
     if (dialogState?.mode === "edit") {
       const wasDone = dialogState.objective.status === "done";
+      const merged = { ...dialogState.objective, ...input };
+      if (!wasDone && input.status === "done" && !canMarkObjectiveDone(merged)) {
+        updateObjective(dialogState.objective.id, { ...input, status: dialogState.objective.status });
+        return;
+      }
       updateObjective(dialogState.objective.id, input);
       if (!wasDone && input.status === "done") setCelebrateKey((k) => k + 1);
     } else {
@@ -305,6 +313,7 @@ export function KanbanBoard() {
         objectives={recycledObjectives}
         onRestore={(objective) => restoreFromRecycleBin(objective.id)}
         onDeleteForever={(objective) => permanentlyDelete(objective.id)}
+        onClearAll={clearRecycleBin}
       />
     </AppPage>
   );

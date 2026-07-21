@@ -37,6 +37,9 @@ function normalizeTimer(value: PomodoroTimerInstance): PomodoroTimerInstance | n
     durationSeconds,
     endAt,
     pausedRemainingSeconds,
+    hasCompletedRun: Boolean(value.hasCompletedRun),
+    loggedCompletion: Boolean(value.loggedCompletion),
+    notified: Boolean(value.notified),
     createdAt: typeof value.createdAt === "string" ? value.createdAt : new Date().toISOString(),
   };
 }
@@ -60,6 +63,23 @@ function write(updater: (prev: PomodoroTimerInstance[]) => PomodoroTimerInstance
     (prev) => normalizeTimers(updater(normalizeTimers(prev))),
     [] as PomodoroTimerInstance[]
   );
+}
+
+/**
+ * Atomically claims a completed run for XP/session logging. Returns the timer
+ * snapshot only for the writer that flips `loggedCompletion` false → true,
+ * so concurrent tabs/mounts can't double-award.
+ */
+export function claimTimerCompletion(id: string): PomodoroTimerInstance | null {
+  let claimed: PomodoroTimerInstance | null = null;
+  write((prev) =>
+    prev.map((t) => {
+      if (t.id !== id || !t.hasCompletedRun || t.loggedCompletion) return t;
+      claimed = { ...t };
+      return { ...t, loggedCompletion: true };
+    })
+  );
+  return claimed;
 }
 
 export interface StartTimerInput {
@@ -137,28 +157,55 @@ export function usePomodoroTimers() {
   // via the notifications watcher, so an unconditional interval would tick
   // on every page forever).
   const hasRunningTimer = timers.some((t) => t.status === "running");
-  const [, setTick] = React.useState(0);
+  const [tick, setTick] = React.useState(0);
   React.useEffect(() => {
     if (!hasRunningTimer) return;
     const interval = setInterval(() => setTick((t) => t + 1), 1000);
     return () => clearInterval(interval);
   }, [hasRunningTimer]);
 
-  // Flip any running timer whose endAt has passed into "finished".
+  // When a countdown hits zero (or is paused at 0:00): reset to the original
+  // duration (paused/Ready) and mark a completed run. Must re-check on every
+  // `tick` — `timers` alone does not change while a running timer's endAt
+  // quietly passes. Also migrate leftover "finished" rows from older builds.
   React.useEffect(() => {
     if (!hydrated) return;
     const now = Date.now();
-    const anyDue = timers.some((t) => t.status === "running" && t.endAt !== null && t.endAt <= now);
+    const anyDue = timers.some((t) => {
+      if (t.status === "finished") return true;
+      if (t.hasCompletedRun && t.status === "paused" && (t.pausedRemainingSeconds ?? 0) >= t.durationSeconds) {
+        return false;
+      }
+      if (t.status === "running" && t.endAt !== null && t.endAt <= now) return true;
+      if (t.status === "paused" && remainingSecondsOf(t, now) <= 0) return true;
+      return false;
+    });
     if (!anyDue) return;
     write((prev) =>
       prev.map((t) => {
-        if (t.status === "running" && t.endAt !== null && t.endAt <= Date.now()) {
-          return { ...t, status: "finished", endAt: null, pausedRemainingSeconds: 0 };
-        }
-        return t;
+        const alreadyReady =
+          t.hasCompletedRun &&
+          t.status === "paused" &&
+          (t.pausedRemainingSeconds ?? 0) >= t.durationSeconds;
+        if (alreadyReady) return t;
+
+        const dueRunning = t.status === "running" && t.endAt !== null && t.endAt <= Date.now();
+        const duePaused = t.status === "paused" && remainingSecondsOf(t) <= 0;
+        const dueFinished = t.status === "finished";
+        if (!dueRunning && !duePaused && !dueFinished) return t;
+
+        return {
+          ...t,
+          status: "paused" as const,
+          endAt: null,
+          pausedRemainingSeconds: t.durationSeconds,
+          hasCompletedRun: true,
+          loggedCompletion: false,
+          notified: false,
+        };
       })
     );
-  }, [hydrated, timers]);
+  }, [hydrated, timers, tick]);
 
   const startTimer = React.useCallback((input: StartTimerInput) => {
     const now = Date.now();
@@ -182,7 +229,21 @@ export function usePomodoroTimers() {
     write((prev) =>
       prev.map((t) => {
         if (t.id !== id || t.status !== "running") return t;
-        return { ...t, status: "paused", pausedRemainingSeconds: remainingSecondsOf(t), endAt: null };
+        const remaining = remainingSecondsOf(t);
+        // Pausing at/after 0:00 should settle into a completed Ready state —
+        // otherwise Focus Mode sticks and XP never awards.
+        if (remaining <= 0) {
+          return {
+            ...t,
+            status: "paused",
+            endAt: null,
+            pausedRemainingSeconds: t.durationSeconds,
+            hasCompletedRun: true,
+            loggedCompletion: false,
+            notified: false,
+          };
+        }
+        return { ...t, status: "paused", pausedRemainingSeconds: remaining, endAt: null };
       })
     );
   }, []);
@@ -192,6 +253,17 @@ export function usePomodoroTimers() {
       prev.map((t) => {
         if (t.id !== id || t.status !== "paused") return t;
         const remaining = t.pausedRemainingSeconds ?? 0;
+        if (remaining <= 0) {
+          return {
+            ...t,
+            status: "paused",
+            endAt: null,
+            pausedRemainingSeconds: t.durationSeconds,
+            hasCompletedRun: true,
+            loggedCompletion: false,
+            notified: false,
+          };
+        }
         return { ...t, status: "running", endAt: Date.now() + remaining * 1000, pausedRemainingSeconds: null };
       })
     );
@@ -214,22 +286,20 @@ export function usePomodoroTimers() {
     write((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  /** Adds more time to a finished timer and resumes it (the Pomodoro "keep working" flow). */
+  /** Adds more time after a completion prompt and resumes (new focus interval). */
   const extendTimer = React.useCallback((id: string, extraSeconds: number) => {
     write((prev) =>
       prev.map((t) => {
         if (t.id !== id) return t;
         return {
           ...t,
-          // Treat an extension after completion as a new focus interval.
-          // The completed interval was already logged, so retaining the old
-          // duration here would count it a second time when this run finishes.
           durationSeconds: extraSeconds,
           status: "running",
           endAt: Date.now() + extraSeconds * 1000,
           pausedRemainingSeconds: null,
           loggedCompletion: false,
           notified: false,
+          hasCompletedRun: false,
         };
       })
     );
@@ -261,9 +331,29 @@ export function usePomodoroTimers() {
     );
   }, []);
 
+  const restartTimer = React.useCallback((id: string) => {
+    write((prev) =>
+      prev.map((t) => {
+        if (t.id !== id) return t;
+        const durationSeconds = Math.max(1, t.durationSeconds);
+        return {
+          ...t,
+          status: "running",
+          endAt: Date.now() + durationSeconds * 1000,
+          pausedRemainingSeconds: null,
+          // Keep hasCompletedRun / loggedCompletion / notified so a prior full
+          // run still qualifies for XP on Stop, we never double-award, and we
+          // don't re-toast until the next natural finish.
+        };
+      })
+    );
+  }, []);
+
   const markLogged = React.useCallback((id: string) => {
     write((prev) => prev.map((t) => (t.id === id ? { ...t, loggedCompletion: true } : t)));
   }, []);
+
+  const claimCompletion = React.useCallback((id: string) => claimTimerCompletion(id), []);
 
   const markNotified = React.useCallback((id: string) => {
     write((prev) => prev.map((t) => (t.id === id ? { ...t, notified: true } : t)));
@@ -278,8 +368,10 @@ export function usePomodoroTimers() {
     stopTimer,
     removeTimer,
     extendTimer,
+    restartTimer,
     adjustTimerBy,
     markLogged,
+    claimCompletion,
     markNotified,
   };
 }

@@ -128,6 +128,27 @@ export function loggedMinutes(objective: Objective): number {
   return (objective.studySessions ?? []).reduce((sum, session) => sum + session.minutes, 0);
 }
 
+/**
+ * Whether an objective may move to Done from the board / form / dashboard.
+ * When an estimate exists, focus time must be fully logged. When subtasks
+ * exist, they must all be done. Explicit "Finished" from the timer dialog
+ * still calls `completeObjective` directly and bypasses this gate.
+ */
+export function canMarkObjectiveDone(objective: Objective): boolean {
+  if (objective.status === "done") return true;
+  const hasEstimate = Boolean(objective.estimatedStudyTime && objective.estimatedStudyTime > 0);
+  const hasSubtasks = Boolean(objective.subtasks && objective.subtasks.length > 0);
+
+  if (hasEstimate && loggedMinutes(objective) < (objective.estimatedStudyTime as number)) {
+    return false;
+  }
+  if (hasSubtasks && !objective.subtasks!.every((s) => s.done)) {
+    return false;
+  }
+  // No estimate and no subtasks — allow Done without a timer gate.
+  return true;
+}
+
 /** Minutes remaining before an objective's estimated study time is used up (never negative). */
 export function remainingMinutes(objective: Objective): number | null {
   if (!objective.estimatedStudyTime) return null;

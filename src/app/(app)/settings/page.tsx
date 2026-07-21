@@ -52,6 +52,8 @@ import {
 import {
   getDueSoonNotificationPreference,
   setDueSoonNotificationPreference,
+  getMissedScheduleNotificationPreference,
+  setMissedScheduleNotificationPreference,
 } from "@/lib/notifications/preferences";
 import { cn } from "@/lib/utils";
 
@@ -68,6 +70,7 @@ export default function SettingsPage() {
   const [permission, setPermission] = React.useState<BrowserNotificationPermission>("default");
   const [prefEnabled, setPrefEnabled] = React.useState(false);
   const [dueSoonEnabled, setDueSoonEnabled] = React.useState(false);
+  const [missedScheduleEnabled, setMissedScheduleEnabled] = React.useState(true);
   const [tourReset, setTourReset] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [deleteBusy, setDeleteBusy] = React.useState(false);
@@ -86,6 +89,7 @@ export default function SettingsPage() {
     setPermission(getBrowserNotificationPermission());
     setPrefEnabled(getBrowserNotificationPreference());
     setDueSoonEnabled(getDueSoonNotificationPreference());
+    setMissedScheduleEnabled(getMissedScheduleNotificationPreference());
   }, []);
 
   React.useEffect(() => {
@@ -367,7 +371,8 @@ export default function SettingsPage() {
             <h2 className="text-sm font-semibold text-foreground">Focus Mode</h2>
           </div>
           <p className="mb-3 text-sm leading-relaxed text-muted">
-            Full-screen lockdown when a Pomodoro starts. Browsers cannot hard-block other sites.
+            In-app Focus Mode when a Pomodoro starts. Leaving the tab pauses your session and can
+            send a desktop nudge — browsers still can&apos;t hard-block other sites.
           </p>
           <div className="flex flex-col gap-2">
             <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-border bg-surface/40 px-3 py-2.5 text-sm">
@@ -401,9 +406,24 @@ export default function SettingsPage() {
             <h2 className="text-sm font-semibold text-foreground">Notifications</h2>
           </div>
           <p className="mb-3 text-sm leading-relaxed text-muted">
-            Lean by design: Pomodoro completion alerts are default. Optional due-soon reminders
-            fire at most once per day.
+            Lean by design: Pomodoro completion and missed-block alerts are on by default. Optional
+            due-soon reminders fire at most once per day.
           </p>
+          <label className="mb-3 flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-border bg-surface/40 px-3 py-2.5 text-sm">
+            <span className="text-foreground">
+              Missed objective / calendar event (when a block or due date passes unfinished)
+            </span>
+            <input
+              type="checkbox"
+              checked={missedScheduleEnabled}
+              onChange={(e) => {
+                const next = e.target.checked;
+                setMissedScheduleNotificationPreference(next);
+                setMissedScheduleEnabled(next);
+              }}
+              className="h-4 w-4 accent-accent"
+            />
+          </label>
           <label className="mb-3 flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-border bg-surface/40 px-3 py-2.5 text-sm">
             <span className="text-foreground">Due-soon / overdue reminder (once daily)</span>
             <input

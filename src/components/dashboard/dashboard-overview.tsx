@@ -50,7 +50,7 @@ import {
   isToday,
   weekElapsedFraction,
 } from "@/lib/goals-utils";
-import { isOverdue, isScheduleOverdue, priorityDotClass, priorityTextClass } from "@/lib/kanban-utils";
+import { canMarkObjectiveDone, isOverdue, isScheduleOverdue, priorityDotClass, priorityTextClass } from "@/lib/kanban-utils";
 import { getScheduledEvent, isSameDay } from "@/lib/calendar-utils";
 import { DURATION, EASE, enterVariants, staggerContainer } from "@/lib/motion";
 import { computeCurrentStreak } from "@/lib/progress/streak";
@@ -644,8 +644,17 @@ export function DashboardOverview() {
                   <button
                     type="button"
                     aria-label={`Mark "${objective.title}" done`}
-                    onClick={() => completeObjective(objective.id)}
-                    className="shrink-0 cursor-pointer rounded-md p-0.5 text-foreground/40 transition-colors duration-150 hover:text-success"
+                    disabled={!canMarkObjectiveDone(objective)}
+                    title={
+                      canMarkObjectiveDone(objective)
+                        ? "Mark done"
+                        : "Complete estimated study time (and any subtasks) first"
+                    }
+                    onClick={() => {
+                      if (!canMarkObjectiveDone(objective)) return;
+                      completeObjective(objective.id);
+                    }}
+                    className="shrink-0 cursor-pointer rounded-md p-0.5 text-foreground/40 transition-colors duration-150 hover:text-success disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:text-foreground/40"
                   >
                     <Circle className="h-3.5 w-3.5" />
                   </button>

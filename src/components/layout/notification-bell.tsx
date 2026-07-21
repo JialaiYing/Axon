@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { Bell, X, Timer as TimerIcon, BellOff, Flag, ImageIcon } from "lucide-react";
+import { Bell, X, Timer as TimerIcon, BellOff, Flag, ImageIcon, CalendarClock } from "lucide-react";
 import { useNotifications } from "@/hooks/use-notifications";
 import { usePomodoroTimers } from "@/hooks/use-pomodoro-timers";
 import type { TimerNotification } from "@/types";
@@ -26,12 +26,14 @@ function notificationHref(n: TimerNotification): string {
   const fromPayload = safeInternalPathOrNull(n.href);
   if (fromPayload) return fromPayload;
   if (n.kind === "due-soon") return "/kanban";
+  if (n.kind === "missed-schedule") return "/calendar";
   if (n.kind === "background-unlock") return "/settings";
   return "/pomodoro";
 }
 
 function NotificationKindIcon({ kind }: { kind?: TimerNotification["kind"] }) {
   if (kind === "due-soon") return <Flag className="h-3.5 w-3.5" />;
+  if (kind === "missed-schedule") return <CalendarClock className="h-3.5 w-3.5" />;
   if (kind === "background-unlock") return <ImageIcon className="h-3.5 w-3.5" />;
   return <TimerIcon className="h-3.5 w-3.5" />;
 }

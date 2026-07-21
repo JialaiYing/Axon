@@ -491,6 +491,20 @@ export function useObjectives() {
 
   const permanentlyDelete = deleteObjective;
 
+  const clearRecycleBin = React.useCallback(() => {
+    setObjectives((prev) => {
+      const remaining: typeof prev = [];
+      for (const objective of prev) {
+        if (objective.status === "recycled") {
+          recordTombstone(STORAGE_KEY, objective.id);
+        } else {
+          remaining.push(objective);
+        }
+      }
+      return remaining;
+    });
+  }, [setObjectives]);
+
   const addSubtask = React.useCallback(
     (objectiveId: string, title: string) => {
       const trimmed = title.trim();
@@ -771,6 +785,7 @@ export function useObjectives() {
     sendToRecycleBin,
     restoreFromRecycleBin,
     permanentlyDelete,
+    clearRecycleBin,
     addSubtask,
     toggleSubtask,
     deleteSubtask,

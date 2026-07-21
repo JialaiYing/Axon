@@ -13,46 +13,43 @@ import { TimerFullscreenOverlay } from "@/components/pomodoro/timer-fullscreen";
 import { ObjectivePicker } from "@/components/pomodoro/objective-picker";
 import { PersonalTimerForm } from "@/components/pomodoro/personal-timer-form";
 import { FinishSessionDialog } from "@/components/pomodoro/finish-session-dialog";
-import {
-  SessionSummaryDialog,
-  type SessionSummaryStats,
-} from "@/components/pomodoro/session-summary-dialog";
+import { useShellChrome } from "@/components/layout/shell-chrome";
 import { useObjectives } from "@/hooks/use-objectives";
 import { usePomodoroTimers, remainingSecondsOf } from "@/hooks/use-pomodoro-timers";
 import { usePomodoroSessions } from "@/hooks/use-pomodoro-sessions";
-import { useUserStats } from "@/hooks/use-user-stats";
 import { useFocusPreferences } from "@/hooks/use-focus-preferences";
-import { useLocalStorage, asArray } from "@/hooks/use-local-storage";
+import { asArray, useLocalStorage } from "@/hooks/use-local-storage";
 import { clampPersonalMinutes, startFocusSession } from "@/lib/pomodoro-utils";
-import { focusSessionXp } from "@/lib/progress/xp-rules";
-import { isToday as isTodayDate } from "@/lib/goals-utils";
-import type { Objective, TimerDisplayMode, TimerSource } from "@/types";
+import type { Objective, TimerSource } from "@/types";
 
 export default function PomodoroPage() {
   const { objectives, hydrated, addObjective, updateObjective, deleteObjective, startObjectiveSession, logStudyTime, completeObjective } =
     useObjectives();
   const { logSession, todaySessions, todayFocusMinutes } = usePomodoroSessions();
-  const { timers, hydrated: timersHydrated, startTimer, pauseTimer, resumeTimer, stopTimer, removeTimer, extendTimer } =
-    usePomodoroTimers();
-  const { stats } = useUserStats();
+  const {
+    timers,
+    hydrated: timersHydrated,
+    startTimer,
+    pauseTimer,
+    resumeTimer,
+    stopTimer,
+    removeTimer,
+    extendTimer,
+    restartTimer,
+  } = usePomodoroTimers();
   const { preferences: focusPreferences } = useFocusPreferences();
-  const [displayMode, setDisplayMode] = useLocalStorage<TimerDisplayMode>(
-    "axon:pomodoro:displayMode",
-    "digital"
-  );
+  const { setFocusLock } = useShellChrome();
 
   const [source, setSource] = React.useState<TimerSource>("objective");
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
   const [personalLabel, setPersonalLabel] = React.useState("");
   const [personalMinutes, setPersonalMinutes] = React.useState(25);
   const [celebrateKey, setCelebrateKey] = React.useState(0);
-  const [summaryQueue, setSummaryQueue] = React.useState<string[]>([]);
   const [finishQueue, setFinishQueue] = React.useState<string[]>([]);
   const [addToKanban, setAddToKanban] = React.useState(false);
   const [personalLinkedObjectiveId, setPersonalLinkedObjectiveId] = React.useState<string | null>(null);
   const [fullscreenTimerId, setFullscreenTimerId] = React.useState<string | null>(null);
   const knownTimerIds = React.useRef<Set<string>>(new Set());
-  const summarizedIds = React.useRef<Set<string>>(new Set());
   const [hiddenObjectiveIds, setHiddenObjectiveIds] = useLocalStorage<string[]>(
     "axon:pomodoro:hiddenObjectiveIds",
     []
@@ -121,10 +118,7 @@ export default function PomodoroPage() {
     if (!timersHydrated || !focusPreferences.autoEnterFocusMode) return;
     const currentIds = new Set(timers.map((t) => t.id));
     for (const timer of timers) {
-      if (
-        timer.status === "running" &&
-        !knownTimerIds.current.has(timer.id)
-      ) {
+      if (timer.status === "running" && !knownTimerIds.current.has(timer.id)) {
         setFullscreenTimerId(timer.id);
       }
     }
@@ -170,41 +164,43 @@ export default function PomodoroPage() {
     }
   }
 
-  // Session summary first for every finished timer, then the objective prompt.
-  React.useEffect(() => {
-    if (!timersHydrated) return;
-    timers.forEach((t) => {
-      if (t.status !== "finished") return;
-      if (summarizedIds.current.has(t.id)) return;
-      summarizedIds.current.add(t.id);
-      setSummaryQueue((q) => (q.includes(t.id) ? q : [...q, t.id]));
-      if (fullscreenTimerId === t.id) setFullscreenTimerId(null);
-    });
-  }, [timers, timersHydrated, fullscreenTimerId]);
+  const exitFocusMode = React.useCallback(() => {
+    setFullscreenTimerId(null);
+  }, []);
 
-  const activeSummaryId = summaryQueue[0] ?? null;
-  const activeSummaryTimer = React.useMemo(
-    () => timers.find((t) => t.id === activeSummaryId) ?? null,
-    [timers, activeSummaryId]
-  );
-  const tasksDoneToday = React.useMemo(
-    () =>
-      objectives.filter(
-        (o) => o.status === "done" && o.completedAt && isTodayDate(o.completedAt)
-      ).length,
-    [objectives]
-  );
-  const activeSummaryStats: SessionSummaryStats | null = React.useMemo(() => {
-    if (!activeSummaryTimer) return null;
-    const focusedMinutes = Math.max(0, Math.round(activeSummaryTimer.durationSeconds / 60));
-    return {
-      focusedMinutes,
-      sessionXp: focusSessionXp(focusedMinutes),
-      streakDays: stats.currentStreak,
-      tasksDoneToday,
-      label: activeSummaryTimer.label,
-    };
-  }, [activeSummaryTimer, stats.currentStreak, tasksDoneToday]);
+  // Exit Focus Mode when the active timer completes a full run (settles to
+  // paused at the original duration). Do not exit on a mid-run pause.
+  const focusWasRunningRef = React.useRef(false);
+  React.useEffect(() => {
+    if (!fullscreenTimerId) {
+      focusWasRunningRef.current = false;
+      return;
+    }
+    const active = timers.find((t) => t.id === fullscreenTimerId);
+    if (!active) {
+      setFullscreenTimerId(null);
+      focusWasRunningRef.current = false;
+      return;
+    }
+    if (active.status === "running") {
+      focusWasRunningRef.current = true;
+      return;
+    }
+    if (
+      focusWasRunningRef.current &&
+      active.hasCompletedRun &&
+      active.status === "paused" &&
+      (active.pausedRemainingSeconds ?? 0) >= active.durationSeconds
+    ) {
+      focusWasRunningRef.current = false;
+      setFullscreenTimerId(null);
+    }
+  }, [timers, fullscreenTimerId]);
+
+  React.useEffect(() => {
+    setFocusLock(Boolean(fullscreenTimerId));
+    return () => setFocusLock(false);
+  }, [fullscreenTimerId, setFocusLock]);
 
   const activeFinishId = finishQueue[0] ?? null;
   const activeFinishTimer = React.useMemo(
@@ -216,23 +212,8 @@ export default function PomodoroPage() {
     [objectives, activeFinishTimer]
   );
 
-  function dequeueSummary(id: string) {
-    setSummaryQueue((q) => q.filter((x) => x !== id));
-  }
-
   function dequeueFinish(id: string) {
     setFinishQueue((q) => q.filter((x) => x !== id));
-  }
-
-  function handleSummaryContinue() {
-    if (!activeSummaryTimer) return;
-    const timer = activeSummaryTimer;
-    dequeueSummary(timer.id);
-    if (timer.source === "objective" && timer.objectiveId) {
-      setFinishQueue((q) => (q.includes(timer.id) ? q : [...q, timer.id]));
-    } else {
-      removeTimer(timer.id);
-    }
   }
 
   function handleStartNewTimer() {
@@ -270,27 +251,36 @@ export default function PomodoroPage() {
     }
   }
 
+  /** Stop dismisses the timer. Full-run XP was already awarded on settle. */
   function handleStop(id: string) {
     const timer = timers.find((t) => t.id === id);
-    const elapsedMinutes = stopTimer(id);
-    if (!timer || elapsedMinutes <= 0) return;
-    if (timer.source === "objective" && timer.objectiveId) {
-      logStudyTime(timer.objectiveId, elapsedMinutes);
-      logSession({
-        durationMinutes: elapsedMinutes,
-        type: "work",
-        completed: false,
-        objectiveId: timer.objectiveId,
-        label: timer.label,
-      });
-    } else {
-      logSession({
-        durationMinutes: elapsedMinutes,
-        type: "work",
-        completed: false,
-        label: timer.label || "Personal focus session",
-      });
+    if (fullscreenTimerId === id) setFullscreenTimerId(null);
+    if (!timer) return;
+
+    if (timer.hasCompletedRun && timer.objectiveId) {
+      setFinishQueue((q) => (q.includes(id) ? q : [...q, id]));
+      return;
     }
+
+    // Mid-run stop: keep study-time progress, no focus XP (incomplete session).
+    if (!timer.hasCompletedRun) {
+      const elapsedMinutes = stopTimer(id);
+      if (elapsedMinutes > 0) {
+        if (timer.objectiveId) logStudyTime(timer.objectiveId, elapsedMinutes);
+        logSession({
+          durationMinutes: elapsedMinutes,
+          type: "work",
+          completed: false,
+          objectiveId: timer.objectiveId,
+          label: timer.label,
+        });
+      }
+      dequeueFinish(id);
+      return;
+    }
+
+    removeTimer(id);
+    dequeueFinish(id);
   }
 
   function handleFinished() {
@@ -315,9 +305,8 @@ export default function PomodoroPage() {
     dequeueFinish(activeFinishTimer.id);
   }
 
-  /** Dismisses a finished timer card (top-left close button, or the fullscreen overlay's close). */
-  function handleCloseTimer(id: string) {
-    removeTimer(id);
+  function handleRestartTimer(id: string) {
+    restartTimer(id);
     dequeueFinish(id);
   }
 
@@ -358,47 +347,20 @@ export default function PomodoroPage() {
               </p>
             </Panel>
           ) : (
-            <>
-              <div className="mb-3 inline-flex items-center gap-1 rounded-lg border border-border bg-surface p-1">
-                <button
-                  type="button"
-                  onClick={() => setDisplayMode("digital")}
-                  className={`rounded-md px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
-                    displayMode === "digital"
-                      ? "bg-accent text-accent-foreground shadow-sm"
-                      : "text-muted hover:text-foreground"
-                  }`}
-                >
-                  Digital
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDisplayMode("blob")}
-                  className={`rounded-md px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
-                    displayMode === "blob"
-                      ? "bg-accent text-accent-foreground shadow-sm"
-                      : "text-muted hover:text-foreground"
-                  }`}
-                >
-                  Blob
-                </button>
-              </div>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                {timers.map((timer) => (
-                  <TimerCard
-                    key={timer.id}
-                    timer={timer}
-                    displayMode={displayMode}
-                    remainingSeconds={remainingSecondsOf(timer)}
-                    onPause={() => pauseTimer(timer.id)}
-                    onResume={() => resumeTimer(timer.id)}
-                    onStop={() => handleStop(timer.id)}
-                    onClose={() => handleCloseTimer(timer.id)}
-                    onFullscreen={() => setFullscreenTimerId(timer.id)}
-                  />
-                ))}
-              </div>
-            </>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {timers.map((timer) => (
+                <TimerCard
+                  key={timer.id}
+                  timer={timer}
+                  remainingSeconds={remainingSecondsOf(timer)}
+                  onPause={() => pauseTimer(timer.id)}
+                  onResume={() => resumeTimer(timer.id)}
+                  onStop={() => handleStop(timer.id)}
+                  onRestart={() => handleRestartTimer(timer.id)}
+                  onFullscreen={() => setFullscreenTimerId(timer.id)}
+                />
+              ))}
+            </div>
           )}
         </div>
 
@@ -453,7 +415,6 @@ export default function PomodoroPage() {
       <TimerFullscreenOverlay
         timer={fullscreenTimer}
         remainingSeconds={fullscreenTimer ? remainingSecondsOf(fullscreenTimer) : 0}
-        displayMode={displayMode}
         lockdown
         showBlocklistReminder={focusPreferences.showBlocklistReminder}
         onPause={() => fullscreenTimer && pauseTimer(fullscreenTimer.id)}
@@ -461,19 +422,8 @@ export default function PomodoroPage() {
         onStop={() => {
           if (!fullscreenTimer) return;
           handleStop(fullscreenTimer.id);
-          setFullscreenTimerId(null);
         }}
-        onCloseTimer={() => fullscreenTimer && handleCloseTimer(fullscreenTimer.id)}
-        onExit={() => setFullscreenTimerId(null)}
-      />
-
-      <SessionSummaryDialog
-        open={activeSummaryId !== null && activeFinishId === null}
-        onOpenChange={(open) => {
-          if (!open && activeSummaryTimer) handleSummaryContinue();
-        }}
-        stats={activeSummaryStats}
-        onContinue={handleSummaryContinue}
+        onExit={exitFocusMode}
       />
 
       <FinishSessionDialog

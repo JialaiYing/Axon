@@ -19,6 +19,7 @@ import { ObjectiveDialog } from "@/components/kanban/objective-dialog";
 import { useObjectives } from "@/hooks/use-objectives";
 import { usePomodoroTimers } from "@/hooks/use-pomodoro-timers";
 import { useCalendarState, type CalendarViewMode } from "@/hooks/use-calendar-state";
+import { startFocusSession } from "@/lib/pomodoro-utils";
 import {
   MINUTES_IN_DAY,
   PX_PER_MINUTE,
@@ -30,7 +31,6 @@ import {
   withMinutesSinceMidnight,
   type ScheduledEvent,
 } from "@/lib/calendar-utils";
-import { startFocusSession } from "@/lib/pomodoro-utils";
 import { CalendarHeader } from "@/components/calendar/calendar-header";
 import { MonthView } from "@/components/calendar/month-view";
 import { WeekView } from "@/components/calendar/week-view";
@@ -58,10 +58,14 @@ export function CalendarPage() {
     unscheduleObjective,
     startObjectiveSession,
   } = useObjectives();
-  const { timers, hydrated: timersHydrated, startTimer, pauseTimer, resumeTimer, stopTimer, removeTimer } =
+  const { timers, hydrated: timersHydrated, startTimer, pauseTimer, resumeTimer, removeTimer } =
     usePomodoroTimers();
   const { view, setView, currentDate, setCurrentDate, goToday, goPrev, goNext } = useCalendarState();
   const prefersReducedMotion = useReducedMotion();
+
+  function handleStopTimer(id: string) {
+    removeTimer(id);
+  }
 
   const [hoveredId, setHoveredId] = React.useState<string | null>(null);
   const [editTarget, setEditTarget] = React.useState<Objective | null>(null);
@@ -225,7 +229,7 @@ export function CalendarPage() {
                 onSelect={setEditTarget}
                 onPauseTimer={pauseTimer}
                 onResumeTimer={resumeTimer}
-                onStopTimer={stopTimer}
+                onStopTimer={handleStopTimer}
               />
               <UnscheduledRail
                 objectives={visibleObjectives}

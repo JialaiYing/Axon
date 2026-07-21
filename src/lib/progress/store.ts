@@ -4,6 +4,7 @@ import { localDateKey } from "@/lib/goals-utils";
 import type { Objective, PomodoroSession } from "@/types";
 import { computeCurrentStreak } from "./streak";
 import { DAILY_ACTIVITY_BONUS_XP, focusSessionXp, objectiveCompletionXp } from "./xp-rules";
+import { publishXpAward } from "./xp-events";
 
 export const PROGRESS_STORAGE_KEY = "axon:progress:v1";
 
@@ -78,9 +79,11 @@ function write(updater: (prev: ProgressState) => ProgressState): ProgressState {
  * (Kanban drag, the edit dialog, the Pomodoro finish flow, recycle-bin
  * restore) since it no-ops once that objective's id has already been paid.
  */
-export function awardObjectiveCompletionXp(objective: Objective): void {
+export function awardObjectiveCompletionXp(objective: Objective): number {
+  let gained = 0;
   write((state) => {
     if (state.awardedObjectiveIds.includes(objective.id)) return state;
+    const before = state.xp;
     const streak = computeCurrentStreak(readSessions());
     const xp = objectiveCompletionXp({
       priority: objective.priority,
@@ -88,25 +91,35 @@ export function awardObjectiveCompletionXp(objective: Objective): void {
       completedAt: objective.completedAt ?? new Date().toISOString(),
       streak,
     });
-    return withDailyBonus({
+    const next = withDailyBonus({
       ...state,
       xp: state.xp + xp,
       awardedObjectiveIds: [...state.awardedObjectiveIds, objective.id],
     });
+    gained = next.xp - before;
+    return next;
   });
+  if (gained > 0) publishXpAward(gained);
+  return gained;
 }
 
 /** Credits XP for a completed focus session and updates the persisted longest streak. */
-export function awardFocusSessionXp(durationMinutes: number): void {
-  if (durationMinutes <= 0) return;
+export function awardFocusSessionXp(durationMinutes: number): number {
+  if (durationMinutes <= 0) return 0;
+  let gained = 0;
   write((state) => {
+    const before = state.xp;
     const streak = computeCurrentStreak(readSessions());
     const xp = focusSessionXp(durationMinutes);
-    return withDailyBonus({
+    const next = withDailyBonus({
       ...state,
       xp: state.xp + xp,
       intervalsCompleted: state.intervalsCompleted + 1,
       longestStreak: Math.max(state.longestStreak, streak),
     });
+    gained = next.xp - before;
+    return next;
   });
+  if (gained > 0) publishXpAward(gained);
+  return gained;
 }

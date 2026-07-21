@@ -143,10 +143,6 @@ export interface PomodoroSession {
   label?: string;
 }
 
-/** How the running timer is visualized in the Pomodoro section. */
-export type TimerDisplayMode = "digital" | "blob";
-
-/** Which kind of focus session the Pomodoro section is currently set up for. */
 /** Which kind of focus session the Pomodoro section is currently set up for. */
 export type TimerSource = "objective" | "personal";
 
@@ -176,15 +172,20 @@ export interface PomodoroTimerInstance {
   pausedRemainingSeconds: number | null;
   status: TimerRunStatus;
   createdAt: string;
-  /** True once this timer's completion has already been logged, so the
-   *  reach-zero effect never double-logs across renders/ticks. */
+  /** True once this timer's completion has already been logged, so a full
+   *  run never double-awards XP. */
   loggedCompletion?: boolean;
-  /** True once a "timer finished" notification has been raised for this run,
-   *  so the global watcher never double-notifies across renders/ticks. */
+  /** True once a "timer finished" notification has been raised for this run. */
   notified?: boolean;
+  /** True after at least one full countdown completed (XP awards on settle). */
+  hasCompletedRun?: boolean;
 }
 
-export type AppNotificationKind = "timer" | "due-soon" | "background-unlock";
+export type AppNotificationKind =
+  | "timer"
+  | "due-soon"
+  | "background-unlock"
+  | "missed-schedule";
 
 /** Archived in-app notification shown in the header bell. */
 export interface TimerNotification {

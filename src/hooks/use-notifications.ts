@@ -31,7 +31,9 @@ function normalizeNotification(value: TimerNotification): TimerNotification | nu
       ? "due-soon"
       : value.kind === "background-unlock"
         ? "background-unlock"
-        : "timer";
+        : value.kind === "missed-schedule"
+          ? "missed-schedule"
+          : "timer";
   return {
     ...value,
     timerId: typeof value.timerId === "string" ? value.timerId : "",

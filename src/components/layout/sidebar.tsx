@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { ChevronDown, PanelLeftClose, PanelLeftOpen, Settings } from "lucide-react";
 import { AxonLogo } from "@/components/brand/axon-logo";
 import { NAV_PRIMARY, NAV_PROGRESS } from "@/constants/navigation";
 import { cn } from "@/lib/utils";
@@ -55,12 +55,14 @@ export function Sidebar({ open, onOpenChange }: SidebarProps) {
               href={item.href}
               title={open ? undefined : item.label}
               aria-current={isActive ? "page" : undefined}
+              data-xp-target={item.href === "/dashboard" ? "dashboard" : undefined}
               className={cn(
-                "flex h-10 items-center gap-3 rounded-lg text-sm font-medium transition-colors duration-200",
+                "flex h-10 items-center gap-3 rounded-lg text-sm font-medium transition-all duration-200",
                 open ? "px-3" : "justify-center px-0",
                 isActive
                   ? "bg-accent-muted/60 text-foreground light:bg-accent-muted light:text-accent"
-                  : "text-foreground/65 hover:bg-card-hover hover:text-foreground"
+                  : "text-foreground/65 hover:bg-card-hover hover:text-foreground",
+                item.href === "/dashboard" && "data-[xp-pulse=true]:scale-110 data-[xp-pulse=true]:bg-accent-muted/80"
               )}
             >
               <Icon className={cn("h-[18px] w-[18px] shrink-0", iconColor)} />
@@ -147,6 +149,27 @@ export function Sidebar({ open, onOpenChange }: SidebarProps) {
       </nav>
 
       <div className="shrink-0 border-t border-border/50 p-2.5">
+        <Link
+          href="/settings"
+          title={open ? undefined : "Settings"}
+          aria-label="Settings"
+          aria-current={pathname === "/settings" ? "page" : undefined}
+          className={cn(
+            "mb-1 flex h-10 w-full items-center gap-3 rounded-lg text-sm font-medium transition-colors duration-200",
+            open ? "px-3" : "justify-center px-0",
+            pathname === "/settings"
+              ? "bg-accent-muted/60 text-foreground light:bg-accent-muted light:text-accent"
+              : "text-foreground/60 hover:bg-card-hover hover:text-foreground"
+          )}
+        >
+          <Settings
+            className={cn(
+              "h-[18px] w-[18px] shrink-0",
+              pathname === "/settings" ? "text-accent" : "text-muted-foreground"
+            )}
+          />
+          {open && <span className="whitespace-nowrap">Settings</span>}
+        </Link>
         <button
           type="button"
           onClick={() => onOpenChange(!open)}

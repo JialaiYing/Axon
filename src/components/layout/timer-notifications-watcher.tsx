@@ -20,56 +20,46 @@ interface Toast {
 }
 
 /**
- * Always-mounted (lives in the dashboard shell) watcher that turns a
- * finished Pomodoro timer into a toast + archived notification whenever the
- * user isn't already looking at the Pomodoro section. Each timer is
- * notified exactly once, tracked via its own `notified` flag so this
- * survives remounts/navigations without re-firing.
+ * Always-mounted watcher: awards focus XP when a full countdown completes,
+ * and surfaces a toast/notification when the user isn't on the Pomodoro page.
  */
 export function TimerNotificationsWatcher() {
   const pathname = usePathname();
   const router = useRouter();
-  const { timers, hydrated, markLogged, markNotified, removeTimer } = usePomodoroTimers();
+  const { timers, hydrated, markNotified, claimCompletion, removeTimer } = usePomodoroTimers();
   const { addNotification, removeNotification } = useNotifications();
   const { logSession } = usePomodoroSessions();
   const { logStudyTime } = useObjectives();
   const [toasts, setToasts] = React.useState<Toast[]>([]);
-  const loggedInThisMount = React.useRef(new Set<string>());
 
-  // Completion accounting lives in this always-mounted watcher so Dashboard,
-  // Analytics, Kanban progress, and Pomodoro all observe the same session
-  // record even when the timer expires on another route.
+  // Award session + XP as soon as a full run completes (timer settles to Ready).
   React.useEffect(() => {
     if (!hydrated) return;
-    timers
-      .filter((timer) => timer.status === "finished" && !timer.loggedCompletion)
-      .forEach((timer) => {
-        if (loggedInThisMount.current.has(timer.id)) return;
-        loggedInThisMount.current.add(timer.id);
-        markLogged(timer.id);
-        const minutes = Math.max(0, Math.round(timer.durationSeconds / 60));
-        if (minutes <= 0) return;
-        if (timer.objectiveId) logStudyTime(timer.objectiveId, minutes);
-        logSession({
-          durationMinutes: minutes,
-          type: "work",
-          completed: true,
-          objectiveId: timer.objectiveId,
-          label: timer.label,
-        });
+    for (const timer of timers) {
+      if (!timer.hasCompletedRun || timer.loggedCompletion) continue;
+      const claimed = claimCompletion(timer.id);
+      if (!claimed) continue;
+      const minutes = Math.max(1, Math.round(claimed.durationSeconds / 60));
+      if (claimed.objectiveId) logStudyTime(claimed.objectiveId, minutes);
+      logSession({
+        durationMinutes: minutes,
+        type: "work",
+        completed: true,
+        objectiveId: claimed.objectiveId,
+        label: claimed.label,
       });
-  }, [timers, hydrated, markLogged, logStudyTime, logSession]);
+    }
+  }, [timers, hydrated, claimCompletion, logStudyTime, logSession]);
 
   React.useEffect(() => {
     if (!hydrated) return;
-    const due = timers.filter((t) => t.status === "finished" && !t.notified);
+    const due = timers.filter((t) => t.hasCompletedRun && !t.notified);
     if (due.length === 0) return;
     due.forEach((timer) => {
       markNotified(timer.id);
       const title = "Timer finished";
       const message = `"${timer.label}" just ran out of time.`;
 
-      // System notification when the tab isn't focused (permission + pref gated).
       const browserNote = showBrowserNotification(title, {
         body: message,
         tag: `axon-timer-${timer.id}`,
