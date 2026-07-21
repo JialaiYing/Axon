@@ -14,12 +14,12 @@ export function Gamification() {
     <section className="border-t border-white/[0.06] bg-black px-6 py-24 md:py-28">
       <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 md:grid-cols-2 md:gap-16">
         <ScrollReveal className="text-left">
-          <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-white/45">
-            Progress
-          </p>
-          <h2 className="mt-3 font-display text-2xl font-semibold tracking-tight text-white md:text-3xl">
+          <h2 className="font-display text-2xl font-semibold tracking-tight text-white md:text-3xl">
             Progress you can actually see
           </h2>
+          <p className="mt-2 text-[11px] font-medium uppercase tracking-[0.16em] text-white/45">
+            Progress
+          </p>
           <p className="mt-4 text-sm leading-relaxed text-white/60 md:text-base">
             XP, ranks, and streaks aren&apos;t decoration — they&apos;re a direct readout of
             finished objectives, completed intervals, and reviewed flashcards.

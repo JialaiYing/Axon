@@ -64,12 +64,12 @@ export function Features() {
     >
       <div className="mx-auto max-w-6xl">
         <ScrollReveal className="mb-14 max-w-xl text-left md:mb-16">
-          <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-white/45">
-            Workspace
-          </p>
-          <h2 className="mt-3 font-display text-2xl font-semibold tracking-tight text-white md:text-3xl">
+          <h2 className="font-display text-2xl font-semibold tracking-tight text-white md:text-3xl">
             Everything you need. Nothing you don&apos;t.
           </h2>
+          <p className="mt-2 text-[11px] font-medium uppercase tracking-[0.16em] text-white/45">
+            Workspace
+          </p>
           <p className="mt-3.5 text-sm leading-relaxed text-white/60 md:text-base">
             Eight focused tools, one consistent workspace.
           </p>

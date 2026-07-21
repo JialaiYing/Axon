@@ -2,9 +2,9 @@ import { Flame, Layers, Plus, Search, Timer } from "lucide-react";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { cn } from "@/lib/utils";
 
-/** Fills the chrome frame; content sits on surface, not a second heavy card. */
+/** Fills the chrome frame; tight padding so content fills the frame. */
 const FRAME =
-  "flex h-full w-full flex-col justify-center bg-background p-3 sm:p-3.5 overflow-hidden";
+  "flex h-full w-full flex-col justify-start bg-background p-1.5 sm:p-2 overflow-hidden";
 
 const PRIORITY_BADGE: Record<string, string> = {
   urgent: "border-danger/40 bg-danger-muted text-danger",
@@ -65,7 +65,7 @@ function KanbanCaptureVisual() {
   ];
 
   return (
-    <div className={cn(FRAME, "justify-start gap-2.5")}>
+    <div className={cn(FRAME, "gap-1.5")}>
       {/* Toolbar — matches KanbanToolbar */}
       <div className="flex items-center justify-between gap-2">
         <div className="flex min-w-0 flex-1 items-center gap-2">
@@ -158,18 +158,18 @@ function KanbanCaptureVisual() {
 }
 
 function PomodoroVisual() {
-  const r = 40;
+  const r = 42;
   const c = 2 * Math.PI * r;
   const progress = 0.62;
   const offset = c * (1 - progress);
 
   return (
-    <div className={FRAME}>
-      <p className="mb-4 text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+    <div className={cn(FRAME, "justify-center gap-3")}>
+      <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
         Focus session
       </p>
-      <div className="flex flex-col items-center gap-5 sm:flex-row sm:justify-center sm:gap-8">
-        <div className="relative flex h-[7.25rem] w-[7.25rem] items-center justify-center">
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 sm:flex-row sm:gap-6">
+        <div className="relative flex aspect-square h-full max-h-[11rem] w-full max-w-[11rem] shrink-0 items-center justify-center sm:max-h-[13rem] sm:max-w-[13rem]">
           <svg className="h-full w-full -rotate-90" viewBox="0 0 100 100" aria-hidden>
             <circle
               cx="50"
@@ -192,20 +192,20 @@ function PomodoroVisual() {
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <Timer className="mb-0.5 h-3.5 w-3.5 text-accent" aria-hidden />
-            <p className="font-mono text-lg font-semibold tabular-nums tracking-tight text-foreground">
+            <Timer className="mb-1 h-4 w-4 text-accent" aria-hidden />
+            <p className="font-mono text-2xl font-semibold tabular-nums tracking-tight text-foreground">
               18:42
             </p>
           </div>
         </div>
-        <div className="w-full max-w-[13rem] rounded-[var(--radius-md)] border border-border bg-card p-3.5 shadow-[var(--shadow-elevation-1)]">
+        <div className="flex w-full max-w-[16rem] flex-col justify-center rounded-[var(--radius-md)] border border-border bg-card p-5 shadow-[var(--shadow-elevation-1)] sm:max-w-none sm:flex-1 sm:self-stretch sm:p-6">
           <p className="text-[10px] font-medium uppercase tracking-wide text-foreground/50">
             Linked objective
           </p>
-          <p className="mt-1.5 text-sm font-semibold tracking-tight text-foreground">
+          <p className="mt-2.5 text-base font-semibold tracking-tight text-foreground sm:text-lg">
             Calc II problem set
           </p>
-          <p className="mt-1 text-[11px] text-muted-foreground">25 min · work interval</p>
+          <p className="mt-2 text-xs text-muted-foreground">25 min · work interval</p>
         </div>
       </div>
     </div>
@@ -214,30 +214,30 @@ function PomodoroVisual() {
 
 function FlashcardsVisual() {
   return (
-    <div className={FRAME}>
-      <div className="mb-3 flex items-center justify-between">
+    <div className={cn(FRAME, "justify-center gap-2")}>
+      <div className="flex items-center justify-between px-0.5">
         <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
           Review set
         </p>
         <Layers className="h-3.5 w-3.5 text-foreground/45" aria-hidden />
       </div>
-      <div className="relative mx-auto w-full max-w-[17rem]">
+      <div className="relative mx-auto flex min-h-0 w-full max-w-none flex-1 items-center">
         <div
           aria-hidden
-          className="absolute inset-x-4 top-2.5 h-full rounded-[var(--radius-md)] border border-border/80 bg-card/40"
+          className="absolute inset-x-3 top-3 bottom-0 rounded-[var(--radius-md)] border border-border/80 bg-card/40"
         />
         <div
           aria-hidden
-          className="absolute inset-x-2 top-1.5 h-full rounded-[var(--radius-md)] border border-border bg-card/70"
+          className="absolute inset-x-1.5 top-1.5 bottom-0 rounded-[var(--radius-md)] border border-border bg-card/70"
         />
-        <div className="relative rounded-[var(--radius-md)] border border-border bg-card p-5 shadow-[var(--shadow-elevation-2)]">
+        <div className="relative flex h-full min-h-[10rem] w-full flex-col justify-center rounded-[var(--radius-md)] border border-border bg-card p-5 shadow-[var(--shadow-elevation-2)] sm:min-h-[12rem] sm:p-6">
           <p className="text-[10px] font-medium uppercase tracking-wide text-foreground/50">
             Front
           </p>
-          <p className="mt-2.5 text-sm font-semibold leading-snug tracking-tight text-foreground">
+          <p className="mt-3 text-base font-semibold leading-snug tracking-tight text-foreground sm:text-lg">
             What is the derivative of ln(x)?
           </p>
-          <div className="mt-4 border-t border-border pt-3">
+          <div className="mt-auto border-t border-border pt-4">
             <div className="mb-1.5 flex items-center justify-between text-[10px]">
               <span className="text-muted-foreground">Organic Chem · Deck A</span>
               <span className="tabular-nums text-foreground/70">72%</span>

@@ -61,13 +61,13 @@ export function HowItWorks() {
       className="border-t border-white/[0.06] bg-black px-6 py-24 md:py-28"
     >
       <div className="mx-auto max-w-6xl">
-        <ScrollReveal className="mb-12 max-w-xl text-left md:mb-14">
-          <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-white/45">
-            The loop
-          </p>
-          <h2 className="mt-3 font-display text-2xl font-semibold tracking-tight text-white md:text-3xl">
+        <ScrollReveal className="mb-14 max-w-xl text-left md:mb-16">
+          <h2 className="font-display text-2xl font-semibold tracking-tight text-white md:text-3xl">
             How it works
           </h2>
+          <p className="mt-2 text-[11px] font-medium uppercase tracking-[0.16em] text-white/45">
+            The loop
+          </p>
           <p className="mt-3.5 text-sm leading-relaxed text-white/60 md:text-base">
             One loop, four steps: plan, focus, reinforce, review.
           </p>
@@ -81,12 +81,12 @@ export function HowItWorks() {
           >
             <span className="sr-only">Showing: {STEPS[activeIndex]?.title}</span>
             <div
-              className="absolute inset-x-0 top-0 z-[1] flex items-center gap-1.5 border-b border-white/10 bg-black/40 px-3.5 py-2.5 backdrop-blur-sm"
+              className="absolute inset-x-0 top-0 z-[1] flex items-center gap-1.5 border-b border-white/10 bg-black/40 px-3 py-1.5 backdrop-blur-sm"
               aria-hidden
             >
-              <span className="h-2 w-2 rounded-full bg-white/20" />
-              <span className="h-2 w-2 rounded-full bg-white/20" />
-              <span className="h-2 w-2 rounded-full bg-white/20" />
+              <span className="h-1.5 w-1.5 rounded-full bg-white/20" />
+              <span className="h-1.5 w-1.5 rounded-full bg-white/20" />
+              <span className="h-1.5 w-1.5 rounded-full bg-white/20" />
             </div>
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
@@ -95,7 +95,7 @@ export function HowItWorks() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={prefersReducedMotion ? undefined : { opacity: 0, y: -4 }}
                 transition={{ duration: DURATION.base, ease: EASE }}
-                className="absolute inset-0 pt-9"
+                className="absolute inset-0 pt-6"
                 aria-hidden
               >
                 <HowItWorksVisual index={activeIndex} />

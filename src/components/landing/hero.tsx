@@ -31,6 +31,7 @@ export function Hero() {
           }}
           className="max-w-3xl text-left"
         >
+          {/* Compact brand mark — keeps the logo feature without displacing the headline */}
           <motion.div
             variants={enterVariants(10)}
             transition={{ duration: DURATION.section, ease: EASE }}
@@ -38,16 +39,16 @@ export function Hero() {
             <AxonLogo
               withWordmark
               priority
-              iconClassName="h-10 w-10 md:h-12 md:w-12"
-              wordmarkClassName="font-display text-4xl font-semibold tracking-tight text-white md:text-5xl"
-              className="gap-3"
+              iconClassName="h-13 w-13"
+              wordmarkClassName="text-base font-semibold tracking-tight text-white md:text-lg"
+              className="gap-2.5"
             />
           </motion.div>
 
           <motion.h1
             variants={enterVariants(12)}
             transition={{ duration: DURATION.section, ease: EASE }}
-            className="mt-7 font-display text-balance text-3xl font-semibold leading-[1.12] tracking-tight text-white md:mt-8 md:text-5xl"
+            className="mt-8 font-display text-balance text-5xl font-semibold leading-[1.08] tracking-tight text-white md:mt-6 md:text-7xl"
           >
             The study dashboard for staying consistent
           </motion.h1>
@@ -55,7 +56,7 @@ export function Hero() {
           <motion.p
             variants={enterVariants(12)}
             transition={{ duration: DURATION.section, ease: EASE }}
-            className="mt-5 max-w-xl text-balance text-base leading-relaxed text-white/65 md:mt-6 md:text-lg"
+            className="mt-6 max-w-xl text-balance text-base leading-relaxed text-white/65 md:text-lg"
           >
             One calm, local-first workspace with statistics-driven insights
             instead of noisy AI guesses.
