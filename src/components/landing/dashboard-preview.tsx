@@ -49,7 +49,173 @@ const PACE_COLOR: Record<string, string> = {
   Behind: "text-warning",
 };
 
-export function DashboardPreview() {
+function PreviewCard({
+  prefersReducedMotion,
+  tiltMax = 4,
+}: {
+  prefersReducedMotion: boolean | null;
+  tiltMax?: number;
+}) {
+  return (
+    <Tilt
+      tiltEnable={!prefersReducedMotion}
+      tiltMaxAngleX={tiltMax}
+      tiltMaxAngleY={tiltMax}
+      perspective={1200}
+      transitionSpeed={1200}
+      glareEnable={false}
+      className="will-change-transform"
+    >
+      {/* Scoped to dashboard tokens so the homepage black canvas stays unchanged */}
+      <Card className="overflow-hidden rounded-2xl border-border/60 bg-card p-2 shadow-[var(--shadow-elevation-3)]">
+        <div className="rounded-xl bg-[#404040] p-6 md:p-10">
+          <div className="mb-5 flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-danger/60" />
+            <span className="h-2.5 w-2.5 rounded-full bg-warning/60" />
+            <span className="h-2.5 w-2.5 rounded-full bg-success/60" />
+          </div>
+
+          <div className="grid grid-cols-1 gap-3.5 md:grid-cols-[1.1fr_0.9fr]">
+            <ScrollRevealGroup className="flex flex-col gap-2" stagger={0.08}>
+              <p className="mb-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+                Today
+              </p>
+              {AGENDA_ITEMS.map((item) => (
+                <ScrollRevealItem key={item.label}>
+                  <div className="flex items-center gap-2.5 rounded-lg border border-border/60 bg-card/90 p-3">
+                    <item.icon className="h-3.5 w-3.5 shrink-0 text-accent" />
+                    <p className="min-w-0 flex-1 truncate text-xs font-medium text-foreground">
+                      {item.label}
+                    </p>
+                    <span className="shrink-0 font-mono text-[11px] text-muted-foreground">
+                      {item.time}
+                    </span>
+                  </div>
+                </ScrollRevealItem>
+              ))}
+              <ScrollRevealItem>
+                <div className="flex items-center gap-2 rounded-lg border border-accent/25 bg-accent-muted/40 p-3">
+                  <Flame className="h-3.5 w-3.5 shrink-0 text-warning" />
+                  <p className="text-xs font-medium text-foreground">12-day streak</p>
+                  <Badge variant="accent" className="ml-auto">
+                    Scholar II
+                  </Badge>
+                </div>
+              </ScrollRevealItem>
+            </ScrollRevealGroup>
+
+            <ScrollRevealGroup className="flex flex-col gap-2" stagger={0.08}>
+              <p className="mb-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+                Up next
+              </p>
+              {BOARD_CARDS.map((card) => (
+                <ScrollRevealItem key={card.title}>
+                  <div className="flex items-center gap-2.5 rounded-lg border border-border/60 bg-card/90 p-3 transition-colors duration-300 hover:border-accent/25 hover:bg-card-hover">
+                    <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${PRIORITY_DOT[card.priority]}`} />
+                    <p className="min-w-0 flex-1 truncate text-xs font-medium text-foreground">
+                      {card.title}
+                    </p>
+                    <Circle className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                  </div>
+                </ScrollRevealItem>
+              ))}
+            </ScrollRevealGroup>
+          </div>
+
+          <ScrollRevealGroup className="mt-3.5 grid grid-cols-2 gap-3.5 md:grid-cols-4" stagger={0.1}>
+            {STATS.map((stat) => (
+              <ScrollRevealItem key={stat.label}>
+                <div className="rounded-lg border border-border/60 bg-card/90 p-4 transition-colors duration-300 hover:border-accent/25 hover:bg-card-hover">
+                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                    {stat.label}
+                  </p>
+                  <p className="mt-1.5 text-lg font-semibold text-foreground">
+                    <CountUp end={stat.value} duration={1.4} suffix={stat.suffix} />
+                  </p>
+                </div>
+              </ScrollRevealItem>
+            ))}
+          </ScrollRevealGroup>
+
+          <div className="mt-3.5 grid grid-cols-1 gap-3.5 md:grid-cols-2">
+            <div className="rounded-lg border border-border/60 bg-card/90 p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                  Goals
+                </p>
+                <span className="flex h-6 w-6 items-center justify-center rounded-md border border-border bg-success-muted text-success">
+                  <Target className="h-3 w-3" />
+                </span>
+              </div>
+              <div className="space-y-3">
+                {GOAL_ROWS.map((goal) => (
+                  <div key={goal.title}>
+                    <div className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
+                      <span className="truncate">{goal.title}</span>
+                      <span className="flex shrink-0 items-center gap-2">
+                        <span
+                          className={`text-[10px] font-medium uppercase tracking-[0.08em] ${PACE_COLOR[goal.pace]}`}
+                        >
+                          {goal.pace}
+                        </span>
+                        <span className="tabular-nums text-foreground">
+                          {goal.progress}/{goal.target} {goal.unit}
+                        </span>
+                      </span>
+                    </div>
+                    <ProgressBar
+                      value={(goal.progress / goal.target) * 100}
+                      size="sm"
+                      className="mt-1.5"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="rounded-lg border border-border/60 bg-card/90 p-4">
+              <div className="flex items-center justify-between">
+                <p className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                  <Trophy className="h-3 w-3 text-accent" /> Current rank
+                </p>
+                <div className="flex items-center gap-1.5">
+                  <Badge variant="accent" className="gap-1">
+                    <Sparkles className="h-3 w-3" /> +42 XP today
+                  </Badge>
+                  <Badge variant="secondary">Level 8 / 30</Badge>
+                </div>
+              </div>
+              <p className="mt-2 mb-2 text-sm font-semibold text-foreground">Scholar II</p>
+              <div className="mb-1.5 flex items-center justify-between text-[11px] text-muted-foreground">
+                <span>XP to next level</span>
+                <span className="tabular-nums text-foreground">640 / 940</span>
+              </div>
+              <ProgressBar value={68} />
+            </div>
+          </div>
+        </div>
+      </Card>
+    </Tilt>
+  );
+}
+
+function EmbeddedPreview() {
+  const prefersReducedMotion = useReducedMotion();
+
+  return (
+    <div className="relative w-full">
+      <motion.div
+        initial={prefersReducedMotion ? false : { opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, delay: 0.15, ease: [0.21, 0.47, 0.32, 0.98] }}
+        className="origin-center"
+      >
+        <PreviewCard prefersReducedMotion={prefersReducedMotion} tiltMax={2} />
+      </motion.div>
+    </div>
+  );
+}
+
+function StandalonePreview() {
   const sectionRef = React.useRef<HTMLDivElement>(null);
   const prefersReducedMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({
@@ -57,16 +223,12 @@ export function DashboardPreview() {
     offset: ["start end", "end start"],
   });
 
-  // Immersive perspective reveal: the panel starts pitched back like a
-  // screen lying on a desk, then rises flat as it crosses the viewport —
-  // an Apple-keynote-style product shot driven by scroll. Mouse-driven tilt
-  // (via react-parallax-tilt) layers on top once it's settled.
   const rotateX = useTransform(scrollYProgress, [0, 0.35, 0.55], [32, 8, 0]);
   const scale = useTransform(scrollYProgress, [0, 0.35, 0.55], [0.92, 0.98, 1]);
   const parallaxY = useTransform(scrollYProgress, [0, 1], [40, -40]);
 
   return (
-    <section ref={sectionRef} className="px-6 py-24 md:py-28">
+    <section ref={sectionRef} className="relative px-6 py-24 md:py-28">
       <ScrollReveal className="perspective-1200 mx-auto max-w-5xl">
         <motion.div
           style={
@@ -76,148 +238,13 @@ export function DashboardPreview() {
           }
           className="origin-center"
         >
-          <Tilt
-            tiltEnable={!prefersReducedMotion}
-            tiltMaxAngleX={4}
-            tiltMaxAngleY={4}
-            perspective={1200}
-            transitionSpeed={1200}
-            glareEnable={false}
-            className="will-change-transform"
-          >
-            <Card className="glass-panel glass-panel-hover overflow-hidden rounded-2xl p-2 shadow-[0_0_0_1px_rgba(59,130,246,0.15),0_20px_60px_-16px_rgba(59,130,246,0.35)] light:shadow-[0_0_0_1px_var(--color-border),var(--shadow-elevation-3)]">
-              <div className="rounded-xl bg-surface/60 p-6 md:p-8">
-                <div className="mb-5 flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-full bg-danger/60" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-warning/60" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-success/60" />
-                </div>
-
-                <div className="grid grid-cols-1 gap-3.5 md:grid-cols-[1.1fr_0.9fr]">
-                  {/* Agenda slice — leads, same as the real dashboard's primary surface */}
-                  <ScrollRevealGroup className="flex flex-col gap-2" stagger={0.08}>
-                    <p className="mb-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
-                      Today
-                    </p>
-                    {AGENDA_ITEMS.map((item) => (
-                      <ScrollRevealItem key={item.label}>
-                        <div className="flex items-center gap-2.5 rounded-lg border border-border bg-card p-3">
-                          <item.icon className="h-3.5 w-3.5 shrink-0 text-accent" />
-                          <p className="min-w-0 flex-1 truncate text-xs font-medium text-foreground">
-                            {item.label}
-                          </p>
-                          <span className="shrink-0 font-mono text-[11px] text-muted-foreground">
-                            {item.time}
-                          </span>
-                        </div>
-                      </ScrollRevealItem>
-                    ))}
-                    <ScrollRevealItem>
-                      <div className="flex items-center gap-2 rounded-lg border border-accent/30 bg-accent-muted/25 p-3">
-                        <Flame className="h-3.5 w-3.5 shrink-0 text-warning" />
-                        <p className="text-xs font-medium text-foreground">12-day streak</p>
-                        <Badge variant="accent" className="ml-auto">
-                          Scholar II
-                        </Badge>
-                      </div>
-                    </ScrollRevealItem>
-                  </ScrollRevealGroup>
-
-                  {/* Board slice — "Up next" queue */}
-                  <ScrollRevealGroup className="flex flex-col gap-2" stagger={0.08}>
-                    <p className="mb-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
-                      Up next
-                    </p>
-                    {BOARD_CARDS.map((card) => (
-                      <ScrollRevealItem key={card.title}>
-                        <div className="flex items-center gap-2.5 rounded-lg border border-border bg-card p-3 transition-colors duration-300 hover:border-border-strong hover:bg-card-hover">
-                          <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${PRIORITY_DOT[card.priority]}`} />
-                          <p className="min-w-0 flex-1 truncate text-xs font-medium text-foreground">
-                            {card.title}
-                          </p>
-                          <Circle className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                        </div>
-                      </ScrollRevealItem>
-                    ))}
-                  </ScrollRevealGroup>
-                </div>
-
-                <ScrollRevealGroup className="mt-3.5 grid grid-cols-2 gap-3.5 md:grid-cols-4" stagger={0.1}>
-                  {STATS.map((stat) => (
-                    <ScrollRevealItem key={stat.label}>
-                      <div className="rounded-lg border border-border bg-card p-4 transition-colors duration-300 hover:border-border-strong hover:bg-card-hover">
-                        <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
-                          {stat.label}
-                        </p>
-                        <p className="mt-1.5 text-lg font-semibold text-foreground">
-                          <CountUp end={stat.value} duration={1.4} suffix={stat.suffix} />
-                        </p>
-                      </div>
-                    </ScrollRevealItem>
-                  ))}
-                </ScrollRevealGroup>
-
-                {/* Goals + Current rank — same pair as the dashboard */}
-                <div className="mt-3.5 grid grid-cols-1 gap-3.5 md:grid-cols-2">
-                  <div className="rounded-lg border border-border bg-card p-4">
-                    <div className="mb-3 flex items-center justify-between">
-                      <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                        Goals
-                      </p>
-                      <span className="flex h-6 w-6 items-center justify-center rounded-md border border-border bg-success-muted text-success">
-                        <Target className="h-3 w-3" />
-                      </span>
-                    </div>
-                    <div className="space-y-3">
-                      {GOAL_ROWS.map((goal) => (
-                        <div key={goal.title}>
-                          <div className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
-                            <span className="truncate">{goal.title}</span>
-                            <span className="flex shrink-0 items-center gap-2">
-                              <span
-                                className={`text-[10px] font-medium uppercase tracking-[0.08em] ${PACE_COLOR[goal.pace]}`}
-                              >
-                                {goal.pace}
-                              </span>
-                              <span className="tabular-nums text-foreground">
-                                {goal.progress}/{goal.target} {goal.unit}
-                              </span>
-                            </span>
-                          </div>
-                          <ProgressBar
-                            value={(goal.progress / goal.target) * 100}
-                            size="sm"
-                            className="mt-1.5"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="rounded-lg border border-border bg-card p-4">
-                    <div className="flex items-center justify-between">
-                      <p className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                        <Trophy className="h-3 w-3 text-accent" /> Current rank
-                      </p>
-                      <div className="flex items-center gap-1.5">
-                        <Badge variant="accent" className="gap-1">
-                          <Sparkles className="h-3 w-3" /> +42 XP today
-                        </Badge>
-                        <Badge variant="secondary">Level 8 / 30</Badge>
-                      </div>
-                    </div>
-                    <p className="mt-2 mb-2 text-sm font-semibold text-foreground">Scholar II</p>
-                    <div className="mb-1.5 flex items-center justify-between text-[11px] text-muted-foreground">
-                      <span>XP to next level</span>
-                      <span className="tabular-nums text-foreground">640 / 940</span>
-                    </div>
-                    <ProgressBar value={68} />
-                  </div>
-                </div>
-              </div>
-            </Card>
-          </Tilt>
+          <PreviewCard prefersReducedMotion={prefersReducedMotion} />
         </motion.div>
       </ScrollReveal>
     </section>
   );
+}
+
+export function DashboardPreview({ embedded = false }: { embedded?: boolean }) {
+  return embedded ? <EmbeddedPreview /> : <StandalonePreview />;
 }

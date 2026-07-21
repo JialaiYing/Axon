@@ -117,7 +117,7 @@ export function PersonalTimerForm({
             padding={3}
             gap={2}
             horizontalPadding={0}
-            textColor="#f4f5f7"
+            textColor="var(--color-foreground)"
             fontWeight={600}
             gradientFrom="transparent"
             gradientTo="transparent"

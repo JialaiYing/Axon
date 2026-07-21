@@ -59,6 +59,17 @@ function normalizeCard(value: Flashcard): Flashcard | null {
   };
 }
 
+function normalizeTestResult(value: unknown): FlashcardSet["lastTestResult"] {
+  if (!value || typeof value !== "object") return undefined;
+  const v = value as Record<string, unknown>;
+  const completedAt = validIso(v.completedAt);
+  if (!completedAt) return undefined;
+  const total = typeof v.total === "number" ? Math.max(0, Math.round(v.total)) : 0;
+  const correct = typeof v.correct === "number" ? Math.max(0, Math.min(total, Math.round(v.correct))) : 0;
+  if (total === 0) return undefined;
+  return { correct, total, completedAt };
+}
+
 function normalizeSet(value: FlashcardSet): FlashcardSet | null {
   if (!value || typeof value !== "object" || typeof value.id !== "string") return null;
   const now = new Date().toISOString();
@@ -72,6 +83,8 @@ function normalizeSet(value: FlashcardSet): FlashcardSet | null {
     updatedAt: validIso(value.updatedAt) ?? now,
     lastOpenedAt: validIso(value.lastOpenedAt),
     pinned: Boolean(value.pinned),
+    completedAt: validIso(value.completedAt),
+    lastTestResult: normalizeTestResult(value.lastTestResult),
     cards: dedupeById(asArray<Flashcard>(value.cards))
       .map(normalizeCard)
       .filter((card): card is Flashcard => card !== null),
@@ -269,6 +282,58 @@ export function useFlashcards() {
     [setSets]
   );
 
+  /** Records one study/test answer against a card — feeds correctCount/incorrectCount → masteryPercent. */
+  const recordCardResult = React.useCallback(
+    (setId: string, cardId: string, correct: boolean) => {
+      setSets((prev) =>
+        prev.map((set) => {
+          if (set.id !== setId) return set;
+          return {
+            ...set,
+            updatedAt: new Date().toISOString(),
+            cards: set.cards.map((card) =>
+              card.id === cardId
+                ? {
+                    ...card,
+                    correctCount: card.correctCount + (correct ? 1 : 0),
+                    incorrectCount: card.incorrectCount + (correct ? 0 : 1),
+                  }
+                : card
+            ),
+          };
+        })
+      );
+    },
+    [setSets]
+  );
+
+  /** Marks a set as completed — a full study pass or a finished test run. */
+  const completeSet = React.useCallback(
+    (setId: string, result?: { correct: number; total: number }) => {
+      const now = new Date().toISOString();
+      setSets((prev) =>
+        prev.map((set) =>
+          set.id === setId
+            ? {
+                ...set,
+                completedAt: now,
+                lastTestResult: result ? { ...result, completedAt: now } : set.lastTestResult,
+              }
+            : set
+        )
+      );
+    },
+    [setSets]
+  );
+
+  /** Most recently completed sets (full study pass or finished test) — powers the home "Completed" panel. */
+  const completedSets = React.useMemo(() => {
+    return sets
+      .filter((set) => Boolean(set.completedAt))
+      .sort((a, b) => new Date(b.completedAt!).getTime() - new Date(a.completedAt!).getTime())
+      .slice(0, 6);
+  }, [sets]);
+
   /** Sets in a folder (or unfiled sets when folderId is undefined). */
   const setsInFolder = React.useCallback(
     (folderId: string | undefined) => sets.filter((set) => set.folderId === folderId),
@@ -377,9 +442,12 @@ export function useFlashcards() {
     touchSet,
     addCard,
     deleteCard,
+    recordCardResult,
+    completeSet,
     setsInFolder,
     recents,
     lastStudiedSet,
+    completedSets,
     totalCards,
     toggleFolderInDome,
     toggleFolderPinned,

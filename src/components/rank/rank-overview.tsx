@@ -39,9 +39,9 @@ function StatTile({
   hint: string;
 }) {
   return (
-    <Panel variant="interactive" className="p-4">
+    <Panel variant="interactive" className="p-5">
       <div className="mb-2 flex items-center gap-2">
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-muted text-accent">
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-foreground/6 text-foreground/60">
           <Icon className="h-4 w-4" />
         </span>
         <p className="text-xs font-medium text-foreground/60">{label}</p>
@@ -151,16 +151,16 @@ export function RankOverview() {
       feature="rank"
     >
       <motion.div
-        initial={prefersReducedMotion ? undefined : { opacity: 0, y: 16 }}
+        initial={prefersReducedMotion ? undefined : { opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: EASE }}
+        transition={{ duration: 0.45, ease: EASE }}
         className="space-y-4"
       >
         {/* Hero */}
         <Panel variant="glass" className="p-6">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
-              <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-foreground/10 bg-gradient-to-br from-accent-muted to-secondary-muted text-accent">
+              <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-foreground/10 bg-foreground/6 text-accent">
                 <Trophy className="h-7 w-7" />
               </span>
               <div>
@@ -205,7 +205,7 @@ export function RankOverview() {
         </Panel>
 
         {/* Stats row */}
-        <div className="grid grid-cols-2 gap-3.5 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           <StatTile
             icon={Flame}
             label="Current streak"

@@ -30,16 +30,14 @@ export function ProgressBar({
     <div className={cn("flex items-center gap-2.5", className)}>
       <div
         className={cn(
-          "relative w-full overflow-hidden rounded-full bg-surface shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)]",
+          "relative w-full overflow-hidden rounded-full bg-white/[0.06] shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)] light:bg-border/60 light:shadow-none",
           sizeMap[size]
         )}
       >
         <div
           className={cn(
-            // Neon gradient + glow reads great on dark surfaces; light mode
-            // flattens it to a single solid accent fill, no glow.
-            "h-full rounded-full bg-gradient-to-r from-accent to-secondary transition-all duration-500 ease-out light:bg-accent light:bg-none",
-            clamped > 0 && "shadow-[0_0_10px_-1px_rgba(59,130,246,0.55)] light:shadow-none",
+            "h-full rounded-full bg-accent transition-all duration-500 ease-out",
+            clamped > 0 && "shadow-[0_0_8px_-2px_rgba(91,141,239,0.35)] light:shadow-none",
             barClassName
           )}
           style={{ width: `${clamped}%` }}

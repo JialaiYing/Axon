@@ -1,3 +1,5 @@
+"use client";
+
 import {
   BarChart3,
   CalendarDays,
@@ -8,12 +10,8 @@ import {
   Timer,
   Trophy,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ScrollReveal, ScrollRevealGroup, ScrollRevealItem } from "@/components/ui/scroll-reveal";
-import { TiltCard } from "@/components/ui/tilt-card";
-import ScrollFloat from "@/components/effects/scroll-float";
-import BlurText from "@/components/effects/blur-text";
-import MagicCard from "@/components/effects/magic-card";
+import SpecularButton from "@/components/effects/specular-button";
 
 const FEATURES = [
   {
@@ -60,54 +58,47 @@ const FEATURES = [
 
 export function Features() {
   return (
-    <section id="features" className="px-6 py-24 md:py-28">
+    <section id="features" className="bg-black px-6 py-24 md:py-28">
       <div className="mx-auto max-w-6xl">
-        <ScrollReveal className="mb-14 text-center md:mb-16">
-          <ScrollFloat
-            animationDuration={1}
-            ease="back.inOut(2)"
-            scrollStart="center bottom+=50%"
-            scrollEnd="bottom bottom-=40%"
-            stagger={0.03}
-            containerClassName="flex justify-center"
-            textClassName="font-display text-2xl font-semibold tracking-tight text-foreground md:text-3xl"
-          >
-            {"Everything you need. Nothing you don't."}
-          </ScrollFloat>
-          <BlurText
-            text="Eight focused tools, one consistent workspace."
-            delay={80}
-            animateBy="words"
-            direction="bottom"
-            as="p"
-            className="mt-3.5 justify-center text-sm leading-relaxed text-muted md:text-base"
-          />
+        <ScrollReveal className="mb-14 max-w-xl text-left md:mb-16">
+          <h2 className="font-display text-2xl font-semibold tracking-tight text-white md:text-3xl">
+            Everything you need. Nothing you don&apos;t.
+          </h2>
+          <p className="mt-3.5 text-sm leading-relaxed text-white/55 md:text-base">
+            Eight focused tools, one consistent workspace.
+          </p>
         </ScrollReveal>
 
         <ScrollRevealGroup className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {FEATURES.map((feature) => (
-            <ScrollRevealItem key={feature.title}>
-              <TiltCard className="h-full">
-                <MagicCard
-                  className="h-full rounded-xl"
-                  enableStars={false}
-                  enableBorderGlow
-                  enableTilt={false}
-                  clickEffect
-                  glowColor="59, 130, 246"
-                >
-                  <Card className="h-full rounded-xl border-0 bg-transparent shadow-none">
-                    <CardHeader>
-                      <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-md bg-accent-muted transition-transform duration-300 group-hover:scale-105">
-                        <feature.icon className="h-4.5 w-4.5 text-accent" />
-                      </div>
-                      <CardTitle className="text-sm text-foreground">{feature.title}</CardTitle>
-                      <CardDescription>{feature.description}</CardDescription>
-                    </CardHeader>
-                    <CardContent />
-                  </Card>
-                </MagicCard>
-              </TiltCard>
+            <ScrollRevealItem key={feature.title} className="h-full">
+              <SpecularButton
+                size="card"
+                radius={18}
+                tint="#ffffff"
+                tintOpacity={0}
+                blur={0}
+                textColor="#f5f5f5"
+                lineColor="#ffffff"
+                baseColor="#525252"
+                intensity={1}
+                shineSize={10}
+                shineFade={40}
+                thickness={1}
+                speed={0.35}
+                followMouse
+                proximity={250}
+                autoAnimate={false}
+                className="h-full min-h-[11rem]"
+              >
+                <span className="mb-3 flex h-9 w-9 items-center justify-center rounded-md border border-white/15 bg-white/5">
+                  <feature.icon className="h-4 w-4 text-white" />
+                </span>
+                <span className="text-sm font-semibold text-white">{feature.title}</span>
+                <span className="mt-2 text-sm font-normal leading-relaxed text-white/55">
+                  {feature.description}
+                </span>
+              </SpecularButton>
             </ScrollRevealItem>
           ))}
         </ScrollRevealGroup>

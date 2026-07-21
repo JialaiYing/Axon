@@ -1,4 +1,11 @@
-export * from "./navigation";
+import type { LucideIcon } from "lucide-react";
+
+export interface NavItem {
+  label: string;
+  href: string;
+  icon: LucideIcon;
+  disabled?: boolean;
+}
 
 export type Priority = "low" | "medium" | "high" | "urgent";
 
@@ -104,6 +111,14 @@ export interface FlashcardSet {
   lastOpenedAt?: string;
   /** Whether this set appears in the home "Pinned" list. */
   pinned?: boolean;
+  /** Set the moment a full study pass or test run is finished — drives the home "Completed" list. */
+  completedAt?: string;
+  /** Most recent Test-mode result, shown as a score badge next to completed sets. */
+  lastTestResult?: {
+    correct: number;
+    total: number;
+    completedAt: string;
+  };
   cards: Flashcard[];
 }
 

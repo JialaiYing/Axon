@@ -8,35 +8,40 @@
 @custom-variant light (&:where([data-theme="light"], [data-theme="light"] *));
 
 @theme {
-  /* Base surfaces */
-  --color-background: #08090c;
-  --color-surface: #0f1115;
-  --color-card: #131620;
-  --color-card-hover: #171b28;
-  --color-border: #1f2330;
-  --color-border-strong: #2a2f40;
+  /* Base surfaces — a true near-black neutral scale (not blue-tinted) so
+     depth comes from subtle value steps + hairline borders, not color or
+     heavy shadow. background → surface → card → card-hover, each one small
+     step up, matching a "quiet luxury" SaaS dashboard rather than a glassy
+     dark app. */
+  --color-background: #0a0a0a;
+  --color-surface: #111111;
+  --color-card: #161616;
+  --color-card-hover: #1c1c1c;
+  --color-border: #232323;
+  --color-border-strong: #333333;
 
-  /* Text */
-  --color-foreground: #f4f5f7;
-  --color-muted: #9096a8;
-  --color-muted-foreground: #6b7185;
+  /* Text — near-white rather than pure white, with a true-gray (not
+     blue-gray) muted scale for the secondary/tertiary hierarchy. */
+  --color-foreground: #f5f5f5;
+  --color-muted: #8a8a8f;
+  --color-muted-foreground: #6e6e73;
 
-  /* Accents */
-  --color-accent: #3b82f6;
-  --color-accent-foreground: #eaf1ff;
-  --color-accent-muted: #1d3a66;
+  /* Accents — one restrained blue, used sparingly on chrome & controls */
+  --color-accent: #5b8def;
+  --color-accent-foreground: #edf3ff;
+  --color-accent-muted: #16233a;
 
-  --color-secondary: #a855f7;
-  --color-secondary-foreground: #f4ecff;
-  --color-secondary-muted: #3a2560;
+  --color-secondary: #8b7ec8;
+  --color-secondary-foreground: #f3efff;
+  --color-secondary-muted: #241f38;
 
   /* Semantic */
-  --color-success: #22c55e;
-  --color-success-muted: #123a22;
-  --color-warning: #f59e0b;
-  --color-warning-muted: #3a2a08;
-  --color-danger: #ef4444;
-  --color-danger-muted: #3a1414;
+  --color-success: #3dba6e;
+  --color-success-muted: #122d1e;
+  --color-warning: #e0a03a;
+  --color-warning-muted: #33260e;
+  --color-danger: #e05555;
+  --color-danger-muted: #331515;
 
   /* Radii */
   --radius-sm: 0.5rem;
@@ -46,19 +51,19 @@
 
   /* Fonts — set as CSS variables by next/font in layout.tsx; fall back
      gracefully if the variable isn't present (e.g. isolated component previews). */
-  --font-sans: var(--font-sans, "Inter"), ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-display: var(--font-display, "Sora"), var(--font-sans, "Inter"), ui-sans-serif, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-sans: var(--font-sans, "Instrument Sans"), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-display, "Sansation"), var(--font-sans, "Instrument Sans"), ui-sans-serif, sans-serif;
+  --font-mono: var(--font-mono, "Fragment Mono"), ui-monospace, monospace;
 
-  /* Shadows */
-  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -8px rgba(0, 0, 0, 0.5);
-  --shadow-glow-accent: 0 0 0 1px rgba(59, 130, 246, 0.15), 0 8px 30px -10px rgba(59, 130, 246, 0.35);
+  /* Shadows — quiet, close-in depth. Small blur radii and low spread so
+     elevation reads as "slightly raised", never a heavy drop shadow. */
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 16px -8px rgba(0, 0, 0, 0.4);
+  --shadow-glow-accent: 0 0 0 1px rgba(91, 141, 239, 0.14), 0 4px 16px -6px rgba(91, 141, 239, 0.22);
 
-  /* Dimensional layering — 4-level elevation scale for spatial depth */
-  --shadow-elevation-1: 0 1px 3px rgba(0, 0, 0, 0.35);
-  --shadow-elevation-2: 0 4px 10px -2px rgba(0, 0, 0, 0.4);
-  --shadow-elevation-3: 0 12px 28px -8px rgba(0, 0, 0, 0.5);
-  --shadow-elevation-4: 0 24px 60px -12px rgba(0, 0, 0, 0.6);
+  --shadow-elevation-1: 0 1px 2px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.025);
+  --shadow-elevation-2: 0 2px 8px -2px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.035);
+  --shadow-elevation-3: 0 6px 18px -6px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.045);
+  --shadow-elevation-4: 0 14px 32px -10px rgba(0, 0, 0, 0.45);
 }
 
 @layer base {
@@ -87,12 +92,12 @@
     --color-foreground: #17181c;
     --color-muted: #5c6068;
     --color-muted-foreground: #7b7f88;
-    --color-accent: #2563eb;
+    --color-accent: #3b6fd4;
     --color-accent-foreground: #eff6ff;
-    --color-accent-muted: #dbeafe;
-    --color-secondary: #7c3aed;
+    --color-accent-muted: #e8eef9;
+    --color-secondary: #6d5fad;
     --color-secondary-foreground: #f5f3ff;
-    --color-secondary-muted: #ede9fe;
+    --color-secondary-muted: #eeeaf8;
     --color-success: #16a34a;
     --color-success-muted: #dcfce7;
     --color-warning: #d97706;
@@ -143,38 +148,20 @@
 
 
 @layer utilities {
+  /* Flat, opaque "card" surfaces in both themes — depth comes from the
+     border + shadow-elevation step, not from blur or a gradient sheen.
+     Kept as `.glass` / `.glass-panel` for backwards compatibility with
+     existing call sites, but neither actually uses glassmorphism anymore. */
   .glass {
-    background: rgba(19, 22, 32, 0.72);
-    backdrop-filter: blur(12px) saturate(120%);
-    -webkit-backdrop-filter: blur(12px) saturate(120%);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-  }
-
-  /* Light mode drops the blur entirely — backdrop blur reads muddy on light
-     backgrounds, so these become plain opaque cards with a hairline border. */
-  html[data-theme="light"] .glass {
     background: var(--color-card);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
     border: 1px solid var(--color-border);
   }
 
-  /* Softer glass for hero moments — routine surfaces should prefer opaque cards. */
+  /* Hero/stat surfaces — same flat card, just paired with shadow-elevation-2
+     by convention at call sites for a touch more lift. */
   .glass-panel {
     position: relative;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(19, 22, 32, 0.82));
-    backdrop-filter: blur(14px) saturate(120%);
-    -webkit-backdrop-filter: blur(14px) saturate(120%);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.06),
-      var(--shadow-elevation-2);
-  }
-
-  html[data-theme="light"] .glass-panel {
     background: var(--color-card);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
     border: 1px solid var(--color-border);
     box-shadow: var(--shadow-elevation-2);
   }
@@ -183,13 +170,6 @@
     transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
   }
   .glass-panel-hover:hover {
-    border-color: rgba(255, 255, 255, 0.14);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.08),
-      var(--shadow-elevation-3);
-  }
-
-  html[data-theme="light"] .glass-panel-hover:hover {
     border-color: var(--color-border-strong);
     box-shadow: var(--shadow-elevation-3);
   }
@@ -214,8 +194,9 @@
     text-wrap: balance;
   }
 
-  /* Display face for hero/section headings — distinct from body Inter so
-     typography itself reads as a deliberate hierarchy, not one weight repeated. */
+  /* Display face for hero/section headings — a squared-off geometric sans
+     (Sansation) set against the rounder body sans so typography itself
+     reads as a deliberate hierarchy, not one weight repeated. */
   .font-display {
     font-family: var(--font-display);
     letter-spacing: -0.02em;
@@ -277,10 +258,10 @@
   @keyframes pulse-glow {
     0%,
     100% {
-      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.3), 0 0 16px -2px rgba(59, 130, 246, 0.35);
+      box-shadow: 0 0 0 1px rgba(91, 141, 239, 0.3), 0 0 16px -2px rgba(91, 141, 239, 0.35);
     }
     50% {
-      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.5), 0 0 28px 2px rgba(59, 130, 246, 0.55);
+      box-shadow: 0 0 0 1px rgba(91, 141, 239, 0.5), 0 0 28px 2px rgba(91, 141, 239, 0.55);
     }
   }
 
@@ -289,7 +270,7 @@
   }
 
   /* Soft grain — a single fixed noise layer that keeps large flat surfaces
-     (#08090c backgrounds, glass panels) from reading as dead-flat color.
+     (near-black backgrounds, flat cards) from reading as dead-flat color.
      Deliberately faint: it should never be consciously noticed. */
   .grain-overlay {
     position: fixed;

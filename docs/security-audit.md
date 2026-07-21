@@ -1,7 +1,7 @@
 # Security audit report — Axon
 
-**Date:** July 20, 2026  
-**Scope:** Application source under `src/`, Supabase schema, env handling, auth flows.
+**Date:** July 20, 2026 (updated same day — added security headers + dependency/secret re-scan)  
+**Scope:** Application source under `src/`, Supabase schema, env handling, auth flows, HTTP response headers, dependency tree.
 
 ## Executive summary
 
@@ -19,6 +19,9 @@ Axon is primarily a **client-side, offline-first** Next.js app. Sensitive study 
 | 6. Session after logout | Mitigated | `signOut()` clears Supabase session; replaying a page URL does not restore auth. Sync requires a valid session JWT. |
 | 7. Skip if N/A | Applied | No generic REST CRUD endpoints exposing other users’ resources |
 | 8. Remaining vulnerabilities | See below | |
+| 9. Security response headers | Done | `next.config.mjs` sets CSP, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Permissions-Policy`, and HSTS on every route |
+| 10. Dependency vulnerability scan | Done | `npm audit` — 0 high/critical; 2 moderate advisories, both inside `next`'s own bundled build-time `postcss` (CSS stringifier used by Next's tooling, not by app-rendered pages) — no fix without a major Next downgrade; low real-world risk, monitor for a Next patch release |
+| 11. Re-scan for hardcoded secrets + committed env files | Done | No `.env`/`.env.local` ever committed (checked full git history); no live keys in source, docs, or scripts |
 
 ## Secrets scan
 
@@ -39,10 +42,22 @@ Searched `src/`, `supabase/`, docs, README for hardcoded keys/tokens. Findings w
 
 1. **In-memory rate limiter** resets on cold serverless instances. Pair with Supabase Auth dashboard rate limits and/or an edge KV store for multi-region production.
 2. **XSS via unsanitized rich text** — titles/notes are React-escaped when rendered as text; avoid `dangerouslySetInnerHTML` for user content (none found in critical paths).
-3. **localStorage XSS theft** — any future XSS could read offline data; keep CSP tight if you add a Content-Security-Policy header.
+3. **localStorage XSS theft** — any future XSS could read offline data; CSP is now in place (see below) to reduce that risk, though `script-src`/`style-src` still allow `'unsafe-inline'` (required by the inline theme-flash script and by Framer Motion's inline styles). A stricter nonce-based CSP is possible later but not required to deploy safely.
 4. **Google OAuth redirect** — ensure Supabase redirect allow-list matches production origin.
 5. **Email enumeration** — login API returns a generic “Invalid email or password” message (good); keep it that way.
 6. **No middleware forcing auth** — intentional for offline-first. If you later require accounts, add cookie-based middleware.
+7. **`npm audit` moderate advisories** — both trace to `postcss` bundled *inside* `next`'s own dependency tree (build tooling), not a dependency of the shipped app code. No action needed beyond watching for a Next.js point release.
+
+## Security headers (added)
+
+`next.config.mjs` now sends these on every response:
+
+- `Content-Security-Policy` — restricts scripts/styles/connects to `'self'` plus `*.supabase.co` (needed for optional auth/sync), blocks framing entirely, blocks plugins/objects.
+- `X-Frame-Options: DENY` and `frame-ancestors 'none'` — clickjacking protection.
+- `X-Content-Type-Options: nosniff` — stops MIME-sniffing attacks.
+- `Referrer-Policy: strict-origin-when-cross-origin`
+- `Permissions-Policy` — denies camera/microphone/geolocation (unused by the app).
+- `Strict-Transport-Security` — forces HTTPS once deployed (no effect on `localhost`).
 
 ## Files added for hardening
 
@@ -53,3 +68,4 @@ Searched `src/`, `supabase/`, docs, README for hardcoded keys/tokens. Findings w
 - `src/lib/supabase/server.ts`
 - `src/app/terms/page.tsx`
 - `src/app/privacy/page.tsx`
+- `next.config.mjs` — response security headers / CSP

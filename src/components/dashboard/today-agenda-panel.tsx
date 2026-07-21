@@ -105,14 +105,14 @@ export function TodayAgendaPanel({
     calendarEvents.length === 0;
 
   return (
-    <div className="rounded-2xl border border-foreground/10 bg-foreground/[0.04] p-4 sm:p-5">
+    <div className="rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-elevation-1)] sm:p-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-foreground/45">Today</p>
+          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">Today</p>
           <h2 className="mt-0.5 text-base font-semibold text-foreground">Your agenda</h2>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 rounded-lg border border-accent/30 bg-accent-muted/25 px-2.5 py-1">
+          <div className="flex items-center gap-1.5 rounded-lg border border-accent/25 bg-accent-muted/40 px-2.5 py-1">
             <Flame className="h-3.5 w-3.5 text-warning" />
             <span className="text-xs font-medium text-foreground">
               {streak > 0 ? `${streak}-day streak` : "No streak yet"}
@@ -192,16 +192,16 @@ export function TodayAgendaPanel({
           </AgendaSection>
 
           {isEmpty && overdue.length === 0 && dueToday.length === 0 && (
-            <p className="flex items-center gap-2 rounded-lg border border-dashed border-foreground/12 px-3 py-4 text-xs text-foreground/45">
+            <p className="flex items-center gap-2 rounded-lg border border-dashed border-border/60 px-3 py-4 text-xs text-muted-foreground">
               <Sun className="h-3.5 w-3.5 shrink-0" />
               Clear day — add an objective or schedule a focus block to fill this view.
             </p>
           )}
         </div>
 
-        <div className="space-y-3 rounded-xl border border-foreground/8 bg-foreground/[0.03] p-3.5">
-          <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-foreground/45">
-            <Target className="h-3.5 w-3.5" />
+        <div className="space-y-3 rounded-xl border border-border bg-card p-3.5">
+          <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <Target className="h-3.5 w-3.5 text-success" />
             Goal progress
           </p>
           {dailyGoal && dailyStatus && (
@@ -282,7 +282,7 @@ function AgendaLink({
           ? "border-success/25 bg-success-muted/15 hover:border-success/40"
           : tone === "danger"
             ? "border-danger/25 bg-danger-muted/10 hover:border-danger/40"
-            : "border-foreground/8 bg-foreground/[0.04] hover:border-foreground/16 hover:bg-foreground/[0.07]"
+            : "border-border bg-card hover:border-border-strong hover:bg-card-hover"
       )}
     >
       {done ? (
@@ -319,7 +319,7 @@ function EmptyHint({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="flex items-center gap-2 rounded-lg border border-dashed border-foreground/12 px-3 py-2.5 text-xs text-foreground/40 transition-colors hover:border-foreground/20 hover:text-foreground/60"
+      className="flex items-center gap-2 rounded-lg border border-dashed border-border/60 px-3 py-2.5 text-xs text-muted-foreground transition-colors hover:border-accent/25 hover:text-foreground"
     >
       {label} <ArrowRight className="h-3 w-3" />
     </Link>

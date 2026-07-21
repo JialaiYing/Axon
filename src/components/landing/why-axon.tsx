@@ -1,81 +1,42 @@
 import { Brain, Compass, ShieldOff } from "lucide-react";
-import { ScrollReveal, ScrollRevealGroup, ScrollRevealItem } from "@/components/ui/scroll-reveal";
-import { TiltCard } from "@/components/ui/tilt-card";
-import ScrollFloat from "@/components/effects/scroll-float";
-import TextType from "@/components/effects/text-type";
-import MagicCard from "@/components/effects/magic-card";
+import { ScrollReveal } from "@/components/ui/scroll-reveal";
+import { VerticalStepper } from "@/components/ui/stepper";
+
+const ICON_CLASS = "h-5 w-5 text-white";
 
 const POINTS = [
   {
-    icon: Brain,
+    icon: <Brain className={ICON_CLASS} />,
     title: "Distraction is the default",
     description:
-      "Most study tools compete for your attention with notifications and feeds. Axon has none of that — just your work, laid out clearly.",
+      "Most study tools compete for your attention. Axon strips that away — just your objectives, calendar, and a timer.",
   },
   {
-    icon: Compass,
+    icon: <Compass className={ICON_CLASS} />,
     title: "Consistency beats intensity",
     description:
-      "Cramming feels productive and rarely is. Axon is built around small, trackable habits — streaks, intervals, and steady weekly goals.",
+      "Real progress comes from small, repeatable sessions. Axon tracks streaks and goals that reward steadiness over heroics.",
   },
   {
-    icon: ShieldOff,
+    icon: <ShieldOff className={ICON_CLASS} />,
     title: "No AI black box",
     description:
-      "Every recommendation Axon gives comes from your own activity — plain statistics and rules, not an opaque model guessing at you.",
+      "Every insight comes from transparent rules on your own activity — not a model making guesses it can't justify.",
   },
 ];
 
 export function WhyAxon() {
   return (
-    <section id="why-axon" className="px-6 py-24 md:py-28">
+    <section id="why-axon" className="bg-black px-6 py-24 md:py-28">
       <div className="mx-auto max-w-6xl">
-        <ScrollReveal className="mx-auto mb-14 max-w-xl text-center md:mb-16">
-          <ScrollFloat
-            animationDuration={1}
-            ease="back.inOut(2)"
-            scrollStart="center bottom+=50%"
-            scrollEnd="bottom bottom-=40%"
-            stagger={0.03}
-            containerClassName="flex justify-center"
-            textClassName="font-display text-2xl font-semibold tracking-tight text-foreground md:text-3xl"
-          >
-            Why Axon exists
-          </ScrollFloat>
-          <TextType
-            text="Built for students who don't need another feed to scroll — they need a reason to sit down and study."
-            typingSpeed={22}
-            showCursor
-            cursorCharacter="_"
-            startOnVisible
-            className="mt-3.5 text-sm leading-relaxed text-muted md:text-base"
-            as="p"
-          />
+        <ScrollReveal className="mb-14 max-w-3xl text-left md:mb-16">
+          <p className="font-display text-2xl font-semibold tracking-tight text-white md:text-3xl">
+            Built for students who don&apos;t need another feed to scroll — they need a
+            reason to sit down and study.
+          </p>
         </ScrollReveal>
 
-        <ScrollRevealGroup className="grid grid-cols-1 gap-5 md:grid-cols-3">
-          {POINTS.map((point) => (
-            <ScrollRevealItem key={point.title}>
-              <TiltCard className="h-full">
-                <MagicCard
-                  className="h-full rounded-xl"
-                  enableStars={false}
-                  enableBorderGlow
-                  clickEffect
-                  glowColor="59, 130, 246"
-                >
-                  <div className="h-full rounded-xl border border-border/60 bg-card/50 p-7 backdrop-blur-sm">
-                    <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-md bg-accent-muted">
-                      <point.icon className="h-5 w-5 text-accent" />
-                    </div>
-                    <h3 className="text-sm font-semibold text-foreground">{point.title}</h3>
-                    <p className="mt-2.5 text-sm leading-relaxed text-muted">{point.description}</p>
-                  </div>
-                </MagicCard>
-              </TiltCard>
-            </ScrollRevealItem>
-          ))}
-        </ScrollRevealGroup>
+        <VerticalStepper steps={POINTS} />
       </div>
     </section>
   );

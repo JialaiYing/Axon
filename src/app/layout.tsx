@@ -1,17 +1,25 @@
 import type { Metadata } from "next";
-import { Inter, Sora } from "next/font/google";
+import { Sansation, Instrument_Sans, Fragment_Mono } from "next/font/google";
 import { AppProviders } from "@/components/providers/app-providers";
 import "./globals.css";
 
-const inter = Inter({
+const instrumentSans = Instrument_Sans({
   subsets: ["latin"],
   variable: "--font-sans",
   display: "swap",
 });
 
-const sora = Sora({
+const sansation = Sansation({
   subsets: ["latin"],
+  weight: ["300", "400", "700"],
   variable: "--font-display",
+  display: "swap",
+});
+
+const fragmentMono = Fragment_Mono({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-mono",
   display: "swap",
 });
 
@@ -60,7 +68,7 @@ export default function RootLayout({
       lang="en"
       data-theme="dark"
       suppressHydrationWarning
-      className={`${inter.variable} ${sora.variable}`}
+      className={`${instrumentSans.variable} ${sansation.variable} ${fragmentMono.variable}`}
     >
       <head>
         <script

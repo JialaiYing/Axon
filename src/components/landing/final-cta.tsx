@@ -1,75 +1,46 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Magnetic } from "@/components/ui/magnetic";
-import BorderGlow from "@/components/effects/border-glow";
-import ScrollFloat from "@/components/effects/scroll-float";
-import TextType from "@/components/effects/text-type";
+import { useRouter } from "next/navigation";
+import SpecularButton from "@/components/effects/specular-button";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 
 export function FinalCTA() {
+  const router = useRouter();
+
   return (
-    <section className="px-6 py-24 md:py-28">
-      <ScrollReveal className="mx-auto max-w-4xl">
-        <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-12 text-center shadow-[0_1px_2px_rgba(0,0,0,0.4),0_32px_64px_-24px_rgba(0,0,0,0.6)] md:p-20">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_80%_at_50%_0%,rgba(59,130,246,0.16),transparent)]"
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent"
-          />
-          <ScrollFloat
-            animationDuration={1}
-            ease="back.inOut(2)"
-            scrollStart="center bottom+=50%"
-            scrollEnd="bottom bottom-=40%"
-            stagger={0.03}
-            containerClassName="relative flex justify-center"
-            textClassName="font-display text-2xl font-semibold tracking-tight text-foreground md:text-3xl"
+    <section className="bg-black px-6 py-24 md:py-28">
+      <ScrollReveal className="mx-auto flex max-w-6xl flex-col items-center text-center">
+        <h2 className="font-display text-4xl font-semibold tracking-tight text-white md:text-5xl lg:text-6xl">
+          Start your first streak today.
+        </h2>
+        <div className="mt-10">
+          <SpecularButton
+            size="lg"
+            radius={18}
+            tint="#ffffff"
+            tintOpacity={0}
+            blur={0}
+            textColor="#f5f5f5"
+            lineColor="#ffffff"
+            baseColor="#525252"
+            intensity={1}
+            shineSize={10}
+            shineFade={40}
+            thickness={1}
+            speed={0.35}
+            followMouse
+            proximity={250}
+            autoAnimate={false}
+            onClick={() => router.push("/dashboard")}
           >
-            Start your first streak today
-          </ScrollFloat>
-          <TextType
-            text="No signup, no setup, no AI subscription. Just open the dashboard and add your first objective."
-            typingSpeed={20}
-            showCursor
-            cursorCharacter="_"
-            startOnVisible
-            className="relative mx-auto mt-3.5 max-w-md text-sm leading-relaxed text-muted md:text-base"
-            as="p"
-          />
-          <div className="relative mt-9 flex justify-center">
-            <Magnetic strength={12} range={80}>
-              <BorderGlow
-                asButton
-                edgeSensitivity={28}
-                glowColor="210 90 75"
-                backgroundColor="var(--color-accent-muted)"
-                borderRadius={10}
-                glowRadius={28}
-                glowIntensity={1}
-                coneSpread={25}
-                colors={["#A6C8FF", "#5227FF", "#FF9FFC"]}
-                fillOpacity={0.45}
-              >
-                <Button
-                  size="lg"
-                  asChild
-                  className="rounded-[9px] border-0 shadow-none hover:shadow-none"
-                >
-                  <Link href="/dashboard">
-                    Open Dashboard
-                    <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
-                  </Link>
-                </Button>
-              </BorderGlow>
-            </Magnetic>
-          </div>
+            Open Dashboard
+          </SpecularButton>
         </div>
+        {/* Keep crawlable link for no-JS / a11y fallback */}
+        <Link href="/dashboard" className="sr-only">
+          Open Dashboard
+        </Link>
       </ScrollReveal>
     </section>
   );

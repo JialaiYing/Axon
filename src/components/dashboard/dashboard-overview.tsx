@@ -61,8 +61,8 @@ const container = {
 };
 
 const item = {
-  hidden: { opacity: 0, y: 26, scale: 0.97 },
-  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.6, ease: EASE } },
+  hidden: { opacity: 0, y: 8, scale: 0.98 },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.45, ease: EASE } },
 };
 
 function dayKey(date: Date) {
@@ -179,7 +179,14 @@ function GlassPanel({
   children: React.ReactNode;
 }) {
   return (
-    <div className={cn("glass-panel glass-panel-hover rounded-2xl", className)}>{children}</div>
+    <div
+      className={cn(
+        "rounded-2xl border border-border bg-card shadow-[var(--shadow-elevation-1)] transition-[border-color,box-shadow,background-color] duration-300 hover:border-border-strong hover:bg-card-hover hover:shadow-[var(--shadow-elevation-2)]",
+        className
+      )}
+    >
+      {children}
+    </div>
   );
 }
 
@@ -207,7 +214,7 @@ const StatCard = React.memo(function StatCard({
           </p>
           <span
             className={cn(
-              "flex h-8 w-8 items-center justify-center rounded-lg border border-foreground/10",
+              "flex h-8 w-8 items-center justify-center rounded-lg border border-border",
               iconClassName
             )}
           >
@@ -312,7 +319,7 @@ function GoalsPulseCard({
       <GlassPanel className="flex h-full flex-col justify-between p-5">
         <div className="flex items-center justify-between">
           <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-foreground/55">Goals</p>
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-foreground/10 bg-success-muted text-success">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-foreground/6 text-success">
             <Target className="h-4 w-4" />
           </span>
         </div>
@@ -377,7 +384,7 @@ function RankHero({
     <GlassPanel className="p-6">
       <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
-          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-foreground/10 bg-gradient-to-br from-accent-muted to-secondary-muted text-accent">
+          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-border bg-foreground/6 text-accent">
             <Trophy className="h-6 w-6" />
           </span>
           <div>
@@ -423,9 +430,9 @@ const ChartTooltip = React.memo(function ChartTooltip({
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="glass-panel rounded-lg px-3 py-2 text-xs">
+    <div className="rounded-lg border border-border bg-card px-3 py-2 text-xs shadow-[var(--shadow-elevation-2)]">
       <p className="font-medium text-foreground">{label}</p>
-      <p className="mt-0.5 text-foreground/60">{payload[0]?.value ?? 0} min focused</p>
+      <p className="mt-0.5 text-muted-foreground">{payload[0]?.value ?? 0} min focused</p>
     </div>
   );
 });
@@ -486,16 +493,8 @@ export function DashboardOverview() {
       variants={container}
       initial={prefersReducedMotion ? false : "hidden"}
       animate="visible"
-      className="glass-panel overflow-hidden rounded-2xl p-2 shadow-[0_0_0_1px_rgba(59,130,246,0.15),0_20px_60px_-16px_rgba(59,130,246,0.25)] light:shadow-[0_0_0_1px_var(--color-border),var(--shadow-elevation-3)]"
+      className="space-y-5"
     >
-      {/* Product-window framing mirrors the live preview on the homepage. */}
-      <div className="rounded-xl bg-surface/60 p-4 sm:p-6 md:p-8">
-      <div className="mb-5 flex items-center gap-1.5" aria-hidden="true">
-        <span className="h-2.5 w-2.5 rounded-full bg-danger/60" />
-        <span className="h-2.5 w-2.5 rounded-full bg-warning/60" />
-        <span className="h-2.5 w-2.5 rounded-full bg-success/60" />
-      </div>
-      <div className="space-y-5">
       {/* Greeting + quick actions */}
       <motion.div
         variants={item}
@@ -545,7 +544,7 @@ export function DashboardOverview() {
           {queue.length === 0 ? (
             <Link
               href="/kanban"
-              className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-foreground/12 bg-foreground/[0.03] p-6 text-center transition-colors duration-200 hover:border-foreground/20 hover:bg-foreground/[0.05]"
+              className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-card/60 p-6 text-center transition-colors duration-200 hover:border-border-strong hover:bg-card-hover"
             >
               <Circle className="h-4 w-4 text-foreground/40" />
               <p className="text-xs text-foreground/55">No objectives yet</p>
@@ -558,7 +557,7 @@ export function DashboardOverview() {
               {queue.map((objective) => (
                 <div
                   key={objective.id}
-                  className="flex items-center gap-2.5 rounded-lg border border-foreground/8 bg-foreground/[0.04] p-3 transition-colors duration-200 hover:border-foreground/16 hover:bg-foreground/[0.07]"
+                  className="flex items-center gap-2.5 rounded-lg border border-border bg-card p-3 transition-colors duration-200 hover:border-border-strong hover:bg-card-hover"
                 >
                   <span
                     className={cn(
@@ -592,14 +591,14 @@ export function DashboardOverview() {
       </motion.div>
 
       {/* Stats row — demoted below the Today agenda */}
-      <motion.div variants={item} className="grid grid-cols-2 gap-3.5 md:grid-cols-4">
+      <motion.div variants={item} className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <StatCard
           icon={Flame}
           label="Streak"
           value={streak}
           suffix={streak === 1 ? " day" : " days"}
           hint={streak > 0 ? "Keep it going" : "Finish a session to start one"}
-          iconClassName="bg-warning-muted text-warning"
+          iconClassName="bg-foreground/6 text-warning"
         />
         <StatCard
           icon={Timer}
@@ -607,14 +606,14 @@ export function DashboardOverview() {
           value={todayFocusMinutes}
           suffix=" min"
           hint={`${todaySessions.length} session${todaySessions.length === 1 ? "" : "s"} today`}
-          iconClassName="bg-accent-muted text-accent"
+          iconClassName="bg-foreground/6 text-accent"
         />
         <StatCard
           icon={Repeat}
           label="Intervals"
           value={stats.intervalsCompleted}
           hint="All-time completed"
-          iconClassName="bg-accent-muted text-accent"
+          iconClassName="bg-foreground/6 text-foreground/60"
         />
         <StatCard
           icon={Gauge}
@@ -622,7 +621,7 @@ export function DashboardOverview() {
           value={stats.productivityIndex}
           suffix="%"
           hint="Last 7 days"
-          iconClassName="bg-secondary-muted text-secondary"
+          iconClassName="bg-foreground/6 text-foreground/60"
         />
       </motion.div>
 
@@ -630,7 +629,7 @@ export function DashboardOverview() {
       <motion.div variants={item}>
         <FeatureIntro feature="gamification" />
       </motion.div>
-      <motion.div variants={item} className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
+      <motion.div variants={item} className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <GoalsPulseCard dailyGoal={dailyGoal} weeklyGoal={weeklyGoal} personalGoals={personalGoals} />
         <RankHero
           rankLabel={rank.label}
@@ -651,10 +650,10 @@ export function DashboardOverview() {
           </div>
           {recent.length === 0 ? (
             <div className="flex flex-1 flex-col items-center justify-center gap-3 py-8 text-center">
-              <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-foreground/10 bg-foreground/5">
-                <History className="h-5 w-5 text-foreground/50" />
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-foreground/6">
+                <History className="h-5 w-5 text-muted-foreground" />
               </span>
-              <p className="text-sm text-foreground/60">Nothing to resume yet</p>
+              <p className="text-sm text-muted-foreground">Nothing to resume yet</p>
             </div>
           ) : (
             <ul className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
@@ -664,9 +663,9 @@ export function DashboardOverview() {
                   <li key={entry.key}>
                     <Link
                       href={entry.href}
-                      className="flex cursor-pointer items-center gap-3 rounded-xl border border-foreground/8 bg-foreground/[0.04] p-3.5 transition-all duration-200 hover:border-foreground/16 hover:bg-foreground/[0.07]"
+                      className="flex cursor-pointer items-center gap-3 rounded-xl border border-border bg-card p-3.5 transition-all duration-200 hover:border-border-strong hover:bg-card-hover"
                     >
-                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-foreground/10 bg-foreground/5 text-foreground/60">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-foreground/6 text-accent">
                         <Icon className="h-4 w-4" />
                       </span>
                       <div className="min-w-0 flex-1">
@@ -701,8 +700,8 @@ export function DashboardOverview() {
           </div>
           {weekTotal === 0 ? (
             <div className="flex flex-1 flex-col items-center justify-center gap-3 py-10 text-center">
-              <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-foreground/10 bg-foreground/5">
-                <Timer className="h-5 w-5 text-foreground/50" />
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-foreground/6">
+                <Timer className="h-5 w-5 text-accent" />
               </span>
               <p className="text-sm text-foreground/60">No focus sessions yet this week</p>
               <Button asChild size="sm" variant="outline" className="cursor-pointer">
@@ -752,8 +751,6 @@ export function DashboardOverview() {
           )}
         </GlassPanel>
       </motion.div>
-      </div>
-      </div>
     </motion.div>
     </>
   );

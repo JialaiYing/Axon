@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowLeft, ChevronLeft, ChevronRight, Pencil, Plus } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, ListChecks, Pencil, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
@@ -16,9 +16,12 @@ interface StudyViewProps {
   set: FlashcardSet;
   onBack: () => void;
   onEdit: () => void;
+  onStartTest: () => void;
+  /** Fired once per set, the first time every card's back has been seen this session. */
+  onCompletePass?: () => void;
 }
 
-export function StudyView({ set, onBack, onEdit }: StudyViewProps) {
+export function StudyView({ set, onBack, onEdit, onStartTest, onCompletePass }: StudyViewProps) {
   const prefersReducedMotion = useReducedMotion();
   const topRef = React.useRef<HTMLDivElement>(null);
   const [index, setIndex] = React.useState(0);
@@ -28,6 +31,34 @@ export function StudyView({ set, onBack, onEdit }: StudyViewProps) {
 
   const cards = set.cards;
   const card = cards[Math.min(index, cards.length - 1)];
+
+  // Tracks which cards have had their back revealed this session, so a full
+  // pass through the deck (in any order) can fire onCompletePass exactly once.
+  const viewedBackIds = React.useRef<Set<string>>(new Set());
+  const completedFiredRef = React.useRef(false);
+
+  React.useEffect(() => {
+    viewedBackIds.current = new Set();
+    completedFiredRef.current = false;
+  }, [set.id]);
+
+  const flip = React.useCallback(() => {
+    setFlipped((prev) => {
+      const next = !prev;
+      if (next && card) {
+        viewedBackIds.current.add(card.id);
+        if (
+          !completedFiredRef.current &&
+          cards.length > 0 &&
+          viewedBackIds.current.size >= cards.length
+        ) {
+          completedFiredRef.current = true;
+          onCompletePass?.();
+        }
+      }
+      return next;
+    });
+  }, [card, cards.length, onCompletePass]);
 
   const goTo = React.useCallback(
     (next: number, dir: number) => {
@@ -54,12 +85,12 @@ export function StudyView({ set, onBack, onEdit }: StudyViewProps) {
         goTo(index - 1, -1);
       } else if (e.key === " " || e.key === "Enter") {
         e.preventDefault();
-        setFlipped((f) => !f);
+        flip();
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [goTo, index]);
+  }, [goTo, index, flip]);
 
   // Keep index valid if cards are deleted while studying.
   React.useEffect(() => {
@@ -69,7 +100,7 @@ export function StudyView({ set, onBack, onEdit }: StudyViewProps) {
   return (
     <div ref={topRef} className="flex h-full flex-col">
       {/* Header */}
-      <div className="mb-5 flex items-center justify-between gap-3">
+      <div className="mb-4 flex shrink-0 items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <Button
             variant="ghost"
@@ -86,9 +117,20 @@ export function StudyView({ set, onBack, onEdit }: StudyViewProps) {
             </p>
           </div>
         </div>
-        <Button variant="outline" size="sm" className="shrink-0 cursor-pointer" onClick={onEdit}>
-          <Pencil className="h-3.5 w-3.5" /> Edit
-        </Button>
+        <div className="flex shrink-0 items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="cursor-pointer"
+            disabled={cards.length === 0}
+            onClick={onStartTest}
+          >
+            <ListChecks className="h-3.5 w-3.5" /> Test
+          </Button>
+          <Button variant="outline" size="sm" className="cursor-pointer" onClick={onEdit}>
+            <Pencil className="h-3.5 w-3.5" /> Edit
+          </Button>
+        </div>
       </div>
 
       {!card ? (
@@ -100,12 +142,15 @@ export function StudyView({ set, onBack, onEdit }: StudyViewProps) {
         </div>
       ) : (
         <>
-          {/* Big card */}
-          <div className="perspective-1200 relative mx-auto w-full max-w-2xl">
+          {/* Big card — fills essentially the whole panel instead of a slice
+              of it, so studying reads as one focused surface, not a small
+              flashcard floating above a lot of empty space. */}
+          <div className="perspective-1200 relative mx-auto min-h-[clamp(360px,calc(100dvh-24rem),640px)] w-full max-w-3xl flex-1">
             <AnimatePresence mode="wait" custom={direction} initial={false}>
               <motion.div
                 key={card.id}
                 custom={direction}
+                className="absolute inset-0"
                 initial={
                   prefersReducedMotion
                     ? { opacity: 0 }
@@ -122,11 +167,17 @@ export function StudyView({ set, onBack, onEdit }: StudyViewProps) {
                 <button
                   type="button"
                   aria-label={flipped ? "Show front of card" : "Show back of card"}
-                  onClick={() => setFlipped((f) => !f)}
-                  className="perspective-1200 block h-72 w-full cursor-pointer md:h-80"
+                  onClick={flip}
+                  className="block h-full w-full cursor-pointer"
                 >
+                  {/*
+                    Rotating around the Y-axis flips the card left/right, like
+                    turning a page, so it visually stays put in the same spot
+                    — rotating around X (top-over-bottom) reads as the whole
+                    card tumbling away from its position instead.
+                  */}
                   <motion.div
-                    animate={{ rotateX: flipped ? 180 : 0 }}
+                    animate={{ rotateY: flipped ? 180 : 0 }}
                     transition={
                       prefersReducedMotion
                         ? { duration: 0 }
@@ -135,12 +186,16 @@ export function StudyView({ set, onBack, onEdit }: StudyViewProps) {
                     style={{ transformStyle: "preserve-3d" }}
                     className="relative h-full w-full"
                   >
-                    {/* Front */}
+                    {/* Front — position is set inline because `.glass-panel`
+                        itself declares `position: relative` at the same
+                        cascade layer as Tailwind's `absolute` utility, which
+                        would otherwise win and collapse this to its content
+                        height instead of filling the card. */}
                     <div
-                      style={{ backfaceVisibility: "hidden" }}
-                      className="glass-panel absolute inset-0 flex items-center justify-center rounded-2xl p-8"
+                      style={{ position: "absolute", inset: 0, backfaceVisibility: "hidden" }}
+                      className="glass-panel flex items-center justify-center rounded-2xl p-8"
                     >
-                      <p className="max-h-full overflow-y-auto text-balance text-center text-xl font-medium leading-relaxed text-foreground md:text-2xl">
+                      <p className="max-h-full overflow-y-auto text-balance text-center text-xl font-medium leading-relaxed text-foreground md:text-3xl">
                         {card.front}
                       </p>
                       <span className="absolute bottom-4 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60">
@@ -149,10 +204,15 @@ export function StudyView({ set, onBack, onEdit }: StudyViewProps) {
                     </div>
                     {/* Back */}
                     <div
-                      style={{ backfaceVisibility: "hidden", transform: "rotateX(180deg)" }}
-                      className="glass-panel absolute inset-0 flex items-center justify-center rounded-2xl border-accent/30 p-8"
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        backfaceVisibility: "hidden",
+                        transform: "rotateY(180deg)",
+                      }}
+                      className="glass-panel flex items-center justify-center rounded-2xl border-accent/30 p-8"
                     >
-                      <p className="max-h-full overflow-y-auto text-balance text-center text-lg leading-relaxed text-foreground/90 md:text-xl">
+                      <p className="max-h-full overflow-y-auto text-balance text-center text-lg leading-relaxed text-foreground/90 md:text-2xl">
                         {card.back}
                       </p>
                       <span className="absolute bottom-4 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.2em] text-accent/70">
@@ -166,7 +226,7 @@ export function StudyView({ set, onBack, onEdit }: StudyViewProps) {
           </div>
 
           {/* Navigation */}
-          <div className="mx-auto mt-5 flex w-full max-w-2xl items-center justify-center gap-5">
+          <div className="mx-auto mt-5 flex w-full max-w-3xl shrink-0 items-center justify-center gap-5">
             <Button
               variant="outline"
               size="icon"
@@ -191,12 +251,12 @@ export function StudyView({ set, onBack, onEdit }: StudyViewProps) {
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
-          <div className="mx-auto mt-4 w-full max-w-2xl">
+          <div className="mx-auto mt-4 w-full max-w-3xl shrink-0">
             <ProgressBar value={((index + 1) / cards.length) * 100} size="sm" />
           </div>
 
           {/* All cards below, Quizlet-style */}
-          <ScrollReveal className="mx-auto mt-12 w-full max-w-2xl pb-8" y={28}>
+          <ScrollReveal className="mx-auto mt-12 w-full max-w-3xl shrink-0 pb-8" y={28}>
             <h3 className="mb-4 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
               All cards ({cards.length})
             </h3>

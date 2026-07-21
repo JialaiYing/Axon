@@ -1,9 +1,10 @@
-// Records real screen footage of every major Axon feature for the README
-// "cinematic" 15s highlight reel. Unlike capture.mjs (static screenshots),
-// this drives actual interactions — a kanban drag, a calendar tab switch, a
-// running pomodoro ring, a flashcard flip, a chart hover, a filling goal
-// bar — so the editing pass (build-cinematic.mjs) has real motion to cut,
-// speed-ramp, and whip-pan between instead of animating dead screenshots.
+// Records real screen footage of every major Axon feature for a "cinematic"
+// 15s highlight reel (not currently linked from the README — kept here for
+// whenever a demo video is needed again). Drives actual interactions — a
+// kanban drag, a calendar tab switch, a running pomodoro ring, a flashcard
+// flip, a chart hover, a filling goal bar — so the editing pass
+// (build-cinematic.mjs) has real motion to cut, speed-ramp, and whip-pan
+// between instead of animating dead screenshots.
 import { chromium } from "playwright";
 import { mkdirSync, rmSync } from "node:fs";
 import { buildSeedData } from "./seed-data.mjs";

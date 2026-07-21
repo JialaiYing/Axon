@@ -39,8 +39,8 @@ import { cn } from "@/lib/utils";
 const EASE = [0.21, 0.47, 0.32, 0.98] as const;
 const container = { hidden: {}, visible: { transition: { staggerChildren: 0.08 } } };
 const item = {
-  hidden: { opacity: 0, y: 24, scale: 0.98 },
-  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.55, ease: EASE } },
+  hidden: { opacity: 0, y: 8, scale: 0.98 },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.45, ease: EASE } },
 };
 
 const RANGES = [
@@ -50,13 +50,22 @@ const RANGES = [
 ] as const;
 
 const PRIORITY_COLORS: Record<Objective["priority"], string> = {
-  urgent: "#ef4444",
-  high: "#f59e0b",
-  medium: "#3b82f6",
-  low: "#22c55e",
+  urgent: "var(--color-danger)",
+  high: "var(--color-warning)",
+  medium: "var(--color-accent)",
+  low: "var(--color-success)",
 };
 
-const SUBJECT_COLORS = ["#3b82f6", "#a855f7", "#22c55e", "#f59e0b", "#ec4899", "#14b8a6"];
+/** Curated, muted palette in the app's accent/secondary hue family — softer than
+ *  stock chart colors so the subject legend stays on-brand in both themes. */
+const SUBJECT_COLORS = [
+  "var(--color-accent)",
+  "var(--color-secondary)",
+  "#5fa88f",
+  "#c99a5b",
+  "#b381ad",
+  "#6f9fc4",
+];
 
 function dayKey(d: Date) {
   return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
@@ -427,7 +436,7 @@ export function AnalyticsOverview() {
           label="Focus time"
           value={formatHours(rangeFocusMinutes)}
           hint={`Last ${rangeDays} days`}
-          iconClassName="bg-accent-muted text-accent"
+          iconClassName="bg-foreground/6 text-accent"
         />
         <StatCard
           icon={Clock}
@@ -438,21 +447,21 @@ export function AnalyticsOverview() {
               ? `~${Math.round(rangeFocusMinutes / rangeSessions.length)} min average`
               : "No sessions yet"
           }
-          iconClassName="bg-secondary-muted text-secondary"
+          iconClassName="bg-foreground/6 text-foreground/60"
         />
         <StatCard
           icon={CheckCircle2}
           label="Objectives done"
           value={String(objectivesDone)}
           hint={`Last ${rangeDays} days`}
-          iconClassName="bg-success-muted text-success"
+          iconClassName="bg-foreground/6 text-foreground/60"
         />
         <StatCard
           icon={Target}
           label="Completion rate"
           value={`${completionRate}%`}
           hint={`${objectivesDone} of ${objectivesTouched || 0} touched`}
-          iconClassName="bg-warning-muted text-warning"
+          iconClassName="bg-foreground/6 text-foreground/60"
         />
       </motion.div>
 

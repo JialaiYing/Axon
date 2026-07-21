@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { motion, useMotionValue, useReducedMotion, useSpring } from "motion/react";
+import { motion, useMotionValue, useReducedMotion, useSpring } from "framer-motion";
 import { SPRING } from "@/lib/motion";
 
 interface MagneticProps {

@@ -42,7 +42,7 @@ export function EmptyState({
         className
       )}
     >
-      <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-border/50 bg-card/50">
+      <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-border bg-foreground/6">
         {icon}
       </div>
       <div className="max-w-sm">

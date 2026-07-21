@@ -359,7 +359,7 @@ export function GoalsOverview() {
             dailyHistory.length === 0 &&
             weeklyHistory.length === 0 && (
               <Panel variant="interactive" className="flex flex-col items-center gap-3 p-8 text-center">
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-accent-muted text-accent">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-foreground/6 text-accent">
                   <Timer className="h-5 w-5" />
                 </span>
                 <div>
@@ -390,7 +390,7 @@ export function GoalsOverview() {
           <Panel variant="glass" className="p-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-start gap-3">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-success-muted text-success">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-foreground/6 text-success">
                   <Target className="h-5 w-5" />
                 </span>
                 <div>
@@ -620,13 +620,13 @@ export function GoalsOverview() {
           {/* Insights */}
           <Panel variant="glass" className="p-5">
             <div className="flex items-start gap-3">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-accent-muted text-accent">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-foreground/6 text-accent">
                 <Sparkles className="h-4 w-4" />
               </span>
               <div className="min-w-0 flex-1">
                 <h2 className="text-sm font-semibold text-foreground">Insights</h2>
                 <p className="mt-1.5 text-sm text-muted-foreground">{insight.message}</p>
-                <p className="mt-3 rounded-lg border border-border/50 bg-card/30 px-3 py-2.5 text-sm text-foreground">
+                <p className="mt-3 rounded-lg border border-border bg-foreground/[0.03] px-3 py-2.5 text-sm text-foreground">
                   {insight.suggestion}
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">

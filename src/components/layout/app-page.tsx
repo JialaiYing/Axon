@@ -51,8 +51,8 @@ export function AppPage({
 
       <motion.div
         variants={{
-          hidden: { opacity: 0, y: 10 },
-          visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: EASE } },
+          hidden: { opacity: 0, y: 8 },
+          visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: EASE } },
         }}
       >
         <PageHeader title={title} description={description} actions={actions} />
@@ -61,8 +61,8 @@ export function AppPage({
       {toolbar && (
         <motion.div
           variants={{
-            hidden: { opacity: 0, y: 10 },
-            visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: EASE } },
+            hidden: { opacity: 0, y: 8 },
+            visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: EASE } },
           }}
           className="mb-5"
         >
@@ -72,8 +72,8 @@ export function AppPage({
 
       <motion.div
         variants={{
-          hidden: { opacity: 0, y: 12 },
-          visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: EASE } },
+          hidden: { opacity: 0, y: 8 },
+          visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: EASE } },
         }}
       >
         {children}

@@ -28,7 +28,7 @@ export function MobileNav() {
       </DialogPrimitive.Trigger>
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-        <DialogPrimitive.Content className="fixed inset-y-0 left-0 z-50 flex h-full w-72 flex-col border-r border-border/40 bg-surface/90 p-4 backdrop-blur-md duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left">
+        <DialogPrimitive.Content className="fixed inset-y-0 left-0 z-50 flex h-full w-72 flex-col border-r border-border/50 bg-surface p-4 duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left light:border-border/40 light:backdrop-blur-md">
           <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="flex h-7 w-7 items-center justify-center rounded-md bg-accent">
@@ -36,7 +36,7 @@ export function MobileNav() {
               </div>
               <span className="text-sm font-semibold tracking-tight">Axon</span>
             </div>
-            <DialogPrimitive.Close className="flex h-8 w-8 items-center justify-center rounded-md text-muted hover:bg-card hover:text-foreground">
+            <DialogPrimitive.Close className="flex h-8 w-8 items-center justify-center rounded-md text-muted hover:bg-card-hover hover:text-foreground">
               <X className="h-4 w-4" />
             </DialogPrimitive.Close>
           </div>
@@ -52,11 +52,11 @@ export function MobileNav() {
                   className={cn(
                     "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
                     isActive
-                      ? "bg-accent-muted text-accent"
-                      : "text-muted hover:bg-card hover:text-foreground"
+                      ? "bg-accent-muted/60 text-foreground light:bg-accent-muted light:text-accent"
+                      : "text-muted hover:bg-card-hover hover:text-foreground"
                   )}
                 >
-                  <Icon className="h-4 w-4" />
+                  <Icon className={cn("h-4 w-4", isActive ? "text-accent" : "text-foreground/55")} />
                   {item.label}
                 </Link>
               );
@@ -75,11 +75,11 @@ export function MobileNav() {
                   className={cn(
                     "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
                     isActive
-                      ? "bg-accent-muted text-accent"
-                      : "text-muted hover:bg-card hover:text-foreground"
+                      ? "bg-accent-muted/60 text-foreground light:bg-accent-muted light:text-accent"
+                      : "text-muted hover:bg-card-hover hover:text-foreground"
                   )}
                 >
-                  <Icon className="h-4 w-4" />
+                  <Icon className={cn("h-4 w-4", isActive ? "text-accent" : "text-foreground/55")} />
                   {item.label}
                 </Link>
               );
@@ -95,11 +95,11 @@ export function MobileNav() {
                   className={cn(
                     "mt-3 flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
                     isActive
-                      ? "bg-accent-muted text-accent"
-                      : "text-muted hover:bg-card hover:text-foreground"
+                      ? "bg-accent-muted/60 text-foreground light:bg-accent-muted light:text-accent"
+                      : "text-muted hover:bg-card-hover hover:text-foreground"
                   )}
                 >
-                  <Icon className="h-4 w-4" />
+                  <Icon className={cn("h-4 w-4", isActive ? "text-accent" : "text-foreground/55")} />
                   {item.label}
                 </Link>
               );

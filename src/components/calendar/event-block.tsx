@@ -132,7 +132,7 @@ export function EventBlock({
   const isPaused = activeTimer?.status === "paused";
   const isDone = objective.status === "done";
   const isPast = isPastEvent(event) && !isDone;
-  const color = objective.color ?? "#3b82f6";
+  const color = objective.color ?? "var(--color-accent)";
 
   return (
     <div

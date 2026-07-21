@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   ArrowRight,
+  CheckCircle2,
   Clock,
   Eye,
   EyeOff,
@@ -24,6 +25,7 @@ import { CreateSetDialog } from "@/components/flashcards/create-set-dialog";
 import { FolderViewDialog } from "@/components/flashcards/folder-view-dialog";
 import { SetViewDialog } from "@/components/flashcards/set-view-dialog";
 import { StudyView } from "@/components/flashcards/study-view";
+import { TestView } from "@/components/flashcards/test-view";
 import { FeatureIntro } from "@/components/onboarding/feature-intro";
 import type { FlashcardFolder, FlashcardSet } from "@/types";
 import { cn } from "@/lib/utils";
@@ -52,7 +54,8 @@ type LibraryView = "grid" | "dome";
 type LibraryMode =
   | { type: "library"; view: LibraryView }
   | { type: "loading"; setId: string }
-  | { type: "study"; setId: string };
+  | { type: "study"; setId: string }
+  | { type: "test"; setId: string };
 
 function HomePanel({ className, children }: { className?: string; children: React.ReactNode }) {
   return (
@@ -102,9 +105,12 @@ export function FlashcardsSection() {
     touchSet,
     addCard,
     deleteCard,
+    recordCardResult,
+    completeSet,
     setsInFolder,
     recents,
     lastStudiedSet,
+    completedSets,
     totalCards,
     toggleFolderInDome,
     toggleFolderPinned,
@@ -125,7 +131,7 @@ export function FlashcardsSection() {
   const viewFolder = folders.find((f) => f.id === viewFolderId) ?? null;
   const editSet = sets.find((s) => s.id === editSetId) ?? null;
   const studySet =
-    mode.type === "study" || mode.type === "loading"
+    mode.type === "study" || mode.type === "loading" || mode.type === "test"
       ? sets.find((s) => s.id === mode.setId) ?? null
       : null;
 
@@ -169,10 +175,14 @@ export function FlashcardsSection() {
 
   // If the studied set gets deleted (via the edit dialog), fall back to the library.
   React.useEffect(() => {
-    if ((mode.type === "study" || mode.type === "loading") && !studySet) {
+    if ((mode.type === "study" || mode.type === "loading" || mode.type === "test") && !studySet) {
       backToLibrary();
     }
   }, [mode.type, studySet, backToLibrary]);
+
+  const backToStudy = React.useCallback((setId: string) => {
+    setMode({ type: "study", setId });
+  }, []);
 
   const avgMastery = React.useMemo(() => {
     const allCards = sets.flatMap((s) => s.cards);
@@ -476,6 +486,50 @@ export function FlashcardsSection() {
             )}
           </HomePanel>
 
+          {/* Completed */}
+          <HomePanel>
+            <div className="mb-3 flex items-center gap-2">
+              <CheckCircle2 className="h-3.5 w-3.5 text-accent" />
+              <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground/60">
+                Completed
+              </h2>
+            </div>
+            {completedSets.length === 0 ? (
+              <p className="rounded-xl border border-dashed border-foreground/10 p-3.5 text-xs leading-relaxed text-foreground/45">
+                Finish studying every card in a set, or finish a test, and it&apos;ll show up here.
+              </p>
+            ) : (
+              <ul className="space-y-1.5">
+                {completedSets.map((set) => (
+                  <li key={set.id}>
+                    <button
+                      type="button"
+                      onClick={() => openSetForStudy(set)}
+                      className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left transition-colors duration-150 hover:bg-foreground/[0.06]"
+                    >
+                      <span className="min-w-0 truncate text-xs font-medium text-foreground/80">
+                        {set.title}
+                      </span>
+                      {set.lastTestResult ? (
+                        <Badge
+                          variant={
+                            set.lastTestResult.correct === set.lastTestResult.total
+                              ? "success"
+                              : "accent"
+                          }
+                        >
+                          {set.lastTestResult.correct}/{set.lastTestResult.total}
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary">Studied</Badge>
+                      )}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </HomePanel>
+
           {/* Library stats */}
           <HomePanel>
             <div className="mb-3 flex items-center gap-2">
@@ -652,7 +706,7 @@ export function FlashcardsSection() {
             {mode.type === "study" && studySet && (
               <motion.div
                 key={`study-${studySet.id}`}
-                className="min-h-full"
+                className="h-full"
                 initial={prefersReducedMotion ? false : { opacity: 0, y: 24, scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0 }}
@@ -662,6 +716,26 @@ export function FlashcardsSection() {
                   set={studySet}
                   onBack={backToLibrary}
                   onEdit={() => setEditSetId(studySet.id)}
+                  onStartTest={() => setMode({ type: "test", setId: studySet.id })}
+                  onCompletePass={() => completeSet(studySet.id)}
+                />
+              </motion.div>
+            )}
+
+            {mode.type === "test" && studySet && (
+              <motion.div
+                key={`test-${studySet.id}`}
+                className="h-full"
+                initial={prefersReducedMotion ? false : { opacity: 0, y: 24, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.45, ease: EASE }}
+              >
+                <TestView
+                  set={studySet}
+                  onBack={() => backToStudy(studySet.id)}
+                  onRecordResult={(cardId, correct) => recordCardResult(studySet.id, cardId, correct)}
+                  onComplete={(result) => completeSet(studySet.id, result)}
                 />
               </motion.div>
             )}

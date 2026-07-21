@@ -6,14 +6,6 @@ A **local-first study productivity dashboard** for students who struggle with di
 
 ---
 
-## Demo
-
-![Axon product tour — dashboard, kanban, calendar, flashcards, pomodoro, analytics, and goals](docs/demo/axon-demo.gif)
-
-A quick tour of every feature page, cut together from real interactions — a kanban drag, calendar tab switches, a focus-mode timer, a flashcard flip, a chart hover — with match-style cuts, whip-pan and speed-ramp transitions, and captions. Higher-quality video: [`docs/demo/axon-demo.mp4`](docs/demo/axon-demo.mp4). Re-run with `npm run demo:cinematic` (records fresh footage against a local dev server, then edits it with ffmpeg).
-
----
-
 ## Key Features
 
 * **Dashboard:** Today agenda, up-next queue, streak/XP, personalized “Good morning, {name}” greetings, unlockable ambient backgrounds as you rank up.
@@ -26,7 +18,7 @@ A quick tour of every feature page, cut together from real interactions — a ka
 * **Auth:** Dedicated [`/login`](src/app/login) page (homepage Login button wired). Optional Google / email via Supabase. Offline works without an account.
 * **Themes:** Dark and light modes in Settings.
 * **Legal:** [`/terms`](src/app/terms) and [`/privacy`](src/app/privacy).
-* **Security:** Rate-limited auth APIs, input sanitization, RLS on cloud tables — see [`docs/security-audit.md`](docs/security-audit.md).
+* **Security:** Rate-limited auth APIs, input sanitization, RLS on cloud tables, CSP + security response headers — see [`docs/security-audit.md`](docs/security-audit.md).
 
 ---
 

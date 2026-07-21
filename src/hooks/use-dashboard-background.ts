@@ -16,7 +16,7 @@ interface BackgroundPrefs {
   id: BackgroundId;
 }
 
-const DEFAULT: BackgroundPrefs = { id: "lines" };
+const DEFAULT: BackgroundPrefs = { id: "solid" };
 
 function normalize(value: unknown): BackgroundPrefs {
   if (!value || typeof value !== "object") return DEFAULT;
@@ -34,9 +34,9 @@ export function useDashboardBackground() {
 
   const activeId: BackgroundId = isBackgroundUnlocked(prefs.id, level)
     ? prefs.id
-    : "lines";
+    : "solid";
 
-  const variant = BACKGROUNDS.find((b) => b.id === activeId) ?? BACKGROUNDS[1]!;
+  const variant = BACKGROUNDS.find((b) => b.id === activeId) ?? BACKGROUNDS[0]!;
   const palette = theme === "light" ? variant.light : variant.dark;
 
   const setBackgroundId = React.useCallback(

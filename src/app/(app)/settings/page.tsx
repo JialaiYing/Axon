@@ -60,8 +60,15 @@ export default function SettingsPage() {
   const [tourReset, setTourReset] = React.useState(false);
   const [nameDraft, setNameDraft] = React.useState(displayName);
   const [nameMsg, setNameMsg] = React.useState<string | null>(null);
+  // Starts false (matches the server, which has no `window`/`Notification`)
+  // and flips in the effect below — calling areBrowserNotificationsSupported()
+  // directly during render would read `true` on the client's very first
+  // paint (unlike the other state here, which only updates post-mount),
+  // causing a hydration mismatch against the server-rendered "unsupported" copy.
+  const [notificationsSupported, setNotificationsSupported] = React.useState(false);
 
   React.useEffect(() => {
+    setNotificationsSupported(areBrowserNotificationsSupported());
     setPermission(getBrowserNotificationPermission());
     setPrefEnabled(getBrowserNotificationPreference());
     setDueSoonEnabled(getDueSoonNotificationPreference());
@@ -161,8 +168,8 @@ export default function SettingsPage() {
             <h2 className="text-sm font-semibold text-foreground">Dashboard backgrounds</h2>
           </div>
           <p className="mb-4 text-sm leading-relaxed text-muted">
-            Unlock ambient backgrounds as you rank up (React Bits–style effects). Each has a dark
-            and light palette matching your theme. Level {level}.
+            Default is a solid canvas. Unlock React Bits ambient backgrounds as you level up —
+            each keeps its normal look in dark and light mode. You&apos;re level {level}.
           </p>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {catalog.map((bg) => {
@@ -309,7 +316,7 @@ export default function SettingsPage() {
               className="h-4 w-4 accent-accent"
             />
           </label>
-          {!areBrowserNotificationsSupported() ? (
+          {!notificationsSupported ? (
             <p className="text-xs text-muted-foreground">
               This browser does not support the Notification API.
             </p>

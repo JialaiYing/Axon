@@ -6,8 +6,10 @@ out
 next-env.d.ts
 .DS_Store
 
-# Intermediate/scratch artifacts from the demo video pipeline (npm run
-# demo:capture / scripts/demo/*) — only the final docs/demo/axon-demo.mp4
-# and .gif are meant to be committed.
+# Output/scratch from the demo video pipeline (npm run demo:cinematic) —
+# the pipeline scripts stay in the repo for whenever a demo is needed again,
+# but the generated video/gif itself isn't currently linked from anywhere.
 docs/demo/raw
 docs/demo/work
+docs/demo/*.mp4
+docs/demo/*.gif

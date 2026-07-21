@@ -4,10 +4,8 @@ import {
   AccordionTrigger,
   AccordionContent,
 } from "@/components/ui/accordion";
-import { ScrollReveal } from "@/components/ui/scroll-reveal";
-import ScrollFloat from "@/components/effects/scroll-float";
 
-const FAQS = [
+export const FAQS = [
   {
     question: "Does Axon use AI to make recommendations?",
     answer:
@@ -16,12 +14,12 @@ const FAQS = [
   {
     question: "Do I need an account to use it?",
     answer:
-      "Not right now. Axon stores your data in your browser's localStorage, so you can start immediately. The architecture is built to make adding a real backend later straightforward.",
+      "No. Axon stores your data in your browser's localStorage, so you can start immediately with zero signup. Creating a free account is optional and only unlocks syncing that data across devices.",
   },
   {
     question: "What happens to my data if I clear my browser?",
     answer:
-      "Since everything currently lives in localStorage, clearing site data will remove it. A database-backed version is on the roadmap for persistence across devices.",
+      "If you're signed in, nothing — your data lives in the cloud and re-syncs on any device you log into. If you're using Axon fully offline (no account), clearing site data does remove it, since it only exists in that browser's localStorage.",
   },
   {
     question: "Can I use Axon on my phone?",
@@ -30,35 +28,17 @@ const FAQS = [
   },
 ];
 
-export function FAQ() {
+export function FAQContent() {
   return (
-    <section id="faq" className="px-6 py-24 md:py-28">
-      <div className="mx-auto max-w-2xl">
-        <ScrollReveal className="mb-12 text-center md:mb-14">
-          <ScrollFloat
-            animationDuration={1}
-            ease="back.inOut(2)"
-            scrollStart="center bottom+=50%"
-            scrollEnd="bottom bottom-=40%"
-            stagger={0.03}
-            containerClassName="flex justify-center"
-            textClassName="text-2xl font-semibold tracking-tight text-foreground md:text-3xl"
-          >
-            Frequently Asked Questions
-          </ScrollFloat>
-        </ScrollReveal>
-
-        <ScrollReveal delay={0.08}>
-          <Accordion type="single" collapsible className="w-full">
-            {FAQS.map((faq, i) => (
-              <AccordionItem key={faq.question} value={`item-${i}`}>
-                <AccordionTrigger>{faq.question}</AccordionTrigger>
-                <AccordionContent>{faq.answer}</AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </ScrollReveal>
-      </div>
-    </section>
+    <Accordion type="single" collapsible className="w-full">
+      {FAQS.map((faq, i) => (
+        <AccordionItem key={faq.question} value={`item-${i}`} className="border-white/10">
+          <AccordionTrigger className="text-white hover:text-white/80">
+            {faq.question}
+          </AccordionTrigger>
+          <AccordionContent className="text-white/55">{faq.answer}</AccordionContent>
+        </AccordionItem>
+      ))}
+    </Accordion>
   );
 }

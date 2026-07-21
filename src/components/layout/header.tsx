@@ -13,7 +13,7 @@ export function Header() {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between gap-4 border-b border-border/40 bg-background/25 px-4 backdrop-blur-md md:px-6">
+    <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between gap-4 border-b border-border/50 bg-card/40 px-4 backdrop-blur-md md:px-6 light:bg-background/70">
       <div className="flex items-center gap-3">
         <MobileNav />
       </div>

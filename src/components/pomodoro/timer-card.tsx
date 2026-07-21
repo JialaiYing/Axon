@@ -40,7 +40,7 @@ export function TimerCard({
       enableBorderGlow
       clickEffect
       particleCount={10}
-      glowColor="59, 130, 246"
+      glowColor="91, 141, 239"
     >
       <Card className="glass relative flex flex-col items-center gap-4 border-0 bg-transparent p-6 shadow-none">
         {isFinished && (

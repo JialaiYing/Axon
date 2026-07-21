@@ -10,6 +10,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // indexing (see robots.ts).
   const routes: { path: string; priority: number; changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"] }[] = [
     { path: "", priority: 1, changeFrequency: "weekly" },
+    { path: "/faq", priority: 0.6, changeFrequency: "monthly" },
     { path: "/login", priority: 0.5, changeFrequency: "monthly" },
     { path: "/privacy", priority: 0.3, changeFrequency: "yearly" },
     { path: "/terms", priority: 0.3, changeFrequency: "yearly" },

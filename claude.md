@@ -184,7 +184,7 @@ Business logic lives in:
 
 ### 6. UI Conventions
 
-- **Fixed dark theme** (`data-theme="dark"`) — no light mode
+- **Dark theme by default, light mode optional** — toggle lives in Settings (`useTheme`/`ThemeProvider`); the marketing homepage (`/`) always forces dark regardless of the stored preference
 - **Glassmorphism + grain overlay** — backdrop-blur, grainy texture
 - **Scaffolding:** `AppPage` wrapper → `PageHeader` + `Panel` cards
 - **Accessible primitives:** Radix UI (Button, Dialog, Dropdown, etc.)
@@ -355,7 +355,7 @@ Full setup guide: `docs/supabase-setup.md`
 | **Charts** | Recharts |
 | **Backend** | Supabase (`@supabase/supabase-js`, `@supabase/ssr`) |
 | **Persistence** | Browser localStorage + Supabase (optional) |
-| **Fonts** | Inter (sans), Sora (display) via `next/font/google` |
+| **Fonts** | Instrument Sans (sans/UI), Sansation (display/headlines), Fragment Mono (data/mono) via `next/font/google` |
 
 **No AI APIs, no server-side business logic** — all XP, analytics, recommendations computed client-side deterministically.
 
@@ -370,7 +370,7 @@ npm run dev        # Start dev server (http://localhost:3000)
 npm run build      # Production build
 npm run start      # Run production server
 npm run lint       # ESLint check
-npm run demo:capture  # Generate demo GIFs/video (Playwright + ffmpeg)
+npm run demo:cinematic  # Generate demo video/gif (Playwright + ffmpeg) — not currently linked from README
 ```
 
 ### TypeScript Path Aliases
@@ -410,7 +410,7 @@ Landing page (`/`) is separate from `(app)` shell.
 1. **README is outdated** — describes offline-only app. Code now has optional auth + sync.
 2. **Offline-first by design** — Supabase is opt-in; app is fully functional without it.
 3. **No mock data** — Analytics, goals, and dashboards read from real objectives and sessions.
-4. **Dark theme only** — `data-theme="dark"` is fixed; no light mode.
+4. **Dark by default, light mode in Settings** — the `(app)` dashboard supports both via `data-theme`; the `/` homepage is always dark.
 5. **Composite user IDs** — Objectives use `(user_id, id)` composite keys in Supabase; browser generates IDs.
 6. **Device-local prefs** — Calendar view, pomodoro display mode, onboarding state stay device-local (not synced).
 7. **Last-write-wins sync** — Conflict resolution uses `updatedAt` timestamp; later write wins.
