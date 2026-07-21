@@ -37,7 +37,7 @@ export function ProgressBar({
         <div
           className={cn(
             "h-full rounded-full bg-accent transition-all duration-500 ease-out",
-            clamped > 0 && "shadow-[0_0_8px_-2px_rgba(91,141,239,0.35)] light:shadow-none",
+            clamped > 0 && "shadow-[0_0_8px_-2px_rgba(94,106,210,0.35)] light:shadow-none",
             barClassName
           )}
           style={{ width: `${clamped}%` }}

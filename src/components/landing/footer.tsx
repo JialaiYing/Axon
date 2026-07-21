@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Zap } from "lucide-react";
+import { AxonLogo } from "@/components/brand/axon-logo";
 import { NAV_ITEMS } from "@/constants/navigation";
 
 export function Footer() {
@@ -10,12 +10,13 @@ export function Footer() {
       <div className="mx-auto max-w-6xl">
         <div className="flex flex-col gap-10 md:flex-row md:justify-between">
           <div className="max-w-xs">
-            <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-white">
-                <Zap className="h-4 w-4 text-black" strokeWidth={2.5} />
-              </div>
-              <span className="text-sm font-semibold tracking-tight text-white">Axon</span>
-            </div>
+            <Link href="/" aria-label="Axon home" className="inline-flex">
+              <AxonLogo
+                withWordmark
+                iconClassName="h-7 w-7"
+                wordmarkClassName="text-sm text-white"
+              />
+            </Link>
             <p className="mt-3 text-sm text-white/55">
               A local-first study dashboard with optional cloud sync. Built for focus —
               not distraction.

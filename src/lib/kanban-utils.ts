@@ -15,6 +15,38 @@ export function priorityBadgeVariant(priority: Priority) {
   }
 }
 
+/** Dot-color class for the flat priority indicator (dot + text label) used in
+ *  place of a bordered pill on repeated list rows — same semantics as
+ *  `priorityBadgeVariant`, just as a plain color instead of a pill. */
+export function priorityDotClass(priority: Priority) {
+  switch (priority) {
+    case "urgent":
+      return "bg-danger" as const;
+    case "high":
+      return "bg-warning" as const;
+    case "medium":
+      return "bg-accent" as const;
+    case "low":
+    default:
+      return "bg-foreground/35" as const;
+  }
+}
+
+/** Text-color class paired with `priorityDotClass` for the same row. */
+export function priorityTextClass(priority: Priority) {
+  switch (priority) {
+    case "urgent":
+      return "text-danger" as const;
+    case "high":
+      return "text-warning" as const;
+    case "medium":
+      return "text-accent" as const;
+    case "low":
+    default:
+      return "text-foreground/60" as const;
+  }
+}
+
 export function formatDueDate(dueDate?: string): string | null {
   if (!dueDate) return null;
   const date = new Date(dueDate);

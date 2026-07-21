@@ -65,7 +65,7 @@ export function KanbanColumn({
         ref={setNodeRef}
         className={cn(
           "flex min-h-[200px] flex-1 flex-col gap-2.5 rounded-lg border border-transparent p-1.5 transition-all duration-300",
-          isOver && "border-accent/50 bg-accent-muted/25 shadow-[inset_0_0_0_1px_rgba(91,141,239,0.15)]"
+          isOver && "border-accent/50 bg-accent-muted/25 shadow-[inset_0_0_0_1px_rgba(94,106,210,0.15)]"
         )}
       >
         <SortableContext items={ids} strategy={verticalListSortingStrategy}>

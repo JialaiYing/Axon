@@ -74,7 +74,7 @@ export function KanbanCard({
       enableMagnetism={false}
       clickEffect
       particleCount={8}
-      glowColor="91, 141, 239"
+      glowColor="94, 106, 210"
       disableAnimations={isOverlay || isDragging}
     >
     <motion.div

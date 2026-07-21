@@ -11,10 +11,17 @@ interface AuthFormProps {
   /** Called after a successful password sign-in (not signup confirmation). */
   onSuccess?: () => void;
   initialMode?: "signin" | "signup";
+  /** Notified when the user toggles between sign-in and sign-up. */
+  onModeChange?: (mode: "signin" | "signup") => void;
   className?: string;
 }
 
-export function AuthForm({ onSuccess, initialMode = "signin", className }: AuthFormProps) {
+export function AuthForm({
+  onSuccess,
+  initialMode = "signin",
+  onModeChange,
+  className,
+}: AuthFormProps) {
   const { signInWithPassword, signUpWithPassword, signInWithGoogle, configured } = useAuth();
   const [mode, setMode] = React.useState<"signin" | "signup">(initialMode);
   const [email, setEmail] = React.useState("");
@@ -23,6 +30,17 @@ export function AuthForm({ onSuccess, initialMode = "signin", className }: AuthF
   const [error, setError] = React.useState<string | null>(null);
   const [busy, setBusy] = React.useState(false);
   const [info, setInfo] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    setMode(initialMode);
+  }, [initialMode]);
+
+  const switchMode = (next: "signin" | "signup") => {
+    setMode(next);
+    onModeChange?.(next);
+    setError(null);
+    setInfo(null);
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -135,11 +153,7 @@ export function AuthForm({ onSuccess, initialMode = "signin", className }: AuthF
             <button
               type="button"
               className="text-accent hover:underline"
-              onClick={() => {
-                setMode("signup");
-                setError(null);
-                setInfo(null);
-              }}
+              onClick={() => switchMode("signup")}
             >
               Sign up
             </button>
@@ -150,11 +164,7 @@ export function AuthForm({ onSuccess, initialMode = "signin", className }: AuthF
             <button
               type="button"
               className="text-accent hover:underline"
-              onClick={() => {
-                setMode("signin");
-                setError(null);
-                setInfo(null);
-              }}
+              onClick={() => switchMode("signin")}
             >
               Sign in
             </button>

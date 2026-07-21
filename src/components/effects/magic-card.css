@@ -9,7 +9,7 @@
   --glow-y: 50%;
   --glow-intensity: 0;
   --glow-radius: 200px;
-  --glow-color: 59, 130, 246;
+  --glow-color: 94, 106, 210;
 }
 
 .magic-bento-card--border-glow::after {

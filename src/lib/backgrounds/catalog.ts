@@ -22,8 +22,10 @@ export interface BackgroundVariant {
   light: BackgroundPalette;
 }
 
-/** Dark-mode default canvas — 75% black. */
-export const DARK_BG_BASE = "#404040";
+/** Dark-mode default canvas — matches --color-background so the page canvas
+ *  is the darkest layer in the app, with every card/panel a lighter step up
+ *  on top of it (never the other way around). */
+export const DARK_BG_BASE = "#0a0a0a";
 /** Light-mode default canvas — soft near-white counterpart. */
 export const LIGHT_BG_BASE = "#f0f0f0";
 

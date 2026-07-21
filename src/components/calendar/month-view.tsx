@@ -68,7 +68,7 @@ function DayCell({
       className={cn(
         "group flex min-h-[7.5rem] flex-col gap-1 border-b border-r border-border p-1.5 transition-colors duration-200",
         !isCurrentMonth && "bg-surface/30",
-        isOver && "bg-accent-muted/20 shadow-[inset_0_0_0_1px_rgba(59,130,246,0.3)]"
+        isOver && "bg-accent-muted/20 shadow-[inset_0_0_0_1px_rgba(94,106,210,0.3)]"
       )}
     >
       <div className="flex items-center justify-between">
@@ -78,7 +78,7 @@ function DayCell({
           className={cn(
             "flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-medium transition-colors duration-150",
             isToday
-              ? "bg-accent text-accent-foreground shadow-[0_0_8px_rgba(59,130,246,0.5)]"
+              ? "bg-accent text-accent-foreground shadow-[0_0_8px_rgba(94,106,210,0.5)]"
               : isCurrentMonth
                 ? "text-foreground hover:bg-card"
                 : "text-muted-foreground hover:bg-card"

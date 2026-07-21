@@ -24,7 +24,12 @@ function write(updater: (prev: TimerNotification[]) => TimerNotification[]) {
 
 function normalizeNotification(value: TimerNotification): TimerNotification | null {
   if (!value || typeof value !== "object" || typeof value.id !== "string") return null;
-  const kind = value.kind === "due-soon" ? "due-soon" : "timer";
+  const kind: TimerNotification["kind"] =
+    value.kind === "due-soon"
+      ? "due-soon"
+      : value.kind === "background-unlock"
+        ? "background-unlock"
+        : "timer";
   return {
     ...value,
     timerId: typeof value.timerId === "string" ? value.timerId : "",

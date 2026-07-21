@@ -4,52 +4,55 @@ import * as React from "react";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import Tilt from "react-parallax-tilt";
 import CountUp from "react-countup";
-import { CalendarClock, Circle, Flame, Sparkles, Target, Timer, Trophy } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import {
+  Circle,
+  Flame,
+  Gauge,
+  ListTodo,
+  Repeat,
+  Sparkles,
+  Target,
+  Timer,
+  Trophy,
+} from "lucide-react";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { ScrollReveal, ScrollRevealGroup, ScrollRevealItem } from "@/components/ui/scroll-reveal";
+import { cn } from "@/lib/utils";
 
-const STATS = [
-  { label: "Streak", value: 12, suffix: " days" },
-  { label: "Focus today", value: 96, suffix: " min" },
-  { label: "Intervals", value: 34, suffix: "" },
-  { label: "Productivity", value: 82, suffix: "%" },
+/** Mirrors the real dashboard: greeting → agenda → up next → stats strip → goals + rank. */
+
+const AGENDA_ROWS = [
+  { title: "Focus session — Calc II", meta: "9:30 – 10:00", tone: "default" as const },
+  { title: "Lab report due", meta: "Due today", tone: "default" as const },
+  { title: "Org chem problem set", meta: "Overdue", tone: "danger" as const },
 ];
 
-/** Mini Kanban-column slice — the same priority language as the real board. */
-const BOARD_CARDS = [
-  { title: "Org chem problem set", priority: "urgent" as const, status: "In progress" },
-  { title: "Read ch. 6 — thermodynamics", priority: "medium" as const, status: "Queued" },
-  { title: "Review flashcard deck", priority: "low" as const, status: "Queued" },
+const UP_NEXT = [
+  { title: "Read ch. 6 — thermodynamics", priority: "medium" },
+  { title: "Review flashcard deck", priority: "low" },
+  { title: "Office hours prep", priority: "high" },
+];
+
+const STATS = [
+  { label: "Streak", value: 12, suffix: " days", icon: Flame, iconClass: "text-warning" },
+  { label: "Focus today", value: 96, suffix: " min", icon: Timer, iconClass: "text-accent" },
+  { label: "Intervals", value: 34, suffix: "", icon: Repeat, iconClass: "text-foreground/60" },
+  { label: "Productivity", value: 82, suffix: "%", icon: Gauge, iconClass: "text-foreground/60" },
 ];
 
 const PRIORITY_DOT: Record<string, string> = {
-  urgent: "bg-danger",
   high: "bg-danger",
   medium: "bg-warning",
   low: "bg-success",
 };
 
-/** Mini "Today" agenda — focus session, calendar-only event, streak. */
-const AGENDA_ITEMS = [
-  { time: "9:30", label: "Focus session — Calc II", icon: Timer, empty: false },
-  { time: "1:00", label: "Lab report due", icon: CalendarClock, empty: false },
-];
-
-/** Same daily/weekly goal pair (and pace language) the real Goals pulse card tracks. */
-const GOAL_ROWS = [
-  { title: "Focus time", pace: "On track" as const, progress: 96, target: 120, unit: "min" },
-  { title: "Finish objectives", pace: "Behind" as const, progress: 2, target: 5, unit: "objectives" },
-];
-
-const PACE_COLOR: Record<string, string> = {
-  Done: "text-success",
-  "On track": "text-muted-foreground",
-  Behind: "text-warning",
+const PRIORITY_TEXT: Record<string, string> = {
+  high: "text-danger",
+  medium: "text-warning",
+  low: "text-success",
 };
 
-function PreviewCard({
+function PreviewChrome({
   prefersReducedMotion,
   tiltMax = 4,
 }: {
@@ -66,70 +69,155 @@ function PreviewCard({
       glareEnable={false}
       className="will-change-transform"
     >
-      {/* Scoped to dashboard tokens so the homepage black canvas stays unchanged */}
-      <Card className="overflow-hidden rounded-2xl border-border/60 bg-card p-2 shadow-[var(--shadow-elevation-3)]">
-        <div className="rounded-xl bg-[#404040] p-6 md:p-10">
-          <div className="mb-5 flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-danger/60" />
-            <span className="h-2.5 w-2.5 rounded-full bg-warning/60" />
-            <span className="h-2.5 w-2.5 rounded-full bg-success/60" />
+      <div className="overflow-hidden rounded-2xl border border-border bg-background shadow-[var(--shadow-elevation-3)]">
+        {/* Fake app chrome — traffic lights only, no extra plate */}
+        <div className="flex items-center gap-1.5 border-b border-border bg-surface px-4 py-3">
+          <span className="h-2.5 w-2.5 rounded-full bg-danger/60" />
+          <span className="h-2.5 w-2.5 rounded-full bg-warning/60" />
+          <span className="h-2.5 w-2.5 rounded-full bg-success/60" />
+        </div>
+
+        <div className="space-y-4 bg-background p-4 sm:p-5">
+          {/* Greeting */}
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-foreground/60">
+                Tuesday, July 21
+              </p>
+              <p className="mt-1 text-lg font-semibold tracking-tight text-foreground sm:text-xl">
+                Good morning, Alex
+              </p>
+            </div>
+            <div className="hidden items-center gap-2 sm:flex">
+              <span className="rounded-md border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-foreground/70">
+                New objective
+              </span>
+              <span className="rounded-md bg-accent px-2.5 py-1 text-[11px] font-medium text-accent-foreground">
+                Start focus
+              </span>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-3.5 md:grid-cols-[1.1fr_0.9fr]">
-            <ScrollRevealGroup className="flex flex-col gap-2" stagger={0.08}>
-              <p className="mb-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
-                Today
-              </p>
-              {AGENDA_ITEMS.map((item) => (
-                <ScrollRevealItem key={item.label}>
-                  <div className="flex items-center gap-2.5 rounded-lg border border-border/60 bg-card/90 p-3">
-                    <item.icon className="h-3.5 w-3.5 shrink-0 text-accent" />
-                    <p className="min-w-0 flex-1 truncate text-xs font-medium text-foreground">
-                      {item.label}
-                    </p>
-                    <span className="shrink-0 font-mono text-[11px] text-muted-foreground">
-                      {item.time}
-                    </span>
+          {/* Today agenda — matches TodayAgendaPanel */}
+          <ScrollRevealGroup
+            className="rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-elevation-2)]"
+            stagger={0.06}
+          >
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                  Today
+                </p>
+                <p className="mt-0.5 text-sm font-semibold text-foreground">Your agenda</p>
+              </div>
+              <div className="flex items-center gap-2 rounded-lg border border-border bg-background px-2.5 py-1">
+                <span className="flex items-center gap-1.5 text-[11px] font-medium text-foreground">
+                  <Flame className="h-3.5 w-3.5 text-warning" />
+                  12-day streak
+                </span>
+                <span className="h-3 w-px bg-border" aria-hidden />
+                <span className="text-[11px] font-medium text-muted-foreground">Scholar II</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-[1.4fr_0.9fr]">
+              <div className="space-y-1.5">
+                <p className="mb-1 flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wide text-foreground/55">
+                  <ListTodo className="h-3 w-3" /> Due &amp; scheduled
+                </p>
+                {AGENDA_ROWS.map((row) => (
+                  <ScrollRevealItem key={row.title}>
+                    <div className="flex items-center justify-between gap-2 rounded-lg px-2 py-2 transition-colors hover:bg-card-hover">
+                      <p
+                        className={cn(
+                          "min-w-0 truncate text-xs font-medium",
+                          row.tone === "danger" ? "text-danger" : "text-foreground"
+                        )}
+                      >
+                        {row.title}
+                      </p>
+                      <span
+                        className={cn(
+                          "shrink-0 text-[10px]",
+                          row.tone === "danger" ? "text-danger/80" : "text-muted-foreground"
+                        )}
+                      >
+                        {row.meta}
+                      </span>
+                    </div>
+                  </ScrollRevealItem>
+                ))}
+              </div>
+
+              <div className="space-y-2.5 rounded-lg border border-border/60 bg-background/60 p-3">
+                <p className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wide text-foreground/55">
+                  <Target className="h-3 w-3 text-success" /> Goals
+                </p>
+                <div>
+                  <div className="mb-1 flex justify-between text-[10px] text-muted-foreground">
+                    <span>Focus time</span>
+                    <span className="tabular-nums text-foreground/70">96/120 min</span>
                   </div>
-                </ScrollRevealItem>
-              ))}
-              <ScrollRevealItem>
-                <div className="flex items-center gap-2 rounded-lg border border-accent/25 bg-accent-muted/40 p-3">
-                  <Flame className="h-3.5 w-3.5 shrink-0 text-warning" />
-                  <p className="text-xs font-medium text-foreground">12-day streak</p>
-                  <Badge variant="accent" className="ml-auto">
-                    Scholar II
-                  </Badge>
+                  <ProgressBar value={80} size="sm" />
                 </div>
-              </ScrollRevealItem>
-            </ScrollRevealGroup>
-
-            <ScrollRevealGroup className="flex flex-col gap-2" stagger={0.08}>
-              <p className="mb-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
-                Up next
-              </p>
-              {BOARD_CARDS.map((card) => (
-                <ScrollRevealItem key={card.title}>
-                  <div className="flex items-center gap-2.5 rounded-lg border border-border/60 bg-card/90 p-3 transition-colors duration-300 hover:border-accent/25 hover:bg-card-hover">
-                    <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${PRIORITY_DOT[card.priority]}`} />
-                    <p className="min-w-0 flex-1 truncate text-xs font-medium text-foreground">
-                      {card.title}
-                    </p>
-                    <Circle className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                <div>
+                  <div className="mb-1 flex justify-between text-[10px] text-muted-foreground">
+                    <span>Objectives</span>
+                    <span className="tabular-nums text-foreground/70">2/5</span>
                   </div>
-                </ScrollRevealItem>
+                  <ProgressBar value={40} size="sm" />
+                </div>
+              </div>
+            </div>
+          </ScrollRevealGroup>
+
+          {/* Up next — flat list like the real dashboard */}
+          <div>
+            <p className="mb-1.5 text-[10px] uppercase tracking-wide text-foreground/60">Up next</p>
+            <ul className="overflow-hidden rounded-xl border border-border bg-card">
+              {UP_NEXT.map((item, index) => (
+                <li
+                  key={item.title}
+                  className={cn(
+                    "flex items-center gap-2.5 px-3.5 py-2.5",
+                    index > 0 && "border-t border-border"
+                  )}
+                >
+                  <p className="min-w-0 flex-1 truncate text-xs font-medium text-foreground">
+                    {item.title}
+                  </p>
+                  <span className="flex shrink-0 items-center gap-1.5 text-[11px] font-medium capitalize">
+                    <span className={cn("h-1.5 w-1.5 rounded-full", PRIORITY_DOT[item.priority])} />
+                    <span className={PRIORITY_TEXT[item.priority]}>{item.priority}</span>
+                  </span>
+                  <Circle className="h-3.5 w-3.5 shrink-0 text-foreground/40" />
+                </li>
               ))}
-            </ScrollRevealGroup>
+            </ul>
           </div>
 
-          <ScrollRevealGroup className="mt-3.5 grid grid-cols-2 gap-3.5 md:grid-cols-4" stagger={0.1}>
-            {STATS.map((stat) => (
+          {/* Stats strip — one panel, internal dividers */}
+          <ScrollRevealGroup
+            className="grid grid-cols-2 overflow-hidden rounded-xl border border-border bg-card md:grid-cols-4"
+            stagger={0.08}
+          >
+            {STATS.map((stat, index) => (
               <ScrollRevealItem key={stat.label}>
-                <div className="rounded-lg border border-border/60 bg-card/90 p-4 transition-colors duration-300 hover:border-accent/25 hover:bg-card-hover">
-                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
-                    {stat.label}
-                  </p>
-                  <p className="mt-1.5 text-lg font-semibold text-foreground">
+                <div
+                  className={cn(
+                    "flex flex-col justify-between p-3.5",
+                    index % 2 === 1 && "border-l border-border",
+                    index >= 2 && "border-t border-border md:border-t-0",
+                    index === 2 && "md:border-l"
+                  )}
+                >
+                  <div className="flex items-center justify-between">
+                    <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-foreground/60">
+                      {stat.label}
+                    </p>
+                    <stat.icon className={cn("h-3.5 w-3.5", stat.iconClass)} />
+                  </div>
+                  <p className="mt-3 text-lg font-semibold tabular-nums text-foreground">
                     <CountUp end={stat.value} duration={1.4} suffix={stat.suffix} />
                   </p>
                 </div>
@@ -137,63 +225,63 @@ function PreviewCard({
             ))}
           </ScrollRevealGroup>
 
-          <div className="mt-3.5 grid grid-cols-1 gap-3.5 md:grid-cols-2">
-            <div className="rounded-lg border border-border/60 bg-card/90 p-4">
-              <div className="mb-3 flex items-center justify-between">
-                <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                  Goals
-                </p>
-                <span className="flex h-6 w-6 items-center justify-center rounded-md border border-border bg-success-muted text-success">
-                  <Target className="h-3 w-3" />
-                </span>
-              </div>
-              <div className="space-y-3">
-                {GOAL_ROWS.map((goal) => (
-                  <div key={goal.title}>
-                    <div className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
-                      <span className="truncate">{goal.title}</span>
-                      <span className="flex shrink-0 items-center gap-2">
-                        <span
-                          className={`text-[10px] font-medium uppercase tracking-[0.08em] ${PACE_COLOR[goal.pace]}`}
-                        >
-                          {goal.pace}
-                        </span>
-                        <span className="tabular-nums text-foreground">
-                          {goal.progress}/{goal.target} {goal.unit}
-                        </span>
-                      </span>
-                    </div>
-                    <ProgressBar
-                      value={(goal.progress / goal.target) * 100}
-                      size="sm"
-                      className="mt-1.5"
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="rounded-lg border border-border/60 bg-card/90 p-4">
+          {/* Personal goals + Rank — mirrors dashboard pair */}
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <div className="rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-elevation-2)]">
               <div className="flex items-center justify-between">
-                <p className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                  <Trophy className="h-3 w-3 text-accent" /> Current rank
+                <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-foreground/55">
+                  Personal goals
                 </p>
-                <div className="flex items-center gap-1.5">
-                  <Badge variant="accent" className="gap-1">
-                    <Sparkles className="h-3 w-3" /> +42 XP today
-                  </Badge>
-                  <Badge variant="secondary">Level 8 / 30</Badge>
+                <Target className="h-3.5 w-3.5 text-success" />
+              </div>
+              <div className="mt-3 space-y-3">
+                <div>
+                  <div className="mb-1.5 flex justify-between text-[10px] text-foreground/55">
+                    <span>Finish problem sets</span>
+                    <span className="tabular-nums text-foreground/70">3/5</span>
+                  </div>
+                  <ProgressBar value={60} size="sm" />
+                </div>
+                <div>
+                  <div className="mb-1.5 flex justify-between text-[10px] text-foreground/55">
+                    <span>Review decks</span>
+                    <span className="tabular-nums text-foreground/70">1/2</span>
+                  </div>
+                  <ProgressBar value={50} size="sm" />
                 </div>
               </div>
-              <p className="mt-2 mb-2 text-sm font-semibold text-foreground">Scholar II</p>
-              <div className="mb-1.5 flex items-center justify-between text-[11px] text-muted-foreground">
-                <span>XP to next level</span>
-                <span className="tabular-nums text-foreground">640 / 940</span>
+            </div>
+
+            <div className="rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-elevation-2)]">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2.5">
+                  <Trophy className="h-6 w-6 shrink-0 text-foreground/70" />
+                  <div>
+                    <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-foreground/60">
+                      Current rank
+                    </p>
+                    <p className="text-sm font-semibold text-foreground">Scholar II</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 rounded-lg border border-border bg-background px-2 py-1">
+                  <span className="flex items-center gap-1 text-[10px] font-medium text-accent">
+                    <Sparkles className="h-3 w-3" /> +42 XP
+                  </span>
+                  <span className="h-3 w-px bg-border" aria-hidden />
+                  <span className="text-[10px] font-medium text-muted-foreground">Lvl 8</span>
+                </div>
               </div>
-              <ProgressBar value={68} />
+              <div className="mt-4">
+                <div className="mb-1.5 flex justify-between text-[10px] text-foreground/55">
+                  <span>XP to next level</span>
+                  <span className="tabular-nums text-foreground/70">640 / 940</span>
+                </div>
+                <ProgressBar value={68} />
+              </div>
             </div>
           </div>
         </div>
-      </Card>
+      </div>
     </Tilt>
   );
 }
@@ -209,7 +297,7 @@ function EmbeddedPreview() {
         transition={{ duration: 0.7, delay: 0.15, ease: [0.21, 0.47, 0.32, 0.98] }}
         className="origin-center"
       >
-        <PreviewCard prefersReducedMotion={prefersReducedMotion} tiltMax={2} />
+        <PreviewChrome prefersReducedMotion={prefersReducedMotion} tiltMax={2} />
       </motion.div>
     </div>
   );
@@ -238,7 +326,7 @@ function StandalonePreview() {
           }
           className="origin-center"
         >
-          <PreviewCard prefersReducedMotion={prefersReducedMotion} />
+          <PreviewChrome prefersReducedMotion={prefersReducedMotion} />
         </motion.div>
       </ScrollReveal>
     </section>

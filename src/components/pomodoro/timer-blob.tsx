@@ -34,7 +34,7 @@ export function TimerBlob({ remainingSeconds, totalSeconds, size = 260 }: TimerB
         animate={{
           background: isLow
             ? "radial-gradient(circle, rgba(239,68,68,0.2), transparent 70%)"
-            : "radial-gradient(circle, rgba(59,130,246,0.16), transparent 70%)",
+            : "radial-gradient(circle, rgba(94,106,210,0.16), transparent 70%)",
         }}
         transition={{ duration: 0.9, ease: "easeOut" }}
         style={{ width: size * 0.9, height: size * 0.9 }}
@@ -57,10 +57,10 @@ export function TimerBlob({ remainingSeconds, totalSeconds, size = 260 }: TimerB
             scale,
             background: isLow
               ? "radial-gradient(circle at 32% 28%, #fca5a5, #ef4444 55%, #b91c1c)"
-              : "radial-gradient(circle at 32% 28%, #93c5fd, #3b82f6 50%, #7c3aed)",
+              : "radial-gradient(circle at 32% 28%, #a5b4fc, #5e6ad2 50%, #7c3aed)",
             boxShadow: isLow
               ? "inset 0 0 40px rgba(0,0,0,0.15), 0 0 70px -10px rgba(239,68,68,0.55)"
-              : "inset 0 0 40px rgba(0,0,0,0.12), 0 0 70px -10px rgba(59,130,246,0.45)",
+              : "inset 0 0 40px rgba(0,0,0,0.12), 0 0 70px -10px rgba(94,106,210,0.45)",
           }}
           transition={{ duration: 0.8, ease: "easeOut" }}
           style={{ borderRadius: "inherit" }}

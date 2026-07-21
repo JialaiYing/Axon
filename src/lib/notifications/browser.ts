@@ -56,8 +56,8 @@ export function showBrowserNotification(
   try {
     const { force: _force, ...rest } = options ?? {};
     const notification = new Notification(title, {
-      icon: "/axon-mark.svg",
-      badge: "/axon-mark.svg",
+      icon: "/axon_icon_only.png",
+      badge: "/axon_icon_only.png",
       ...rest,
     });
     return notification;

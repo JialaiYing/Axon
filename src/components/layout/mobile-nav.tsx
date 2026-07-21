@@ -4,7 +4,8 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { Menu, X, Zap } from "lucide-react";
+import { Menu, X } from "lucide-react";
+import { AxonLogo } from "@/components/brand/axon-logo";
 import { cn } from "@/lib/utils";
 import { NAV_ITEMS, NAV_PRIMARY, NAV_PROGRESS } from "@/constants/navigation";
 
@@ -30,12 +31,7 @@ export function MobileNav() {
         <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
         <DialogPrimitive.Content className="fixed inset-y-0 left-0 z-50 flex h-full w-72 flex-col border-r border-border/50 bg-surface p-4 duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left light:border-border/40 light:backdrop-blur-md">
           <div className="mb-6 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-accent">
-                <Zap className="h-4 w-4 text-accent-foreground" strokeWidth={2.5} />
-              </div>
-              <span className="text-sm font-semibold tracking-tight">Axon</span>
-            </div>
+            <AxonLogo withWordmark iconClassName="h-7 w-7" />
             <DialogPrimitive.Close className="flex h-8 w-8 items-center justify-center rounded-md text-muted hover:bg-card-hover hover:text-foreground">
               <X className="h-4 w-4" />
             </DialogPrimitive.Close>

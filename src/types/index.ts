@@ -184,7 +184,7 @@ export interface PomodoroTimerInstance {
   notified?: boolean;
 }
 
-export type AppNotificationKind = "timer" | "due-soon";
+export type AppNotificationKind = "timer" | "due-soon" | "background-unlock";
 
 /** Archived in-app notification shown in the header bell. */
 export interface TimerNotification {

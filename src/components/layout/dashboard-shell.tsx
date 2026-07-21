@@ -6,6 +6,7 @@ import { Header } from "@/components/layout/header";
 import { PageTransition } from "@/components/layout/page-transition";
 import { TimerNotificationsWatcher } from "@/components/layout/timer-notifications-watcher";
 import { DueSoonWatcher } from "@/components/layout/due-soon-watcher";
+import { BackgroundUnlockWatcher } from "@/components/layout/background-unlock-watcher";
 import { DashboardBackground } from "@/components/layout/dashboard-background";
 import { GrainOverlay } from "@/components/ui/grain-overlay";
 import { cn } from "@/lib/utils";
@@ -33,6 +34,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       </div>
       <TimerNotificationsWatcher />
       <DueSoonWatcher />
+      <BackgroundUnlockWatcher />
     </div>
   );
 }

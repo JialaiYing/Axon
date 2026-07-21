@@ -48,7 +48,7 @@ export function ObjectivePicker({
                   className={cn(
                     "flex w-full items-start gap-3 rounded-lg border p-3 text-left transition-all duration-200",
                     isSelected
-                      ? "border-accent/60 bg-accent-muted/40 shadow-[0_0_0_1px_rgba(59,130,246,0.2)]"
+                      ? "border-accent/60 bg-accent-muted/40 shadow-[0_0_0_1px_rgba(94,106,210,0.2)]"
                       : "border-border bg-surface hover:border-border-strong hover:bg-card",
                     showHidden && "opacity-70"
                   )}

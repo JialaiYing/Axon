@@ -13,7 +13,7 @@ import {
   Target,
   Timer,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Panel } from "@/components/ui/panel";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import {
   dayElapsedFraction,
@@ -22,7 +22,7 @@ import {
   PACE_LABEL,
   weekElapsedFraction,
 } from "@/lib/goals-utils";
-import { formatDueDate, isOverdue, isScheduleOverdue, priorityBadgeVariant } from "@/lib/kanban-utils";
+import { formatDueDate, isOverdue, isScheduleOverdue, priorityDotClass, priorityTextClass } from "@/lib/kanban-utils";
 import { formatTimeLabel, getScheduledEvent, isSameDay } from "@/lib/calendar-utils";
 import type { Goal, Objective } from "@/types";
 import { cn } from "@/lib/utils";
@@ -105,20 +105,23 @@ export function TodayAgendaPanel({
     calendarEvents.length === 0;
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-elevation-1)] sm:p-5">
+    // The dashboard's one hero surface — `glass` (elevation-2) so it reads as
+    // the clear focal point above the secondary stat-card row that follows it.
+    <Panel variant="glass" className="p-4 sm:p-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <div>
           <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">Today</p>
           <h2 className="mt-0.5 text-base font-semibold text-foreground">Your agenda</h2>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 rounded-lg border border-accent/25 bg-accent-muted/40 px-2.5 py-1">
+        {/* One neutral status chip instead of two competing colored ones —
+            the flame icon is the only meaningful color accent here. */}
+        <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-2.5 py-1">
+          <span className="flex items-center gap-1.5 text-xs font-medium text-foreground">
             <Flame className="h-3.5 w-3.5 text-warning" />
-            <span className="text-xs font-medium text-foreground">
-              {streak > 0 ? `${streak}-day streak` : "No streak yet"}
-            </span>
-          </div>
-          <Badge variant="accent">{rankLabel}</Badge>
+            {streak > 0 ? `${streak}-day streak` : "No streak yet"}
+          </span>
+          <span className="h-3 w-px bg-border" aria-hidden />
+          <span className="text-xs font-medium text-muted-foreground">{rankLabel}</span>
         </div>
       </div>
 
@@ -157,11 +160,9 @@ export function TodayAgendaPanel({
             </AgendaSection>
           )}
 
-          <AgendaSection icon={Timer} label="Scheduled focus" count={focusBlocks.length}>
-            {focusBlocks.length === 0 ? (
-              <EmptyHint href="/pomodoro" label="Schedule a focus block or start a Pomodoro" />
-            ) : (
-              focusBlocks.map(({ objective, start, durationMinutes }) => (
+          {focusBlocks.length > 0 && (
+            <AgendaSection icon={Timer} label="Scheduled focus" count={focusBlocks.length}>
+              {focusBlocks.map(({ objective, start, durationMinutes }) => (
                 <AgendaLink
                   key={objective.id}
                   href="/pomodoro"
@@ -170,15 +171,13 @@ export function TodayAgendaPanel({
                   priority={objective.priority}
                   done={objective.status === "done"}
                 />
-              ))
-            )}
-          </AgendaSection>
+              ))}
+            </AgendaSection>
+          )}
 
-          <AgendaSection icon={CalendarClock} label="Calendar events" count={calendarEvents.length}>
-            {calendarEvents.length === 0 ? (
-              <EmptyHint href="/calendar" label="Add a calendar-only event" />
-            ) : (
-              calendarEvents.map(({ objective, start, durationMinutes }) => (
+          {calendarEvents.length > 0 && (
+            <AgendaSection icon={CalendarClock} label="Calendar events" count={calendarEvents.length}>
+              {calendarEvents.map(({ objective, start, durationMinutes }) => (
                 <AgendaLink
                   key={objective.id}
                   href="/calendar"
@@ -187,11 +186,11 @@ export function TodayAgendaPanel({
                   priority={objective.priority}
                   done={objective.status === "done"}
                 />
-              ))
-            )}
-          </AgendaSection>
+              ))}
+            </AgendaSection>
+          )}
 
-          {isEmpty && overdue.length === 0 && dueToday.length === 0 && (
+          {isEmpty && (
             <p className="flex items-center gap-2 rounded-lg border border-dashed border-border/60 px-3 py-4 text-xs text-muted-foreground">
               <Sun className="h-3.5 w-3.5 shrink-0" />
               Clear day — add an objective or schedule a focus block to fill this view.
@@ -212,13 +211,13 @@ export function TodayAgendaPanel({
           )}
           <Link
             href="/goals"
-            className="inline-flex items-center gap-1 text-[11px] text-foreground/45 transition-colors hover:text-foreground"
+            className="inline-flex items-center gap-1 text-[11px] text-foreground/60 transition-colors hover:text-foreground"
           >
             Manage goals <ArrowRight className="h-3 w-3" />
           </Link>
         </div>
       </div>
-    </div>
+    </Panel>
   );
 }
 
@@ -244,16 +243,20 @@ function AgendaSection({
         <p
           className={cn(
             "text-[11px] font-semibold uppercase tracking-wide",
-            tone === "danger" ? "text-danger" : "text-foreground/45"
+            tone === "danger" ? "text-danger" : "text-foreground/60"
           )}
         >
           {label}
         </p>
-        <span className="rounded-full bg-foreground/10 px-1.5 py-0.5 text-[10px] font-medium text-foreground/55">
-          {count}
-        </span>
+        <span className="text-[11px] font-medium text-foreground/40">· {count}</span>
       </div>
-      <div className="flex flex-col gap-1.5">{children}</div>
+      {/* Flat divided rows, not a stack of individually-boxed cards — Linear's
+          list pattern. `divide-y` draws the row separators, so each
+          `AgendaLink` only needs its own background tint (for overdue/done
+          state), never its own border. */}
+      <div className="divide-y divide-border overflow-hidden rounded-lg border border-border">
+        {children}
+      </div>
     </div>
   );
 }
@@ -277,23 +280,21 @@ function AgendaLink({
     <Link
       href={href}
       className={cn(
-        "flex items-start gap-2.5 rounded-lg border px-3 py-2.5 transition-colors duration-200",
+        "flex items-start gap-2.5 px-3 py-2.5 transition-colors duration-200",
         done
-          ? "border-success/25 bg-success-muted/15 hover:border-success/40"
+          ? "bg-success-muted/15 hover:bg-success-muted/25"
           : tone === "danger"
-            ? "border-danger/25 bg-danger-muted/10 hover:border-danger/40"
-            : "border-border bg-card hover:border-border-strong hover:bg-card-hover"
+            ? "bg-danger-muted/10 hover:bg-danger-muted/20"
+            : "hover:bg-card-hover"
       )}
     >
       {done ? (
         <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-success" />
       ) : (
-        <span
-          className={cn(
-            "mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full",
-            tone === "danger" ? "bg-danger" : "bg-accent"
-          )}
-        />
+        // A dot colored by priority replaces both the old generic tone dot
+        // and the bordered priority pill below — one indicator that
+        // actually carries meaning instead of two decorative ones.
+        <span className={cn("mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full", priorityDotClass(priority))} />
       )}
       <div className="min-w-0 flex-1">
         <p
@@ -304,24 +305,11 @@ function AgendaLink({
         >
           {title}
         </p>
-        <div className="mt-1 flex flex-wrap items-center gap-1.5">
-          <Badge variant={priorityBadgeVariant(priority)} className="capitalize">
-            {priority}
-          </Badge>
-          <span className="text-[11px] text-foreground/45">{meta}</span>
+        <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px]">
+          <span className={cn("font-medium capitalize", priorityTextClass(priority))}>{priority}</span>
+          <span className="text-foreground/60">· {meta}</span>
         </div>
       </div>
-    </Link>
-  );
-}
-
-function EmptyHint({ href, label }: { href: string; label: string }) {
-  return (
-    <Link
-      href={href}
-      className="flex items-center gap-2 rounded-lg border border-dashed border-border/60 px-3 py-2.5 text-xs text-muted-foreground transition-colors hover:border-accent/25 hover:text-foreground"
-    >
-      {label} <ArrowRight className="h-3 w-3" />
     </Link>
   );
 }

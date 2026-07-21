@@ -30,7 +30,7 @@ export const FAQS = [
 
 export function FAQContent() {
   return (
-    <Accordion type="single" collapsible className="w-full">
+    <Accordion type="single" collapsible className="mx-auto w-full">
       {FAQS.map((faq, i) => (
         <AccordionItem key={faq.question} value={`item-${i}`} className="border-white/10">
           <AccordionTrigger className="text-white hover:text-white/80">

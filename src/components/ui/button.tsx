@@ -6,12 +6,12 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "group relative inline-flex items-center justify-center gap-2 overflow-hidden whitespace-nowrap rounded-md text-sm font-medium transition-all duration-200 ease-out hover:-translate-y-[1px] hover:scale-[1.015] active:translate-y-0 active:scale-[0.97] active:duration-100 disabled:pointer-events-none disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+  "relative inline-flex items-center justify-center gap-2 overflow-hidden whitespace-nowrap rounded-md text-sm font-medium transition-all duration-200 ease-out hover:-translate-y-[1px] hover:scale-[1.015] active:translate-y-0 active:scale-[0.97] active:duration-100 disabled:pointer-events-none disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
   {
     variants: {
       variant: {
         default:
-          "bg-accent text-accent-foreground hover:bg-accent/90 shadow-[0_0_0_1px_rgba(91,141,239,0.18),0_6px_20px_-8px_rgba(91,141,239,0.35)] hover:shadow-[0_0_0_1px_rgba(91,141,239,0.28),0_10px_28px_-8px_rgba(91,141,239,0.4)] light:shadow-[0_1px_2px_rgba(23,24,28,0.12)] light:hover:shadow-[0_2px_8px_-2px_rgba(23,24,28,0.2)]",
+          "bg-accent text-accent-foreground hover:bg-accent/90 shadow-[var(--shadow-elevation-2)] hover:shadow-[var(--shadow-elevation-3)]",
         secondary:
           "bg-secondary/90 text-secondary-foreground shadow-[0_1px_2px_rgba(0,0,0,0.2)] hover:bg-secondary hover:shadow-[0_8px_22px_-10px_rgba(139,126,200,0.4)] light:shadow-[0_1px_2px_rgba(23,24,28,0.12)] light:hover:shadow-[0_2px_8px_-2px_rgba(23,24,28,0.2)]",
         outline:
@@ -84,12 +84,6 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           children
         ) : (
           <>
-            {variant === "default" || variant === undefined ? (
-              <span
-                aria-hidden
-                className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full"
-              />
-            ) : null}
             {children}
             {ripples.map((r) => (
               <span

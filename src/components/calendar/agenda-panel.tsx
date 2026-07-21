@@ -65,7 +65,7 @@ function AgendaRow({
       className={cn(
         "flex w-full items-start gap-2.5 rounded-lg border px-3 py-2.5 text-left transition-all duration-200",
         hovered
-          ? "border-accent/50 bg-accent-muted/30 shadow-[0_0_0_1px_rgba(59,130,246,0.15)]"
+          ? "border-accent/50 bg-accent-muted/30 shadow-[0_0_0_1px_rgba(94,106,210,0.15)]"
           : "border-transparent bg-surface hover:border-border-strong hover:bg-card"
       )}
     >
@@ -194,7 +194,7 @@ export function AgendaPanel({
                   className={cn(
                     "rounded-lg border p-3",
                     timer.status === "running"
-                      ? "border-accent/40 bg-accent-muted/20 shadow-[0_0_0_1px_rgba(59,130,246,0.15),0_0_24px_-8px_rgba(59,130,246,0.35)] light:shadow-[0_0_0_1px_rgba(37,99,235,0.25)]"
+                      ? "border-accent/40 bg-accent-muted/20 shadow-[0_0_0_1px_rgba(94,106,210,0.15),0_0_24px_-8px_rgba(94,106,210,0.35)] light:shadow-[0_0_0_1px_rgba(79,70,229,0.25)]"
                       : "border-border bg-surface"
                   )}
                 >

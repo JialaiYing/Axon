@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { Bell, X, Timer as TimerIcon, BellOff, Flag } from "lucide-react";
+import { Bell, X, Timer as TimerIcon, BellOff, Flag, ImageIcon } from "lucide-react";
 import { useNotifications } from "@/hooks/use-notifications";
 import { usePomodoroTimers } from "@/hooks/use-pomodoro-timers";
 import type { TimerNotification } from "@/types";
@@ -19,6 +19,19 @@ function timeAgo(iso: string): string {
   const hours = Math.floor(minutes / 60);
   if (hours < 24) return `${hours}h ago`;
   return `${Math.floor(hours / 24)}d ago`;
+}
+
+function notificationHref(n: TimerNotification): string {
+  if (n.href) return n.href;
+  if (n.kind === "due-soon") return "/kanban";
+  if (n.kind === "background-unlock") return "/settings";
+  return "/pomodoro";
+}
+
+function NotificationKindIcon({ kind }: { kind?: TimerNotification["kind"] }) {
+  if (kind === "due-soon") return <Flag className="h-3.5 w-3.5" />;
+  if (kind === "background-unlock") return <ImageIcon className="h-3.5 w-3.5" />;
+  return <TimerIcon className="h-3.5 w-3.5" />;
 }
 
 export function NotificationBell() {
@@ -56,7 +69,7 @@ export function NotificationBell() {
 
   function handleOpenNotification(n: TimerNotification) {
     setOpen(false);
-    router.push(n.href ?? (n.kind === "due-soon" ? "/kanban" : "/pomodoro"));
+    router.push(notificationHref(n));
   }
 
   function handleCloseNotification(n: TimerNotification) {
@@ -121,11 +134,7 @@ export function NotificationBell() {
                         className="group flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-card-hover"
                       >
                         <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-accent-muted text-accent">
-                          {n.kind === "due-soon" ? (
-                            <Flag className="h-3.5 w-3.5" />
-                          ) : (
-                            <TimerIcon className="h-3.5 w-3.5" />
-                          )}
+                          <NotificationKindIcon kind={n.kind} />
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-xs font-medium text-foreground">{n.title}</p>

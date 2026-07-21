@@ -3,7 +3,8 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, PanelLeftClose, PanelLeftOpen, Zap } from "lucide-react";
+import { ChevronDown, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { AxonLogo } from "@/components/brand/axon-logo";
 import { NAV_PRIMARY, NAV_PROGRESS } from "@/constants/navigation";
 import { cn } from "@/lib/utils";
 
@@ -30,19 +31,17 @@ export function Sidebar({ open, onOpenChange }: SidebarProps) {
     >
       <Link
         href="/dashboard"
+        aria-label="Axon dashboard"
         className={cn(
-          "flex h-14 shrink-0 items-center gap-2 border-b border-border/50 light:border-border/40",
-          open ? "px-4" : "justify-center px-0"
+          "flex h-14 shrink-0 items-center border-b border-border/50 light:border-border/40",
+          open ? "px-3" : "justify-center px-0"
         )}
       >
-        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-accent shadow-[var(--shadow-glow-accent)] light:shadow-[0_1px_2px_rgba(23,24,28,0.18)]">
-          <Zap className="h-4 w-4 text-accent-foreground" strokeWidth={2.5} />
-        </div>
-        {open && (
-          <span className="whitespace-nowrap text-sm font-semibold tracking-tight text-foreground">
-            Axon
-          </span>
-        )}
+        <AxonLogo
+          withWordmark={open}
+          iconClassName="h-7 w-7"
+          wordmarkClassName="text-sm text-foreground"
+        />
       </Link>
 
       <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-2.5 py-4 scrollbar-none">

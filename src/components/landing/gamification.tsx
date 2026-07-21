@@ -1,6 +1,4 @@
-import { Flame, Trophy, Star } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Flame, Trophy, Star, Sparkles } from "lucide-react";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
 import { ScrollReveal, ScrollRevealGroup, ScrollRevealItem } from "@/components/ui/scroll-reveal";
@@ -31,27 +29,40 @@ export function Gamification() {
         </ScrollReveal>
 
         <ScrollReveal delay={0.1}>
-          <Card className="rounded-xl border border-white/10 bg-white/[0.03] p-7 shadow-none">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-white/45">Current rank</p>
-                <p className="text-lg font-semibold text-white">Scholar II</p>
+          {/* Matches the dashboard RankHero + streak chip language */}
+          <div className="overflow-hidden rounded-xl border border-white/10 bg-card p-5 shadow-[var(--shadow-elevation-2)] sm:p-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-3.5">
+                <Trophy className="h-8 w-8 shrink-0 text-white/70" />
+                <div>
+                  <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-white/45">
+                    Current rank
+                  </p>
+                  <p className="mt-0.5 text-xl font-semibold tracking-tight text-white">Scholar II</p>
+                </div>
               </div>
-              <Badge className="border-white/20 bg-white/10 text-white">Level 8</Badge>
+              <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/40 px-2.5 py-1">
+                <span className="flex items-center gap-1.5 text-xs font-medium text-accent">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  +42 XP today
+                </span>
+                <span className="h-3 w-px bg-white/10" aria-hidden />
+                <span className="text-xs font-medium text-white/55">Level 8 / 30</span>
+              </div>
             </div>
 
             <div className="mt-5">
               <div className="mb-1.5 flex items-center justify-between text-xs text-white/45">
                 <span>XP to next level</span>
-                <span className="text-white/70">640 / 940</span>
+                <span className="tabular-nums text-white/70">640 / 940</span>
               </div>
               <ProgressBar value={68} barClassName="bg-white bg-none shadow-none" />
             </div>
 
             <ScrollRevealGroup className="mt-6 grid grid-cols-3 gap-3" stagger={0.1}>
               <ScrollRevealItem>
-                <div className="rounded-md border border-white/10 bg-black/40 p-3 text-center">
-                  <Flame className="mx-auto h-4 w-4 text-white" />
+                <div className="rounded-lg border border-white/10 bg-black/40 p-3 text-center">
+                  <Flame className="mx-auto h-4 w-4 text-warning" />
                   <p className="mt-1.5 text-sm font-semibold text-white">
                     <AnimatedCounter value={12} />
                   </p>
@@ -59,8 +70,8 @@ export function Gamification() {
                 </div>
               </ScrollRevealItem>
               <ScrollRevealItem>
-                <div className="rounded-md border border-white/10 bg-black/40 p-3 text-center">
-                  <Trophy className="mx-auto h-4 w-4 text-white" />
+                <div className="rounded-lg border border-white/10 bg-black/40 p-3 text-center">
+                  <Trophy className="mx-auto h-4 w-4 text-white/70" />
                   <p className="mt-1.5 text-sm font-semibold text-white">
                     <AnimatedCounter value={9} />
                   </p>
@@ -68,8 +79,8 @@ export function Gamification() {
                 </div>
               </ScrollRevealItem>
               <ScrollRevealItem>
-                <div className="rounded-md border border-white/10 bg-black/40 p-3 text-center">
-                  <Star className="mx-auto h-4 w-4 text-white" />
+                <div className="rounded-lg border border-white/10 bg-black/40 p-3 text-center">
+                  <Star className="mx-auto h-4 w-4 text-white/70" />
                   <p className="mt-1.5 text-sm font-semibold text-white">
                     <AnimatedCounter value={340} />
                   </p>
@@ -77,7 +88,7 @@ export function Gamification() {
                 </div>
               </ScrollRevealItem>
             </ScrollRevealGroup>
-          </Card>
+          </div>
         </ScrollReveal>
       </div>
     </section>

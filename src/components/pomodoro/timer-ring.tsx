@@ -32,7 +32,7 @@ export function TimerRing({ remainingSeconds, totalSeconds, size = 260 }: TimerR
         animate={{
           background: isLow
             ? "radial-gradient(circle, rgba(239,68,68,0.22), transparent 70%)"
-            : "radial-gradient(circle, rgba(59,130,246,0.18), transparent 70%)",
+            : "radial-gradient(circle, rgba(94,106,210,0.18), transparent 70%)",
         }}
         transition={{ duration: 0.8, ease: "easeOut" }}
         style={{ width: SIZE * 0.85, height: SIZE * 0.85 }}
@@ -40,7 +40,7 @@ export function TimerRing({ remainingSeconds, totalSeconds, size = 260 }: TimerR
 
       <div
         aria-hidden
-        className="absolute rounded-full border border-border bg-[radial-gradient(circle_at_35%_25%,rgba(255,255,255,0.09),rgba(255,255,255,0.015)_55%,transparent)] shadow-[inset_0_1px_0_rgba(255,255,255,0.07),0_18px_50px_-28px_rgba(59,130,246,0.7)]"
+        className="absolute rounded-full border border-border bg-[radial-gradient(circle_at_35%_25%,rgba(255,255,255,0.09),rgba(255,255,255,0.015)_55%,transparent)] shadow-[inset_0_1px_0_rgba(255,255,255,0.07),0_18px_50px_-28px_rgba(94,106,210,0.7)]"
         style={{ width: SIZE - 28, height: SIZE - 28 }}
       />
 
@@ -74,7 +74,7 @@ export function TimerRing({ remainingSeconds, totalSeconds, size = 260 }: TimerR
           style={{
             filter: isLow
               ? "drop-shadow(0 0 12px rgba(239,68,68,0.6))"
-              : "drop-shadow(0 0 12px rgba(59,130,246,0.4))",
+              : "drop-shadow(0 0 12px rgba(94,106,210,0.4))",
           }}
         />
       </svg>
@@ -83,7 +83,7 @@ export function TimerRing({ remainingSeconds, totalSeconds, size = 260 }: TimerR
         <motion.span
           animate={isLow && !prefersReducedMotion ? { scale: [1, 1.04, 1] } : { scale: 1 }}
           transition={{ duration: 1, repeat: isLow && !prefersReducedMotion ? Infinity : 0 }}
-          className="font-mono font-semibold tabular-nums tracking-[-0.04em] text-foreground drop-shadow-[0_2px_16px_rgba(59,130,246,0.2)]"
+          className="font-mono font-semibold tabular-nums tracking-[-0.04em] text-foreground drop-shadow-[0_2px_16px_rgba(94,106,210,0.2)]"
           style={{ fontSize: size >= 400 ? "4.5rem" : "3rem" }}
         >
           {formatClock(remainingSeconds)}

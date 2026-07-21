@@ -1,16 +1,23 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { X, Zap } from "lucide-react";
+import { X } from "lucide-react";
 import { AuthForm } from "@/components/auth/auth-form";
+import { AxonLogo } from "@/components/brand/axon-logo";
 import { Panel } from "@/components/ui/panel";
 
 export default function LoginClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get("next") || "/dashboard";
-  const mode = searchParams.get("mode") === "signup" ? "signup" : "signin";
+  const initialMode = searchParams.get("mode") === "signup" ? "signup" : "signin";
+  const [mode, setMode] = React.useState<"signin" | "signup">(initialMode);
+
+  React.useEffect(() => {
+    setMode(initialMode);
+  }, [initialMode]);
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center bg-background px-4 py-12">
@@ -24,31 +31,37 @@ export default function LoginClient() {
       </Link>
 
       <div className="mb-8 flex flex-col items-center gap-3 text-center">
-        <Link
-          href="/"
-          className="flex items-center gap-2 text-foreground transition-opacity hover:opacity-80"
-        >
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent">
-            <Zap className="h-4.5 w-4.5 text-accent-foreground" strokeWidth={2.5} />
-          </span>
-          <span className="text-lg font-semibold tracking-tight">Axon</span>
+        <Link href="/" className="transition-opacity hover:opacity-80" aria-label="Axon home">
+          <AxonLogo
+            withWordmark
+            priority
+            iconClassName="h-9 w-9"
+            wordmarkClassName="text-lg text-foreground"
+          />
         </Link>
-        <p className="max-w-sm text-sm text-muted-foreground">
-          Sign in to sync across devices — or keep studying offline without an account.
-        </p>
+        {mode === "signin" ? (
+          <>
+            <h1 className="text-xl font-semibold tracking-tight text-foreground">Welcome back</h1>
+            <p className="max-w-sm text-sm text-muted-foreground">
+              Sign in to sync across devices — or keep studying offline without an account.
+            </p>
+          </>
+        ) : (
+          <>
+            <h1 className="text-xl font-semibold tracking-tight text-foreground">
+              Create your Axon account
+            </h1>
+            <p className="max-w-sm text-sm text-muted-foreground">
+              Set up a free account to sync your workspace and pick up on any device.
+            </p>
+          </>
+        )}
       </div>
 
       <Panel variant="standard" className="w-full max-w-md p-6 sm:p-8">
-        <h1 className="mb-1 text-xl font-semibold tracking-tight text-foreground">
-          {mode === "signup" ? "Create your account" : "Welcome back"}
-        </h1>
-        <p className="mb-6 text-sm text-muted-foreground">
-          {mode === "signup"
-            ? "Pick a display name for personalized greetings on your dashboard."
-            : "Use your email or Google account to continue."}
-        </p>
         <AuthForm
           initialMode={mode}
+          onModeChange={setMode}
           onSuccess={() => {
             router.replace(next.startsWith("/") ? next : "/dashboard");
           }}
