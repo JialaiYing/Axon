@@ -2,12 +2,12 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Bell,
   Cloud,
   Focus,
   Home,
-  Lock,
   Moon,
   Palette,
   RotateCcw,
@@ -65,6 +65,7 @@ export default function SettingsPage() {
   const { backgroundId, setBackgroundId, catalog, level } = useDashboardBackground();
   const { user, session, configured, signOut } = useAuth();
   const { status, syncNow } = useSync();
+  const router = useRouter();
 
   const [permission, setPermission] = React.useState<BrowserNotificationPermission>("default");
   const [prefEnabled, setPrefEnabled] = React.useState(false);
@@ -319,10 +320,9 @@ export default function SettingsPage() {
             <h3 className="text-sm font-semibold text-foreground">Data &amp; privacy</h3>
           </div>
           <p className="text-sm leading-relaxed text-muted">
-            Axon is local-first: study data lives in this browser by default. When you sign in,
-            encrypted sessions with Supabase sync your data to your account only — Row Level
-            Security ensures other users cannot read your rows. We do not sell personal data.
-            Review our{" "}
+            An Axon account is required to use the dashboard. Study data syncs to your account via
+            Supabase — Row Level Security ensures other users cannot read your rows. We do not sell
+            personal data. Review our{" "}
             <Link href="/privacy" className="text-muted-foreground underline decoration-border underline-offset-2 transition-colors hover:text-accent hover:decoration-accent">
               Privacy Policy
             </Link>{" "}
@@ -337,11 +337,9 @@ export default function SettingsPage() {
             devices: calendar view mode, Pomodoro display mode, and which feature tips you&apos;ve
             seen.
           </p>
-          {configured && (
+          {configured && user && (
             <p className="mt-2 text-xs text-muted-foreground">
-              {user
-                ? `Signed in as ${user.email} · sync ${status}`
-                : "Supabase is configured — sign in from the avatar menu or /login to enable sync."}
+              {`Signed in as ${user.email} · sync ${status}`}
             </p>
           )}
           {user && (
@@ -350,7 +348,12 @@ export default function SettingsPage() {
                 <Cloud className="h-3.5 w-3.5" />
                 Sync now
               </Button>
-              <Button type="button" variant="ghost" size="sm" onClick={() => void signOut()}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => void signOut().then(() => router.replace("/login"))}
+              >
                 Sign out
               </Button>
               <Button
@@ -370,17 +373,9 @@ export default function SettingsPage() {
           )}
           {user && (
             <p className="mt-2 text-xs text-muted-foreground">
-              Sign out clears synced study data from this browser. Delete account permanently
-              removes your cloud account and data.
+              Sign out clears synced study data from this browser and returns you to login. Delete
+              account permanently removes your cloud account and data.
             </p>
-          )}
-          {!user && (
-            <Button asChild size="sm" className="mt-3">
-              <Link href="/login">
-                <Lock className="h-3.5 w-3.5" />
-                Sign in
-              </Link>
-            </Button>
           )}
         </Panel>
 

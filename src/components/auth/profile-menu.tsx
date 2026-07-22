@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Cloud, CloudOff, Loader2, LogIn, LogOut, RefreshCw, Settings, UserRound } from "lucide-react";
 import {
   DropdownMenu,
@@ -59,6 +60,7 @@ function SyncBadge() {
 }
 
 export function ProfileMenu() {
+  const router = useRouter();
   const { user, loading, signOut, configured } = useAuth();
 
   const initials =
@@ -88,11 +90,11 @@ export function ProfileMenu() {
               </div>
             ) : (
               <div className="space-y-0.5">
-                <p className="text-sm font-medium text-foreground">Local mode</p>
+                <p className="text-sm font-medium text-foreground">Not signed in</p>
                 <p className="text-[11px] font-normal text-muted-foreground">
                   {configured
-                    ? "Sign in to sync across devices"
-                    : "Configure Supabase to enable sync"}
+                    ? "Sign in to use Axon"
+                    : "Configure Supabase to enable sign-in"}
                 </p>
               </div>
             )}
@@ -114,7 +116,7 @@ export function ProfileMenu() {
             <DropdownMenuItem
               onSelect={(e) => {
                 e.preventDefault();
-                void signOut();
+                void signOut().then(() => router.replace("/login"));
               }}
             >
               <LogOut className="h-3.5 w-3.5" />

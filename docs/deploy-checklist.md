@@ -19,8 +19,8 @@ Run through this before pointing a public URL at Axon. Skipping any of these bre
 
 ## Smoke test after deploy
 
-- [ ] Open site over HTTPS; landing + `/dashboard` load offline-capable
-- [ ] Sign up / sign in / Google (if configured)
+- [ ] Open site over HTTPS; landing loads; unauthenticated `/dashboard` redirects to `/login`
+- [ ] Sign up / sign in / Google (required — dashboard is account-gated)
 - [ ] Create an objective → appears after refresh / second device pull
 - [ ] Delete an objective on device A → gone on device B after sync/pull
 - [ ] Sign out → local study data cleared; guest session starts empty

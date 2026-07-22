@@ -26,8 +26,8 @@ export default function TermsPage() {
         <section>
           <h2 className="text-base font-semibold text-foreground">2. The Service</h2>
           <p>
-            Axon is a productivity tool for students. Core features work offline in your browser.
-            Optional cloud sync requires an account via Supabase authentication.
+            Axon is a productivity tool for students. Using the dashboard requires a free account
+            via Supabase authentication. Your study data syncs to your account across devices.
           </p>
         </section>
         <section>

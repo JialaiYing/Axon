@@ -1,6 +1,6 @@
 # Axon
 
-A **local-first study productivity dashboard** for students who struggle with distraction and consistency — with optional **Supabase auth + sync**, dark/light themes, Focus Mode, and gamified unlockable backgrounds.
+A **study productivity dashboard** for students who struggle with distraction and consistency — with **required Supabase auth + sync**, dark/light themes, Focus Mode, and gamified unlockable backgrounds.
 
 > **Live Demo:** _Not yet deployed._ Once hosted (e.g. on Vercel), add the link here: `https://your-deployment-url.vercel.app`
 
@@ -15,7 +15,7 @@ A **local-first study productivity dashboard** for students who struggle with di
 * **Flashcards:** Set grid by default, optional visual gallery, 2D study flip cards.
 * **Analytics:** High-signal charts (focus trend, completion, streak heatmap) + optional deeper insights.
 * **Goals:** Seeded study goals **plus** personal open-ended daily/weekly goals you track manually.
-* **Auth:** Dedicated [`/login`](src/app/login) page (homepage Login button wired). Optional Google / email via Supabase. Offline works without an account.
+* **Auth (required):** Dedicated [`/login`](src/app/login) page. Create an account (email or Google via Supabase) to use the dashboard — guest / anonymous access is not available.
 * **Themes:** Dark and light modes in Settings.
 * **Legal:** [`/terms`](src/app/terms) and [`/privacy`](src/app/privacy).
 * **Security:** Rate-limited auth APIs, input sanitization, RLS on cloud tables, CSP + security response headers — see [`docs/security-audit.md`](docs/security-audit.md).
@@ -26,7 +26,7 @@ A **local-first study productivity dashboard** for students who struggle with di
 
 - **Next.js 15** (App Router) · **React 18** · **TypeScript**
 - **Tailwind CSS v4** · Radix UI · Framer Motion · GSAP / Lenis
-- **Supabase** (optional auth + sync) · **Recharts** · **dnd-kit**
+- **Supabase** (required auth + sync) · **Recharts** · **dnd-kit**
 - **OGL / Three.js** ambient effects · React Bits–style backgrounds (registry in `components.json`)
 
 ---
@@ -36,6 +36,7 @@ A **local-first study productivity dashboard** for students who struggle with di
 ### Prerequisites
 
 - Node.js `v18.17+` and npm `v9+`
+- A Supabase project (auth + sync are required to use the dashboard)
 
 ### Install
 
@@ -47,7 +48,7 @@ npm install
 
 ### Environment variables
 
-Copy [`.env.example`](.env.example) to `.env.local` for optional cloud sync:
+Copy [`.env.example`](.env.example) to `.env.local` and fill in your Supabase credentials:
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
@@ -57,7 +58,7 @@ SUPABASE_SERVICE_ROLE_KEY=  # server-only; enables Settings → Delete account
 ```
 
 - The **anon key is public by design** (browser clients). Never put the **service role** key in `NEXT_PUBLIC_*` or commit `.env.local` (gitignored).
-- Without the public Supabase vars the app still runs fully offline.
+- Without the public Supabase vars, sign-in is unavailable and the dashboard redirects to `/login`.
 - Schema + RLS: [`supabase/schema.sql`](supabase/schema.sql) and [`docs/supabase-setup.md`](docs/supabase-setup.md).
 - Before a public deploy: [`docs/deploy-checklist.md`](docs/deploy-checklist.md).
 
@@ -67,13 +68,13 @@ SUPABASE_SERVICE_ROLE_KEY=  # server-only; enables Settings → Delete account
 npm run dev
 ```
 
-Visit [http://localhost:3000](http://localhost:3000). Use **Login** (top right) → `/login`, or open the dashboard without signing in.
+Visit [http://localhost:3000](http://localhost:3000). Use **Sign up** / **Login** → `/login`, then open the dashboard after authenticating.
 
 ---
 
 ## Core workflows
 
-1. **Login / signup** — create an account with a display name for greetings; or stay local-only.
+1. **Sign up / login** — create an account with a display name for greetings (required before using the app).
 2. **Dashboard** — Today agenda + personalized greeting; unlock backgrounds in Settings as you level up.
 3. **Kanban → Pomodoro** — plan objectives, start Focus Mode, finish with a session summary.
 4. **Goals** — edit study targets or add personal daily/weekly goals (+1 progress).
@@ -90,14 +91,16 @@ Visit [http://localhost:3000](http://localhost:3000). Use **Login** (top right) 
 - `src/lib/backgrounds` — unlock catalog
 - `docs/security-audit.md` — latest security review
 
+App routes under `(app)` are gated by `RequireAuth` — unauthenticated visitors are redirected to `/login`.
+
 ---
 
 ## Project status
 
-- [x] Local-first core (Kanban, Calendar, Flashcards, Pomodoro, Analytics, Goals, XP)
+- [x] Core study features (Kanban, Calendar, Flashcards, Pomodoro, Analytics, Goals, XP)
 - [x] Focus Mode + session summary + per-page onboarding tips
 - [x] Dedicated Rank/Progress page with the full level ladder
-- [x] Optional Supabase auth/sync with RLS
+- [x] Required Supabase auth/sync with RLS
 - [x] Login page, dark/light theme, personal goals, unlockable backgrounds
 - [x] Terms, Privacy, security hardening (rate limits, sanitization, audit doc)
 

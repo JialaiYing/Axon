@@ -5,12 +5,12 @@ import ScrollFloat from "@/components/effects/scroll-float";
 import BorderGlow from "@/components/effects/border-glow";
 
 const BENEFITS = [
-  "Works fully offline — an account is only needed for cross-device sync",
+  "Free account unlocks your dashboard and keeps it synced across devices",
   "No AI subscriptions or API keys to manage",
   "Built to make small, consistent effort visible",
   "One connected workspace instead of five disconnected apps",
   "Statistics-driven insights, not opaque predictions",
-  "Your data stays yours — local-first, with optional cloud sync",
+  "Your data stays yours — synced to your account with Row Level Security",
 ];
 
 export function Benefits() {

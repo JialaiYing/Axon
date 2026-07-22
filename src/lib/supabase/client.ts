@@ -15,7 +15,7 @@ export function isSupabaseConfigured(): boolean {
 
 /**
  * Browser Supabase client (singleton). Returns null when env vars are missing
- * so the rest of the app can keep running fully offline.
+ * (sign-in unavailable; app routes redirect to /login).
  */
 export function getSupabaseBrowserClient(): SupabaseClient | null {
   if (!isSupabaseConfigured()) return null;

@@ -14,12 +14,12 @@ export const FAQS = [
   {
     question: "Do I need an account to use it?",
     answer:
-      "No. Axon stores your data in your browser's localStorage, so you can start immediately with zero signup. Creating a free account is optional and only unlocks syncing that data across devices.",
+      "Yes. A free account is required to open the dashboard. Signing in keeps your study data synced across devices so you can pick up where you left off.",
   },
   {
     question: "What happens to my data if I clear my browser?",
     answer:
-      "If you're signed in, nothing — your data lives in the cloud and re-syncs on any device you log into. If you're using Axon fully offline (no account), clearing site data does remove it, since it only exists in that browser's localStorage.",
+      "Nothing lasting — your data lives in your account and re-syncs when you sign in again on any device. Clearing site data only removes the local cache in that browser.",
   },
   {
     question: "Can I use Axon on my phone?",

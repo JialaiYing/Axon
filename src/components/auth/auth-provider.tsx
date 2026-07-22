@@ -128,8 +128,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = React.useCallback(async () => {
     clearLocalSyncedData();
     const supabase = getSupabaseBrowserClient();
-    if (!supabase) return;
-    await supabase.auth.signOut();
+    if (supabase) await supabase.auth.signOut();
   }, []);
 
   const updateDisplayName = React.useCallback(async (name: string) => {

@@ -25,8 +25,8 @@ export function Footer() {
               />
             </Link>
             <p className="mt-3 text-sm leading-relaxed text-white/55">
-              A local-first study dashboard with optional cloud sync. Built for focus —
-              not distraction.
+              A study dashboard that syncs to your account. Built for focus — not
+              distraction.
             </p>
           </div>
 
@@ -91,7 +91,7 @@ export function Footer() {
 
         <div className="mt-10 flex flex-col gap-2 border-t border-white/10 pt-6 text-xs text-white/40 sm:flex-row sm:items-center sm:justify-between">
           <p>© {year} Axon. Built for focus.</p>
-          <p>Offline-first by default · optional Supabase sync</p>
+          <p>Account required · cloud sync via Supabase</p>
         </div>
       </div>
     </footer>

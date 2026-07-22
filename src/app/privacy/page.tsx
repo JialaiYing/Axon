@@ -19,19 +19,19 @@ export default function PrivacyPage() {
         <section>
           <h2 className="text-base font-semibold text-foreground">1. Overview</h2>
           <p>
-            Axon is designed local-first. By default, objectives, timers, flashcards, and progress
-            stay in your browser&apos;s storage on your device. Cloud sync is optional.
+            Axon requires an account to use the dashboard. Objectives, timers, flashcards, and
+            progress sync to your account via Supabase so you can continue across devices.
           </p>
         </section>
         <section>
           <h2 className="text-base font-semibold text-foreground">2. Data we process</h2>
           <ul className="mt-2 list-disc space-y-1 pl-5">
             <li>
-              <strong className="text-foreground">Account data</strong> (if you sign in): email,
+              <strong className="text-foreground">Account data</strong>: email,
               authentication identifiers, optional display name — via Supabase Auth.
             </li>
             <li>
-              <strong className="text-foreground">Study data</strong> (if sync enabled): objectives,
+              <strong className="text-foreground">Study data</strong>: objectives,
               sessions, flashcards, goals, and progress payloads associated with your user id.
             </li>
             <li>
@@ -75,7 +75,7 @@ export default function PrivacyPage() {
         <section>
           <h2 className="text-base font-semibold text-foreground">6. Third parties</h2>
           <p>
-            Authentication and optional sync use Supabase. Google OAuth may be offered; Google&apos;s
+            Authentication and sync use Supabase. Google OAuth may be offered; Google&apos;s
             own policies apply to that sign-in flow. Browser notification permission is controlled
             by your OS/browser.
           </p>

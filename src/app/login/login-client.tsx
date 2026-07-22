@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { X } from "lucide-react";
 import { AuthForm } from "@/components/auth/auth-form";
+import { useAuth } from "@/components/auth/auth-provider";
 import { AxonLogo } from "@/components/brand/axon-logo";
 import { Panel } from "@/components/ui/panel";
 import { safeInternalPath } from "@/lib/security/urls";
@@ -15,10 +16,16 @@ export default function LoginClient() {
   const next = safeInternalPath(searchParams.get("next"), "/dashboard");
   const initialMode = searchParams.get("mode") === "signup" ? "signup" : "signin";
   const [mode, setMode] = React.useState<"signin" | "signup">(initialMode);
+  const { user, loading } = useAuth();
 
   React.useEffect(() => {
     setMode(initialMode);
   }, [initialMode]);
+
+  React.useEffect(() => {
+    if (loading) return;
+    if (user) router.replace(next);
+  }, [user, loading, next, router]);
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center bg-background px-4 py-12">
@@ -44,7 +51,7 @@ export default function LoginClient() {
           <>
             <h1 className="text-xl font-semibold tracking-tight text-foreground">Welcome back</h1>
             <p className="max-w-sm text-sm text-muted-foreground">
-              Sign in to sync across devices — or keep studying offline without an account.
+              Sign in to open your dashboard and sync your study workspace across devices.
             </p>
           </>
         ) : (
@@ -53,7 +60,7 @@ export default function LoginClient() {
               Create your Axon account
             </h1>
             <p className="max-w-sm text-sm text-muted-foreground">
-              Set up a free account to sync your workspace and pick up on any device.
+              A free account is required to use Axon — then your workspace syncs on any device.
             </p>
           </>
         )}
@@ -68,13 +75,6 @@ export default function LoginClient() {
           }}
         />
       </Panel>
-
-      <p className="mt-6 text-center text-xs text-muted-foreground">
-        Prefer local-only?{" "}
-        <Link href="/dashboard" className="text-accent hover:underline">
-          Open the dashboard without signing in
-        </Link>
-      </p>
     </div>
   );
 }

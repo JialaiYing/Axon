@@ -58,8 +58,8 @@ export function Hero() {
             transition={{ duration: DURATION.section, ease: EASE }}
             className="mt-6 max-w-xl text-balance text-base leading-relaxed text-white/65 md:text-lg"
           >
-            One calm, local-first workspace with statistics-driven insights
-            instead of noisy AI guesses.
+            One calm study workspace with statistics-driven insights instead of
+            noisy AI guesses — create a free account to get started.
           </motion.p>
 
           <motion.div

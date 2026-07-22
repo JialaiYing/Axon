@@ -7,7 +7,7 @@ import { Footer } from "@/components/landing/footer";
 export const metadata: Metadata = {
   title: "FAQ",
   description:
-    "Frequently asked questions about Axon — local-first study dashboard, accounts, sync, and AI.",
+    "Frequently asked questions about Axon — study dashboard, accounts, sync, and AI.",
 };
 
 export default function FAQPage() {
@@ -22,7 +22,7 @@ export default function FAQPage() {
               Frequently Asked Questions
             </h1>
             <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-white/55 md:text-base">
-              Straight answers about accounts, sync, AI, and how Axon keeps your study data local-first.
+              Straight answers about accounts, sync, AI, and how Axon keeps your study data safe.
             </p>
             <div className="mt-12 text-left md:mt-14">
               <FAQContent />

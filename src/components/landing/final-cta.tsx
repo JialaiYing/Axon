@@ -15,7 +15,7 @@ export function FinalCTA() {
           Start your first streak today.
         </h2>
         <p className="mt-5 max-w-md text-base leading-relaxed text-white/60 md:text-lg">
-          Open the dashboard and turn one quiet session into a habit.
+          Create a free account and turn one quiet session into a habit.
         </p>
         <div className="mt-10">
           <SpecularButton
@@ -35,14 +35,14 @@ export function FinalCTA() {
             followMouse
             proximity={250}
             autoAnimate={false}
-            onClick={() => router.push("/dashboard")}
+            onClick={() => router.push("/login?mode=signup")}
           >
-            Open Dashboard
+            Create account
           </SpecularButton>
         </div>
         {/* Keep crawlable link for no-JS / a11y fallback */}
-        <Link href="/dashboard" className="sr-only">
-          Open Dashboard
+        <Link href="/login?mode=signup" className="sr-only">
+          Create account
         </Link>
       </ScrollReveal>
     </section>
