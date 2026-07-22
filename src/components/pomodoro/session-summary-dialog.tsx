@@ -108,7 +108,7 @@ function SummaryTile({
         {icon}
         {label}
       </p>
-      <p className="mt-1 text-sm font-semibold tabular-nums text-foreground">{value}</p>
+      <p className="mt-1 font-mono text-sm font-semibold tabular-nums text-foreground">{value}</p>
     </div>
   );
 }

@@ -319,7 +319,7 @@ export function TestView({ set, onBack, onRecordResult, onComplete }: TestViewPr
             <div className="w-full max-w-sm">
               <div className="mb-2 flex items-center justify-between text-xs text-muted-foreground">
                 <span>Number of questions</span>
-                <span className="font-medium tabular-nums text-foreground">{questionCount}</span>
+                <span className="font-mono font-medium tabular-nums text-foreground">{questionCount}</span>
               </div>
               <input
                 type="range"

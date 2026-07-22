@@ -76,7 +76,7 @@ function DayCell({
           type="button"
           onClick={() => actions.onOpenDay(day)}
           className={cn(
-            "flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-medium transition-colors duration-150",
+            "flex h-5 w-5 items-center justify-center rounded-full font-mono text-[11px] font-medium transition-colors duration-150",
             isToday
               ? "bg-accent text-accent-foreground shadow-[0_0_8px_rgba(94,106,210,0.5)]"
               : isCurrentMonth

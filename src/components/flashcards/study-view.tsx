@@ -237,7 +237,7 @@ export function StudyView({ set, onBack, onEdit, onStartTest, onCompletePass }: 
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <span className="min-w-16 text-center text-sm font-medium tabular-nums text-muted-foreground">
+            <span className="min-w-16 text-center font-mono text-sm font-medium tabular-nums text-muted-foreground">
               {index + 1} / {cards.length}
             </span>
             <Button

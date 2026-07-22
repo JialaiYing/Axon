@@ -230,7 +230,7 @@ export function TimerFullscreenOverlay({
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0 }}
-                    className="rounded-full border border-warning/30 bg-warning-muted/40 px-3 py-1 text-xs font-medium text-warning"
+                    className="rounded-pill border border-warning/30 bg-warning-muted/40 px-3 py-1 text-xs font-medium text-warning"
                   >
                     Session paused — come back to keep focusing.
                   </motion.p>

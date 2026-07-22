@@ -157,7 +157,7 @@ export function TimeGrid({ days, events, renderDayHeader, ...actions }: TimeGrid
             {HOURS.map((hour) => (
               <div
                 key={hour}
-                className="absolute right-2 -translate-y-1/2 text-[10px] text-muted-foreground"
+                className="absolute right-2 -translate-y-1/2 font-mono text-[10px] text-muted-foreground"
                 style={{ top: hour * HOUR_HEIGHT_PX }}
               >
                 {hour === 0 ? "" : new Date(2000, 0, 1, hour).toLocaleTimeString(undefined, { hour: "numeric" })}

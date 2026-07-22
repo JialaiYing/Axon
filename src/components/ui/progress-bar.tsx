@@ -30,13 +30,13 @@ export function ProgressBar({
     <div className={cn("flex items-center gap-2.5", className)}>
       <div
         className={cn(
-          "relative w-full overflow-hidden rounded-full bg-white/[0.06] shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)] light:bg-border/60 light:shadow-none",
+          "relative w-full overflow-hidden rounded-pill bg-white/[0.06] shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)] light:bg-border/60 light:shadow-none",
           sizeMap[size]
         )}
       >
         <div
           className={cn(
-            "h-full rounded-full bg-accent transition-all duration-500 ease-out",
+            "h-full rounded-pill bg-accent transition-all duration-500 ease-out",
             clamped > 0 && "shadow-[0_0_8px_-2px_rgba(94,106,210,0.35)] light:shadow-none",
             barClassName
           )}
@@ -44,7 +44,7 @@ export function ProgressBar({
         />
       </div>
       {showLabel && (
-        <span className="text-xs font-medium tabular-nums text-muted">
+        <span className="font-mono text-xs font-medium tabular-nums text-muted">
           {Math.round(clamped)}%
         </span>
       )}

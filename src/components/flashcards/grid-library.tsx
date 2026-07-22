@@ -506,7 +506,7 @@ function FolderItem({
           </div>
         </div>
         <span className="text-xs text-foreground/45">Folder</span>
-        <span className="text-right text-xs tabular-nums text-foreground/45">
+        <span className="text-right font-mono text-xs tabular-nums text-foreground/45">
           {setCount} set{setCount === 1 ? "" : "s"}
         </span>
       </div>

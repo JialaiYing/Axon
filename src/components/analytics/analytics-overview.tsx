@@ -225,7 +225,7 @@ const ChartTooltip = React.memo(function ChartTooltip({
   return (
     <div className="glass-panel rounded-lg px-3 py-2 text-xs">
       <p className="font-medium text-foreground">{label ?? payload[0]?.name}</p>
-      <p className="mt-0.5 text-foreground/60">
+      <p className="mt-0.5 font-mono tabular-nums text-foreground/60">
         {payload[0]?.value ?? 0} {unit}
       </p>
     </div>
@@ -261,7 +261,7 @@ const StatCard = React.memo(function StatCard({
         </span>
       </div>
       <div className="mt-4">
-        <p className="text-2xl font-semibold tabular-nums text-foreground">{value}</p>
+        <p className="font-mono text-2xl font-semibold tabular-nums text-foreground">{value}</p>
         <p className="mt-1 text-xs text-foreground/45">{hint}</p>
       </div>
     </GlassPanel>
@@ -553,7 +553,7 @@ export function AnalyticsOverview() {
                     style={{ backgroundColor: entry.color }}
                   />
                   <span className="capitalize">{entry.name}</span>
-                  <span className="ml-auto tabular-nums text-foreground/45">{entry.value}</span>
+                  <span className="ml-auto font-mono tabular-nums text-foreground/45">{entry.value}</span>
                 </li>
               ))}
             </ul>
@@ -584,7 +584,7 @@ export function AnalyticsOverview() {
                 <span key={i} className={cn("h-2.5 w-2.5 rounded-[2px]", c)} />
               ))}
               <span>More</span>
-              <span className="ml-auto tabular-nums text-foreground/50">
+              <span className="ml-auto font-mono tabular-nums text-foreground/50">
                 {activeDays} active day{activeDays === 1 ? "" : "s"} in range
               </span>
             </div>
@@ -647,14 +647,14 @@ export function AnalyticsOverview() {
                       <li key={s.subject}>
                         <div className="mb-1.5 flex items-center justify-between text-xs">
                           <span className="truncate text-foreground/70">{s.subject}</span>
-                          <span className="tabular-nums text-foreground/45">{formatHours(s.minutes)}</span>
+                          <span className="font-mono tabular-nums text-foreground/45">{formatHours(s.minutes)}</span>
                         </div>
-                        <div className="h-2 overflow-hidden rounded-full bg-foreground/[0.06]">
+                        <div className="h-2 overflow-hidden rounded-pill bg-foreground/[0.06]">
                           <motion.div
                             initial={prefersReducedMotion ? false : { width: 0 }}
                             animate={{ width: `${(s.minutes / max) * 100}%` }}
                             transition={{ duration: 0.7, ease: EASE, delay: i * 0.06 }}
-                            className="h-full rounded-full"
+                            className="h-full rounded-pill"
                             style={{ backgroundColor: SUBJECT_COLORS[i % SUBJECT_COLORS.length] }}
                           />
                         </div>
@@ -678,7 +678,7 @@ export function AnalyticsOverview() {
                         <entry.icon className={cn("h-3.5 w-3.5", entry.color)} />
                         <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-foreground/55">{entry.label}</p>
                       </div>
-                      <p className="mt-2 text-xl font-semibold tabular-nums text-foreground">{entry.value}</p>
+                      <p className="mt-2 font-mono text-xl font-semibold tabular-nums text-foreground">{entry.value}</p>
                       <p className="mt-0.5 text-[11px] text-foreground/45">{entry.hint}</p>
                     </div>
                   ))}
@@ -707,7 +707,7 @@ export function AnalyticsOverview() {
                       <entry.icon className="h-4 w-4" />
                     </span>
                     <div>
-                      <p className="text-base font-semibold tabular-nums text-foreground">
+                      <p className="font-mono text-base font-semibold tabular-nums text-foreground">
                         <AnimatedCounter value={entry.value} suffix={entry.suffix} />
                       </p>
                       <p className="text-[11px] text-foreground/45">{entry.label}</p>

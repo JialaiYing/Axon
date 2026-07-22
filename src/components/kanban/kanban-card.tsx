@@ -192,7 +192,9 @@ export function KanbanCard({
           {objective.subtasks && objective.subtasks.length > 0 && (
             <span className="flex items-center gap-1">
               <ListChecks className="h-3 w-3" />
-              {objective.subtasks.filter((s) => s.done).length}/{objective.subtasks.length}
+              <span className="font-mono tabular-nums">
+                {objective.subtasks.filter((s) => s.done).length}/{objective.subtasks.length}
+              </span>
             </span>
           )}
           {objective.recurrence && objective.recurrence !== "none" && (
@@ -216,7 +218,7 @@ export function KanbanCard({
                   type="button"
                   onClick={toggle}
                   className={cn(
-                    "flex items-center gap-1.5 rounded-full border px-2 py-1 text-[11px] font-medium transition-all duration-150",
+                    "flex items-center gap-1.5 rounded-pill border px-2 py-1 text-[11px] font-medium transition-all duration-150",
                     scheduleOverdue
                       ? "border-warning/30 bg-warning-muted text-warning"
                       : "border-accent/25 bg-accent-muted/50 text-accent hover:border-accent/40",
@@ -224,14 +226,16 @@ export function KanbanCard({
                   )}
                 >
                   <CalendarClock className="h-3 w-3" />
-                  {scheduleOverdue ? `Missed · ${scheduledLabel}` : scheduledLabel}
+                  <span className="font-mono">
+                    {scheduleOverdue ? `Missed · ${scheduledLabel}` : scheduledLabel}
+                  </span>
                 </button>
               ) : (
                 <button
                   type="button"
                   onClick={toggle}
                   className={cn(
-                    "flex items-center gap-1.5 rounded-full border border-dashed border-border px-2 py-1 text-[11px] font-medium text-muted-foreground transition-all duration-150 hover:border-accent/40 hover:text-accent",
+                    "flex items-center gap-1.5 rounded-pill border border-dashed border-border px-2 py-1 text-[11px] font-medium text-muted-foreground transition-all duration-150 hover:border-accent/40 hover:text-accent",
                     open && "ring-1 ring-accent/40"
                   )}
                 >
@@ -248,7 +252,7 @@ export function KanbanCard({
         {createdLabel && (
           <span className="flex items-center gap-1">
             <CalendarPlus className="h-3 w-3" />
-            {createdLabel}
+            <span className="font-mono">{createdLabel}</span>
           </span>
         )}
         {dueLabel && (
@@ -256,13 +260,13 @@ export function KanbanCard({
             className={cn("flex items-center gap-1", overdue && "font-medium text-danger")}
           >
             <CalendarDays className="h-3 w-3" />
-            {overdue ? `Overdue · ${dueLabel}` : dueLabel}
+            <span className="font-mono">{overdue ? `Overdue · ${dueLabel}` : dueLabel}</span>
           </span>
         )}
         {timeLabel && (
           <span className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
-            {timeLabel}
+            <span className="font-mono">{timeLabel}</span>
           </span>
         )}
       </div>

@@ -29,6 +29,19 @@ function applyTheme(theme: ThemeMode) {
   document.documentElement.style.colorScheme = theme;
 }
 
+// Dashboard-only design scope (Inter/JetBrains Mono fonts, sharp corner
+// radii) — same route split as the theme, kept as a separate attribute so
+// it composes independently of dark/light. Mirrors the inline script in
+// app/layout.tsx which sets this before first paint.
+function applyScope(isDashboard: boolean) {
+  if (typeof document === "undefined") return;
+  if (isDashboard) {
+    document.documentElement.setAttribute("data-scope", "dashboard");
+  } else {
+    document.documentElement.removeAttribute("data-scope");
+  }
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [theme, setThemeState] = React.useState<ThemeMode>("dark");
@@ -50,6 +63,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   // picked light mode inside the dashboard.
   React.useEffect(() => {
     applyTheme(isThemeableRoute(pathname) ? theme : "dark");
+    applyScope(isThemeableRoute(pathname));
   }, [theme, pathname]);
 
   const setTheme = React.useCallback((next: ThemeMode) => {

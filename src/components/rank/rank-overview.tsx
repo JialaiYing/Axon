@@ -46,7 +46,7 @@ function StatTile({
         </span>
         <p className="text-xs font-medium text-foreground/60">{label}</p>
       </div>
-      <p className="text-2xl font-semibold tabular-nums text-foreground">
+      <p className="font-mono text-2xl font-semibold tabular-nums text-foreground">
         <AnimatedCounter value={value} />
         {suffix}
       </p>
@@ -112,7 +112,7 @@ function RankLadder({ level }: { level: number }) {
                       key={tierLabel}
                       title={`Level ${tierLevel}`}
                       className={cn(
-                        "flex h-7 min-w-7 items-center justify-center rounded-md px-1.5 text-[11px] font-semibold tabular-nums transition-colors duration-200",
+                        "flex h-7 min-w-7 items-center justify-center rounded-md px-1.5 font-mono text-[11px] font-semibold tabular-nums transition-colors duration-200",
                         state === "done" && "bg-secondary-muted text-secondary",
                         state === "current" &&
                           "bg-accent text-accent-foreground shadow-[0_0_0_3px_var(--color-accent-muted)]",
@@ -186,7 +186,7 @@ export function RankOverview() {
             <div className="mb-1.5 flex items-center justify-between text-xs text-foreground/55">
               <span>{progression.isMaxLevel ? "Max level reached" : "XP to next level"}</span>
               {!progression.isMaxLevel && (
-                <span className="tabular-nums text-foreground/70">
+                <span className="font-mono tabular-nums text-foreground/70">
                   {progression.xpIntoLevel.toLocaleString()} / {progression.xpForNextLevel?.toLocaleString()}
                 </span>
               )}

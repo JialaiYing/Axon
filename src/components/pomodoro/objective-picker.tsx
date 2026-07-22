@@ -73,7 +73,7 @@ export function ObjectivePicker({
                       <Badge variant="outline">{objective.subject}</Badge>
                       <span
                         className={cn(
-                          "rounded-full px-2 py-0.5 text-[10px] font-medium",
+                          "rounded-pill px-2 py-0.5 text-[10px] font-medium",
                           objective.status === "in-progress"
                             ? "bg-accent-muted text-accent"
                             : "bg-surface text-muted-foreground"

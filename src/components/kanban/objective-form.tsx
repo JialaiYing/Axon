@@ -249,7 +249,7 @@ export function ObjectiveForm({
             disabled={progressLocked}
             {...register("progress")}
             className={cn(
-              "mt-2.5 h-1.5 w-full appearance-none rounded-full bg-surface accent-accent",
+              "mt-2.5 h-1.5 w-full appearance-none rounded-pill bg-surface accent-accent",
               progressLocked ? "cursor-not-allowed opacity-60" : "cursor-pointer"
             )}
           />

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Sansation, Instrument_Sans, Fragment_Mono } from "next/font/google";
+import { Sansation, Instrument_Sans, Fragment_Mono, Inter, JetBrains_Mono } from "next/font/google";
 import { AppProviders } from "@/components/providers/app-providers";
 import "./globals.css";
 
@@ -22,6 +22,21 @@ const fragmentMono = Fragment_Mono({
   subsets: ["latin"],
   weight: "400",
   variable: "--font-mono",
+  display: "swap",
+});
+
+// Dashboard-only typography (see globals.css `html[data-scope="dashboard"]`)
+// — the marketing site keeps Instrument Sans/Sansation/Fragment Mono above.
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-dashboard-sans",
+  display: "swap",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-dashboard-mono",
   display: "swap",
 });
 
@@ -70,15 +85,16 @@ export default function RootLayout({
       lang="en"
       data-theme="dark"
       suppressHydrationWarning
-      className={`${instrumentSans.variable} ${sansation.variable} ${fragmentMono.variable}`}
+      className={`${instrumentSans.variable} ${sansation.variable} ${fragmentMono.variable} ${inter.variable} ${jetbrainsMono.variable}`}
     >
       <head>
         <script
           dangerouslySetInnerHTML={{
-            // Light mode is a dashboard-only preference — marketing/auth
-            // routes always render dark. Keep in sync with ThemeProvider's
+            // Light mode + the sharp-corner/Inter dashboard scope are both
+            // dashboard-only — marketing/auth routes always render dark with
+            // the marketing typeface. Keep in sync with ThemeProvider's
             // ALWAYS_DARK_ROUTES / isThemeableRoute check.
-            __html: `(function(){try{var p=window.location.pathname;if(p==='/'||p==='/login'||p==='/privacy'||p==='/terms'||p==='/faq'){return;}var t=localStorage.getItem('axon:theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);document.documentElement.style.colorScheme=t;}}catch(e){}})();`,
+            __html: `(function(){try{var p=window.location.pathname;var marketing=(p==='/'||p==='/login'||p==='/privacy'||p==='/terms'||p==='/faq');if(!marketing){document.documentElement.setAttribute('data-scope','dashboard');}if(marketing){return;}var t=localStorage.getItem('axon:theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);document.documentElement.style.colorScheme=t;}}catch(e){}})();`,
           }}
         />
       </head>

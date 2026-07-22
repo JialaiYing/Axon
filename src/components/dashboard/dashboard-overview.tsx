@@ -232,7 +232,7 @@ const TrendBadge = React.memo(function TrendBadge({ direction, label }: Trend) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-0.5 text-[11px] font-medium tabular-nums",
+        "inline-flex items-center gap-0.5 font-mono text-[11px] font-medium tabular-nums",
         direction === "up" && "text-success",
         direction === "down" && "text-danger",
         direction === "flat" && "text-foreground/60"
@@ -291,7 +291,7 @@ const StatCell = React.memo(function StatCell({
       </div>
       <div className="mt-4">
         <div className="flex items-baseline gap-2">
-          <p className="text-2xl font-semibold tabular-nums text-foreground">
+          <p className="font-mono text-2xl font-semibold tabular-nums text-foreground">
             <AnimatedCounter value={value} suffix={suffix} />
           </p>
           {trend && <TrendBadge {...trend} />}
@@ -317,7 +317,7 @@ const PersonalGoalRow = React.memo(function PersonalGoalRow({ goal }: { goal: Go
           >
             {goal.completed ? "Done" : "Personal"}
           </span>
-          <span className="tabular-nums text-foreground/70">
+          <span className="font-mono tabular-nums text-foreground/70">
             {goal.progress}/{goal.target}
             {goal.unit ? ` ${goal.unit}` : ""}
           </span>
@@ -457,7 +457,7 @@ function RankHero({
         <div className="mb-1.5 flex items-center justify-between text-xs text-foreground/55">
           <span>{isMaxLevel ? "Max level reached" : "XP to next level"}</span>
           {!isMaxLevel && (
-            <span className="tabular-nums text-foreground/70">
+            <span className="font-mono tabular-nums text-foreground/70">
               {xpIntoLevel.toLocaleString()} / {xpForNextLevel?.toLocaleString()}
             </span>
           )}
@@ -776,7 +776,7 @@ export function DashboardOverview() {
                 {weekTrend && <TrendBadge {...weekTrend} />}
               </div>
             </div>
-            <p className="text-xl font-semibold tabular-nums text-accent">
+            <p className="font-mono text-xl font-semibold tabular-nums text-accent">
               <AnimatedCounter value={weekTotal} suffix=" min" />
             </p>
           </div>

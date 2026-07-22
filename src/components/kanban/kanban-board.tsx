@@ -191,7 +191,7 @@ export function KanbanBoard() {
           <RotateCcw className="h-4 w-4" />
           Recycle bin
           {recycledObjectives.length > 0 && (
-            <span className="ml-0.5 rounded-full bg-surface px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
+            <span className="ml-0.5 rounded-pill bg-surface px-1.5 py-0.5 font-mono text-[10px] font-semibold text-muted-foreground">
               {recycledObjectives.length}
             </span>
           )}

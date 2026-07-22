@@ -337,7 +337,7 @@ function GoalMini({
           >
             {PACE_LABEL[status]}
           </span>
-          <span className="tabular-nums text-foreground/70">
+          <span className="font-mono tabular-nums text-foreground/70">
             {goal.progress}/{goal.target}
             {goal.unit ? ` ${goal.unit}` : ""}
           </span>

@@ -459,7 +459,7 @@ export function FlashcardsSection() {
                   key={stat.label}
                   className="rounded-lg border border-foreground/8 bg-foreground/[0.04] p-2.5 text-center"
                 >
-                  <p className="text-sm font-semibold tabular-nums text-foreground">{stat.value}</p>
+                  <p className="font-mono text-sm font-semibold tabular-nums text-foreground">{stat.value}</p>
                   <p className="mt-0.5 text-[10px] uppercase tracking-wide text-foreground/45">
                     {stat.label}
                   </p>
@@ -501,7 +501,7 @@ export function FlashcardsSection() {
                       <RotateCcw className="h-3.5 w-3.5" />
                       Recycle bin
                       {recycledCount > 0 ? (
-                        <span className="rounded-full bg-surface px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                        <span className="rounded-pill bg-surface px-1.5 py-0.5 font-mono text-[10px] font-semibold text-muted-foreground">
                           {recycledCount}
                         </span>
                       ) : null}
@@ -538,7 +538,7 @@ export function FlashcardsSection() {
                         Visual gallery
                       </button>
                     </div>
-                    <span className="text-[10px] tabular-nums text-foreground/35">
+                    <span className="font-mono text-[10px] tabular-nums text-foreground/35">
                       {sets.length} set{sets.length === 1 ? "" : "s"}
                     </span>
                   </div>
@@ -749,7 +749,7 @@ function LibraryCreateBar({
         <DropdownMenuTrigger asChild>
           <Button
             size="sm"
-            className="h-8 shrink-0 cursor-pointer gap-1.5 rounded-full px-3"
+            className="h-8 shrink-0 cursor-pointer gap-1.5 rounded-pill px-3"
             aria-label={
               folder
                 ? `Create in ${folder.title}`

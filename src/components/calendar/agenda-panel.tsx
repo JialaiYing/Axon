@@ -94,7 +94,7 @@ function SectionHeading({ icon: Icon, label, count }: { icon: React.ElementType;
     <div className="mb-2 mt-4 flex items-center gap-1.5 px-1 first:mt-0">
       <Icon className="h-3.5 w-3.5 text-muted-foreground" />
       <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
-      <span className="rounded-full bg-surface px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+      <span className="rounded-pill bg-surface px-1.5 py-0.5 font-mono text-[10px] font-medium text-muted-foreground">
         {count}
       </span>
     </div>

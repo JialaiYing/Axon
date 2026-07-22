@@ -42,7 +42,7 @@ export function WeekView({ currentDate, ...actions }: WeekViewProps) {
             </span>
             <span
               className={cn(
-                "flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold",
+                "flex h-6 w-6 items-center justify-center rounded-full font-mono text-xs font-semibold",
                 isSameDay(day, now) ? "bg-accent text-accent-foreground shadow-[0_0_8px_rgba(94,106,210,0.5)]" : "text-foreground"
               )}
             >

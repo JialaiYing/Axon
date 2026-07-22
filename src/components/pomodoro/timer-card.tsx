@@ -54,12 +54,12 @@ export function TimerCard({
 
           <div className="flex items-center gap-1.5">
             {timer.hasCompletedRun && atFullDuration && (
-              <span className="rounded-full bg-success-muted px-2 py-0.5 text-[10px] font-medium text-success">
+              <span className="rounded-pill bg-success-muted px-2 py-0.5 text-[10px] font-medium text-success">
                 Ready
               </span>
             )}
             {showPausedBadge && (
-              <span className="rounded-full bg-surface px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+              <span className="rounded-pill bg-surface px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
                 Paused
               </span>
             )}

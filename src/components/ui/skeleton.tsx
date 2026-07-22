@@ -31,10 +31,10 @@ export function KanbanColumnSkeleton() {
             <Skeleton className="h-4 w-3/4" />
             <Skeleton className="mt-2 h-3 w-full" />
             <div className="mt-3 flex gap-1.5">
-              <Skeleton className="h-5 w-14 rounded-full" />
-              <Skeleton className="h-5 w-16 rounded-full" />
+              <Skeleton className="h-5 w-14 rounded-pill" />
+              <Skeleton className="h-5 w-16 rounded-pill" />
             </div>
-            <Skeleton className="mt-3 h-1.5 w-full rounded-full" />
+            <Skeleton className="mt-3 h-1.5 w-full rounded-pill" />
           </div>
         ))}
       </div>
@@ -61,8 +61,8 @@ export function ObjectivePickerSkeleton() {
           <div className="min-w-0 flex-1">
             <Skeleton className="h-4 w-2/3" />
             <div className="mt-2 flex gap-1.5">
-              <Skeleton className="h-5 w-14 rounded-full" />
-              <Skeleton className="h-5 w-16 rounded-full" />
+              <Skeleton className="h-5 w-14 rounded-pill" />
+              <Skeleton className="h-5 w-16 rounded-pill" />
             </div>
           </div>
         </div>

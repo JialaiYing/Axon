@@ -99,7 +99,7 @@ function ActiveGoalCard({
 
       <div className="mt-5">
         <div className="flex items-end justify-between gap-3">
-          <p className="text-3xl font-semibold tabular-nums text-foreground">
+          <p className="font-mono text-3xl font-semibold tabular-nums text-foreground">
             {goal.progress}
             <span className="text-lg font-medium text-muted-foreground">
               /{goal.target}
@@ -191,10 +191,10 @@ function HistoryGrid({
                     : "border-border/50 bg-card/30"
                 )}
               >
-                <p className="truncate text-[10px] uppercase tracking-wide text-muted-foreground">
+                <p className="truncate font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
                   {formatPeriodLabel(entry.type, entry.periodKey)}
                 </p>
-                <p className="mt-1 text-xs font-medium tabular-nums text-foreground">
+                <p className="mt-1 font-mono text-xs font-medium tabular-nums text-foreground">
                   {entry.progress}/{entry.target}
                 </p>
                 <p
@@ -548,7 +548,7 @@ export function GoalsOverview() {
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
                       </div>
-                      <p className="mt-3 text-2xl font-semibold tabular-nums text-foreground">
+                      <p className="mt-3 font-mono text-2xl font-semibold tabular-nums text-foreground">
                         {goal.progress}
                         <span className="text-lg text-muted-foreground">
                           /{goal.target}

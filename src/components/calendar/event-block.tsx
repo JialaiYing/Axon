@@ -181,7 +181,7 @@ export function EventBlock({
             </p>
           )}
           {height > 52 && (
-            <span className="mt-1 inline-flex w-fit items-center rounded-full border border-border/60 bg-background/40 px-1.5 py-0.5 text-[9px] font-medium text-muted-foreground">
+            <span className="mt-1 inline-flex w-fit items-center rounded-pill border border-border/60 bg-background/40 px-1.5 py-0.5 text-[9px] font-medium text-muted-foreground">
               {objective.subject}
             </span>
           )}
