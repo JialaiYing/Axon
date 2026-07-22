@@ -8,9 +8,8 @@ import { ProgressBar } from "@/components/ui/progress-bar";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { AnimatedList } from "@/components/ui/animated-list";
 import type { FlashcardSet } from "@/types";
+import { EASE } from "@/lib/motion";
 import { cn } from "@/lib/utils";
-
-const EASE = [0.21, 0.47, 0.32, 0.98] as const;
 
 interface StudyViewProps {
   set: FlashcardSet;
@@ -186,14 +185,11 @@ export function StudyView({ set, onBack, onEdit, onStartTest, onCompletePass }: 
                     style={{ transformStyle: "preserve-3d" }}
                     className="relative h-full w-full"
                   >
-                    {/* Front — position is set inline because `.glass-panel`
-                        itself declares `position: relative` at the same
-                        cascade layer as Tailwind's `absolute` utility, which
-                        would otherwise win and collapse this to its content
-                        height instead of filling the card. */}
+                    {/* Front — position is set inline because Panel's base
+                        `relative` would otherwise fight Tailwind absolute. */}
                     <div
                       style={{ position: "absolute", inset: 0, backfaceVisibility: "hidden" }}
-                      className="glass-panel flex items-center justify-center rounded-2xl p-8"
+                      className="shadow-[var(--shadow-elevation-2),inset_0_1px_0_rgba(255,255,255,0.05)] light:shadow-[var(--shadow-elevation-2)] flex items-center justify-center rounded-xl border border-border bg-card p-8"
                     >
                       <p className="max-h-full overflow-y-auto text-balance text-center text-xl font-medium leading-relaxed text-foreground md:text-3xl">
                         {card.front}
@@ -210,7 +206,7 @@ export function StudyView({ set, onBack, onEdit, onStartTest, onCompletePass }: 
                         backfaceVisibility: "hidden",
                         transform: "rotateY(180deg)",
                       }}
-                      className="glass-panel flex items-center justify-center rounded-2xl border-accent/30 p-8"
+                      className="shadow-[var(--shadow-elevation-2),inset_0_1px_0_rgba(255,255,255,0.05)] light:shadow-[var(--shadow-elevation-2)] flex items-center justify-center rounded-xl border border-accent/30 bg-card p-8"
                     >
                       <p className="max-h-full overflow-y-auto text-balance text-center text-lg leading-relaxed text-foreground/90 md:text-2xl">
                         {card.back}

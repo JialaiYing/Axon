@@ -4,7 +4,7 @@ import * as React from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { PageHeader } from "@/components/layout/page-header";
 import { FeatureIntro } from "@/components/onboarding/feature-intro";
-import { EASE } from "@/lib/motion";
+import { DURATION, EASE, STAGGER, enterVariants } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import type { OnboardingFeature } from "@/hooks/use-onboarding";
 
@@ -23,8 +23,7 @@ interface AppPageProps {
 /**
  * Shared scaffold for every app-shell route: consistent header/description/
  * actions spacing, an optional toolbar slot, and one staggered entrance so
- * Calendar, Kanban, Settings etc. all arrive on screen the same way
- * Dashboard/Flashcards already do.
+ * Calendar, Kanban, Settings etc. all arrive on screen the same way.
  */
 export function AppPage({
   title,
@@ -36,6 +35,7 @@ export function AppPage({
   className,
 }: AppPageProps) {
   const prefersReducedMotion = useReducedMotion();
+  const sectionVariants = enterVariants(8);
 
   return (
     <motion.div
@@ -43,27 +43,23 @@ export function AppPage({
       animate="visible"
       variants={{
         hidden: {},
-        visible: { transition: { staggerChildren: 0.08 } },
+        visible: { transition: { staggerChildren: STAGGER.base } },
       }}
       className={cn("relative", className)}
     >
       {feature && <FeatureIntro feature={feature} />}
 
       <motion.div
-        variants={{
-          hidden: { opacity: 0, y: 8 },
-          visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: EASE } },
-        }}
+        variants={sectionVariants}
+        transition={{ duration: DURATION.section, ease: EASE }}
       >
         <PageHeader title={title} description={description} actions={actions} />
       </motion.div>
 
       {toolbar && (
         <motion.div
-          variants={{
-            hidden: { opacity: 0, y: 8 },
-            visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: EASE } },
-          }}
+          variants={sectionVariants}
+          transition={{ duration: DURATION.section, ease: EASE }}
           className="mb-5"
         >
           {toolbar}
@@ -71,10 +67,8 @@ export function AppPage({
       )}
 
       <motion.div
-        variants={{
-          hidden: { opacity: 0, y: 8 },
-          visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: EASE } },
-        }}
+        variants={sectionVariants}
+        transition={{ duration: DURATION.section, ease: EASE }}
       >
         {children}
       </motion.div>

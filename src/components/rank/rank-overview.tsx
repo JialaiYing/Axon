@@ -8,21 +8,20 @@ import {
   Flame,
   Gauge,
   Repeat,
-  Sparkles,
   Star,
   Trophy,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { AppPage } from "@/components/layout/app-page";
 import { Panel } from "@/components/ui/panel";
-import { Badge } from "@/components/ui/badge";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useUserStats } from "@/hooks/use-user-stats";
 import { MAX_LEVEL, LEVELS_PER_RANK, RANK_NAMES } from "@/lib/progress/ranks";
+import { DURATION, EASE } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
-const EASE = [0.21, 0.47, 0.32, 0.98] as const;
 const TIER_LABELS = ["I", "II", "III"] as const;
 
 function StatTile({
@@ -39,25 +38,25 @@ function StatTile({
   hint: string;
 }) {
   return (
-    <Panel variant="interactive" className="p-5">
-      <div className="mb-2 flex items-center gap-2">
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-foreground/6 text-foreground/60">
-          <Icon className="h-4 w-4" />
-        </span>
-        <p className="text-xs font-medium text-foreground/60">{label}</p>
+    <div className="px-5 py-4">
+      <div className="mb-2 flex items-center justify-between">
+        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+          {label}
+        </p>
+        <Icon className="h-3.5 w-3.5 text-muted-foreground" />
       </div>
       <p className="font-mono text-2xl font-semibold tabular-nums text-foreground">
         <AnimatedCounter value={value} />
         {suffix}
       </p>
       <p className="mt-0.5 text-[11px] text-muted-foreground">{hint}</p>
-    </Panel>
+    </div>
   );
 }
 
 function RankLadder({ level }: { level: number }) {
   return (
-    <Panel variant="glass" className="p-6">
+    <Panel variant="standard" className="p-6">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-sm font-semibold text-foreground">Rank ladder</h2>
         <p className="text-[11px] text-muted-foreground">10 ranks · 3 tiers each · 30 levels</p>
@@ -70,9 +69,9 @@ function RankLadder({ level }: { level: number }) {
             <div
               key={name}
               className={cn(
-                "flex flex-col gap-2.5 rounded-xl border p-3 transition-colors duration-200 sm:flex-row sm:items-center sm:justify-between",
+                "flex flex-col gap-2.5 rounded-lg border p-3 transition-colors duration-200 sm:flex-row sm:items-center sm:justify-between",
                 isCurrentRank
-                  ? "border-accent/30 bg-accent-muted/20"
+                  ? "border-accent/40 bg-accent-muted/25"
                   : "border-border bg-surface/40"
               )}
             >
@@ -83,7 +82,7 @@ function RankLadder({ level }: { level: number }) {
                     isCurrentRank
                       ? "bg-accent-muted text-accent"
                       : level > baseLevel + LEVELS_PER_RANK
-                        ? "bg-secondary-muted text-secondary"
+                        ? "bg-surface text-foreground/70"
                         : "bg-surface text-muted-foreground/60"
                   )}
                 >
@@ -113,9 +112,9 @@ function RankLadder({ level }: { level: number }) {
                       title={`Level ${tierLevel}`}
                       className={cn(
                         "flex h-7 min-w-7 items-center justify-center rounded-md px-1.5 font-mono text-[11px] font-semibold tabular-nums transition-colors duration-200",
-                        state === "done" && "bg-secondary-muted text-secondary",
+                        state === "done" && "bg-foreground/10 text-foreground/80",
                         state === "current" &&
-                          "bg-accent text-accent-foreground shadow-[0_0_0_3px_var(--color-accent-muted)]",
+                          "border border-accent/50 bg-accent-muted text-accent",
                         state === "locked" && "bg-surface text-muted-foreground/50"
                       )}
                     >
@@ -139,7 +138,11 @@ export function RankOverview() {
   if (!hydrated) {
     return (
       <AppPage title="Rank" description="Your full level ladder, streaks, and how XP is earned." feature="rank">
-        <div className="h-64 animate-pulse rounded-2xl bg-surface/60" />
+        <div className="space-y-4">
+          <Skeleton className="h-40 rounded-xl" />
+          <Skeleton className="h-28 rounded-xl" />
+          <Skeleton className="h-72 rounded-xl" />
+        </div>
       </AppPage>
     );
   }
@@ -153,40 +156,40 @@ export function RankOverview() {
       <motion.div
         initial={prefersReducedMotion ? undefined : { opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.45, ease: EASE }}
+        transition={{ duration: prefersReducedMotion ? 0 : DURATION.section, ease: EASE }}
         className="space-y-4"
       >
-        {/* Hero */}
+        {/* Hero — sole elevated surface */}
         <Panel variant="glass" className="p-6">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
-              <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-foreground/10 bg-foreground/6 text-accent">
-                <Trophy className="h-7 w-7" />
+              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-border bg-surface text-muted-foreground">
+                <Trophy className="h-6 w-6" />
               </span>
               <div>
-                <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-foreground/45">
+                <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
                   Current rank
                 </p>
                 <p className="mt-0.5 text-2xl font-semibold tracking-tight text-foreground">
                   {rank.label}
                 </p>
+                <p className="mt-1 font-mono text-xs tabular-nums text-muted-foreground">
+                  Level {progression.level} / {MAX_LEVEL}
+                  {todayXp > 0 && (
+                    <span className="ml-2 text-foreground">
+                      · +{todayXp} XP today
+                    </span>
+                  )}
+                </p>
               </div>
-            </div>
-            <div className="flex items-center gap-2.5">
-              {todayXp > 0 && (
-                <Badge variant="accent" className="gap-1">
-                  <Sparkles className="h-3 w-3" /> +{todayXp} XP today
-                </Badge>
-              )}
-              <Badge variant="secondary">Level {progression.level} / {MAX_LEVEL}</Badge>
             </div>
           </div>
 
           <div className="mt-6">
-            <div className="mb-1.5 flex items-center justify-between text-xs text-foreground/55">
+            <div className="mb-1.5 flex items-center justify-between text-xs text-muted-foreground">
               <span>{progression.isMaxLevel ? "Max level reached" : "XP to next level"}</span>
               {!progression.isMaxLevel && (
-                <span className="font-mono tabular-nums text-foreground/70">
+                <span className="font-mono tabular-nums text-foreground">
                   {progression.xpIntoLevel.toLocaleString()} / {progression.xpForNextLevel?.toLocaleString()}
                 </span>
               )}
@@ -197,15 +200,21 @@ export function RankOverview() {
           <p className="mt-4 text-xs text-muted-foreground">
             {stats.xp.toLocaleString()} lifetime XP · unlock new dashboard backgrounds as you rank
             up in{" "}
-            <Link href="/settings" className="text-accent underline">
+            <Link
+              href="/settings"
+              className="text-muted-foreground underline decoration-border underline-offset-2 transition-colors hover:text-accent hover:decoration-accent"
+            >
               Settings
             </Link>
             .
           </p>
         </Panel>
 
-        {/* Stats row */}
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {/* Supporting stats — one divided band */}
+        <Panel
+          variant="standard"
+          className="grid grid-cols-2 divide-y divide-border lg:grid-cols-4 lg:divide-x lg:divide-y-0"
+        >
           <StatTile
             icon={Flame}
             label="Current streak"
@@ -233,31 +242,29 @@ export function RankOverview() {
             suffix="%"
             hint="Last 7 days"
           />
-        </div>
+        </Panel>
 
-        {/* Ladder */}
         <RankLadder level={progression.level} />
 
-        {/* How XP works */}
-        <Panel variant="interactive" className="p-6">
+        <Panel variant="standard" className="p-6">
           <h2 className="mb-3 text-sm font-semibold text-foreground">How XP is earned</h2>
           <ul className="space-y-2.5 text-sm text-muted">
             <li className="flex items-center gap-2.5">
-              <Star className="h-4 w-4 shrink-0 text-accent" /> XP earned per completed objective and
-              focused Pomodoro interval
+              <Star className="h-4 w-4 shrink-0 text-muted-foreground" /> XP earned per completed
+              objective and focused Pomodoro interval
             </li>
             <li className="flex items-center gap-2.5">
-              <Flame className="h-4 w-4 shrink-0 text-warning" /> Daily and weekly streaks tracked
-              automatically from real sessions
+              <Flame className="h-4 w-4 shrink-0 text-muted-foreground" /> Daily and weekly streaks
+              tracked automatically from real sessions
             </li>
             <li className="flex items-center gap-2.5">
-              <Trophy className="h-4 w-4 shrink-0 text-secondary" /> Ranks and dashboard backgrounds
-              unlocked as your level climbs
+              <Trophy className="h-4 w-4 shrink-0 text-muted-foreground" /> Ranks and dashboard
+              backgrounds unlocked as your level climbs
             </li>
           </ul>
           <Link
             href="/settings"
-            className="mt-4 inline-flex items-center gap-1 text-xs text-accent hover:underline"
+            className="mt-4 inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-accent"
           >
             Manage backgrounds in Settings <ArrowRight className="h-3 w-3" />
           </Link>

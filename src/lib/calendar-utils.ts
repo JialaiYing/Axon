@@ -76,21 +76,51 @@ export function formatMonthTitle(date: Date): string {
   return date.toLocaleDateString(undefined, { month: "long", year: "numeric" });
 }
 
+/** Google/Apple-style week range: "Jul 19–25, 2026" or "Jul 28 – Aug 3, 2026". */
 export function formatWeekRangeTitle(date: Date): string {
   const days = getWeekDays(date);
   const first = days[0] ?? date;
   const last = days[6] ?? date;
-  const sameMonth = first.getMonth() === last.getMonth() && first.getFullYear() === last.getFullYear();
-  const firstLabel = first.toLocaleDateString(undefined, { month: "short", day: "numeric" });
-  const lastLabel = last.toLocaleDateString(
-    undefined,
-    sameMonth ? { day: "numeric", year: "numeric" } : { month: "short", day: "numeric", year: "numeric" }
-  );
-  return `${firstLabel} – ${lastLabel}`;
+  const sameYear = first.getFullYear() === last.getFullYear();
+  const sameMonth = sameYear && first.getMonth() === last.getMonth();
+
+  if (sameMonth) {
+    const month = first.toLocaleDateString(undefined, { month: "short" });
+    return `${month} ${first.getDate()}–${last.getDate()}, ${first.getFullYear()}`;
+  }
+
+  if (sameYear) {
+    const start = first.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    const end = last.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    return `${start} – ${end}, ${first.getFullYear()}`;
+  }
+
+  const start = first.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+  const end = last.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+  return `${start} – ${end}`;
 }
 
+/** Full day header: "Wednesday, July 22, 2026". */
 export function formatDayTitle(date: Date): string {
-  return date.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
+  return date.toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+/** Compact column header date: "19" with weekday separate — keeps week chrome scannable. */
+export function formatWeekdayShort(date: Date): string {
+  return date.toLocaleDateString(undefined, { weekday: "short" });
 }
 
 export function formatTimeLabel(minutes: number): string {

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, Timer as TimerIcon } from "lucide-react";
 import { usePomodoroTimers } from "@/hooks/use-pomodoro-timers";
@@ -10,7 +10,7 @@ import { usePomodoroSessions } from "@/hooks/use-pomodoro-sessions";
 import { useObjectives } from "@/hooks/use-objectives";
 import { showBrowserNotification } from "@/lib/notifications/browser";
 
-const TOAST_DURATION_MS = 6000;
+const TOAST_DURATION_MS = 8000;
 
 interface Toast {
   id: string;
@@ -21,12 +21,11 @@ interface Toast {
 
 /**
  * Always-mounted watcher: awards focus XP when a full countdown completes,
- * and surfaces a toast/notification when the user isn't on the Pomodoro page.
+ * and always surfaces toast + bell (OS notif only when the tab is hidden).
  */
 export function TimerNotificationsWatcher() {
-  const pathname = usePathname();
   const router = useRouter();
-  const { timers, hydrated, markNotified, claimCompletion, removeTimer } = usePomodoroTimers();
+  const { timers, hydrated, markNotified, claimCompletion } = usePomodoroTimers();
   const { addNotification, removeNotification } = useNotifications();
   const { logSession } = usePomodoroSessions();
   const { logStudyTime } = useObjectives();
@@ -55,11 +54,12 @@ export function TimerNotificationsWatcher() {
     if (!hydrated) return;
     const due = timers.filter((t) => t.hasCompletedRun && !t.notified);
     if (due.length === 0) return;
+
     due.forEach((timer) => {
-      markNotified(timer.id);
       const title = "Timer finished";
       const message = `"${timer.label}" just ran out of time.`;
 
+      // OS alert only when the tab is in the background (browser.ts).
       const browserNote = showBrowserNotification(title, {
         body: message,
         tag: `axon-timer-${timer.id}`,
@@ -72,7 +72,7 @@ export function TimerNotificationsWatcher() {
         };
       }
 
-      if (pathname === "/pomodoro") return;
+      // Always enqueue toast + bell — including while on /pomodoro.
       const notification = addNotification({
         timerId: timer.id,
         title,
@@ -80,10 +80,18 @@ export function TimerNotificationsWatcher() {
       });
       setToasts((prev) => [
         ...prev,
-        { id: notification.id, timerId: timer.id, title: notification.title, message: notification.message },
+        {
+          id: notification.id,
+          timerId: timer.id,
+          title: notification.title,
+          message: notification.message,
+        },
       ]);
+
+      // Mark only after a user-visible in-app channel fired.
+      markNotified(timer.id);
     });
-  }, [timers, hydrated, pathname, markNotified, addNotification, router]);
+  }, [timers, hydrated, markNotified, addNotification, router]);
 
   function dismissToast(id: string) {
     setToasts((prev) => prev.filter((t) => t.id !== id));
@@ -95,7 +103,7 @@ export function TimerNotificationsWatcher() {
   }
 
   function handleClose(toast: Toast) {
-    removeTimer(toast.timerId);
+    // Dismiss the alert only — leave the Ready timer on the board.
     removeNotification(toast.id);
     dismissToast(toast.id);
   }
@@ -115,7 +123,12 @@ export function TimerNotificationsWatcher() {
             transition={{ duration: 0.28, ease: [0.21, 0.47, 0.32, 0.98] }}
             className="pointer-events-auto"
           >
-            <ToastCard toast={toast} onOpen={() => handleOpen(toast)} onClose={() => handleClose(toast)} onExpire={() => dismissToast(toast.id)} />
+            <ToastCard
+              toast={toast}
+              onOpen={() => handleOpen(toast)}
+              onClose={() => handleClose(toast)}
+              onExpire={() => dismissToast(toast.id)}
+            />
           </motion.div>
         ))}
       </AnimatePresence>
@@ -146,7 +159,7 @@ function ToastCard({
       tabIndex={0}
       onClick={onOpen}
       onKeyDown={(e) => e.key === "Enter" && onOpen()}
-      className="group relative flex cursor-pointer items-start gap-3 rounded-xl border border-border-strong bg-card/95 p-4 shadow-[0_1px_2px_rgba(0,0,0,0.4),0_20px_48px_-16px_rgba(0,0,0,0.65)] backdrop-blur-xl transition-colors duration-200 hover:bg-card-hover"
+      className="relative flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-elevation-3)] transition-colors duration-200 hover:border-border-strong hover:bg-card-hover"
     >
       <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-accent-muted text-accent">
         <TimerIcon className="h-4 w-4" />
@@ -157,12 +170,12 @@ function ToastCard({
       </div>
       <button
         type="button"
-        aria-label="Close notification and stop timer"
+        aria-label="Dismiss notification"
         onClick={(e) => {
           e.stopPropagation();
           onClose();
         }}
-        className="flex h-6 w-6 shrink-0 items-center justify-center rounded text-muted opacity-0 transition-opacity duration-150 hover:bg-surface hover:text-danger group-hover:opacity-100"
+        className="flex h-6 w-6 shrink-0 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-surface hover:text-foreground"
       >
         <X className="h-3.5 w-3.5" />
       </button>

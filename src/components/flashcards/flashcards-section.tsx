@@ -5,17 +5,14 @@ import dynamic from "next/dynamic";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   ArrowRight,
-  CheckCircle2,
   FolderPlus,
+  Gauge,
+  History,
   Layers,
-  Pin,
-  Play,
   Plus,
   RotateCcw,
-  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
@@ -25,7 +22,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useFlashcards } from "@/hooks/use-flashcards";
-import { CreateFolderDialog } from "@/components/flashcards/create-folder-dialog";
+import { FolderDialog } from "@/components/flashcards/folder-dialog";
 import { CreateSetDialog } from "@/components/flashcards/create-set-dialog";
 import {
   FlashcardsGridLibrary,
@@ -33,11 +30,14 @@ import {
 } from "@/components/flashcards/grid-library";
 import { FlashcardsRecycleBinDialog } from "@/components/flashcards/recycle-bin-dialog";
 import { SetViewDialog } from "@/components/flashcards/set-view-dialog";
+import { SetOverviewDialog } from "@/components/flashcards/set-overview-dialog";
+import { FolderCoverTile } from "@/components/flashcards/folder-cover-tile";
 import { StudyView } from "@/components/flashcards/study-view";
 import { TestView } from "@/components/flashcards/test-view";
-import { FeatureIntro } from "@/components/onboarding/feature-intro";
 import type { FlashcardFolder, FlashcardSet } from "@/types";
+import { DURATION, EASE } from "@/lib/motion";
 import { cn } from "@/lib/utils";
+import { formatRelativeTime } from "@/lib/time";
 
 /**
  * The dome view pulls in Three.js/OGL + gesture libs, but the default view
@@ -53,8 +53,6 @@ const DomeGallery = dynamic(() => import("@/components/flashcards/dome-gallery")
   ),
 });
 
-const EASE = [0.21, 0.47, 0.32, 0.98] as const;
-
 /** How long the cinematic loading state shows between dome and study view. */
 const STUDY_LOAD_MS = 700;
 
@@ -66,9 +64,25 @@ type LibraryMode =
   | { type: "study"; setId: string }
   | { type: "test"; setId: string };
 
-function HomePanel({ className, children }: { className?: string; children: React.ReactNode }) {
+function HomeSection({
+  title,
+  icon: Icon,
+  children,
+}: {
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  children: React.ReactNode;
+}) {
   return (
-    <div className={cn("glass-panel glass-panel-hover rounded-2xl p-4", className)}>{children}</div>
+    <section className="px-1 py-3.5">
+      <div className="mb-2 flex items-center gap-2">
+        <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+        <h2 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+          {title}
+        </h2>
+      </div>
+      {children}
+    </section>
   );
 }
 
@@ -77,7 +91,7 @@ function StudyLoader() {
     <div className="flex h-full flex-col items-center justify-center gap-5">
       <div className="relative h-12 w-12">
         <motion.span
-          className="absolute inset-0 rounded-full border-2 border-foreground/10"
+          className="absolute inset-0 rounded-full border-2 border-border"
           aria-hidden
         />
         <motion.span
@@ -91,7 +105,7 @@ function StudyLoader() {
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.15, duration: 0.4, ease: EASE }}
-        className="text-xs uppercase tracking-[0.2em] text-foreground/50"
+        className="text-xs uppercase tracking-[0.2em] text-muted-foreground"
       >
         Preparing your set
       </motion.p>
@@ -108,6 +122,7 @@ export function FlashcardsSection() {
     recycledSets,
     hydrated,
     addFolder,
+    updateFolder,
     sendFolderToRecycleBin,
     restoreFolderFromRecycleBin,
     permanentlyDeleteFolder,
@@ -124,16 +139,15 @@ export function FlashcardsSection() {
     recordCardResult,
     completeSet,
     setsInFolder,
-    lastStudiedSet,
-    completedSets,
+    recents,
     totalCards,
     toggleFolderInDome,
     toggleFolderPinned,
     toggleSetPinned,
-    pinned,
   } = useFlashcards();
 
   const [createFolderOpen, setCreateFolderOpen] = React.useState(false);
+  const [editFolderId, setEditFolderId] = React.useState<string | null>(null);
   const [createSetOpen, setCreateSetOpen] = React.useState(false);
   const [createSetFolderId, setCreateSetFolderId] = React.useState<string | undefined>(undefined);
   const [gridFolderId, setGridFolderId] = React.useState<string | null>(null);
@@ -144,13 +158,16 @@ export function FlashcardsSection() {
   );
   const [recycleBinOpen, setRecycleBinOpen] = React.useState(false);
   const [editSetId, setEditSetId] = React.useState<string | null>(null);
+  const [overviewSetId, setOverviewSetId] = React.useState<string | null>(null);
   const [mode, setMode] = React.useState<LibraryMode>({ type: "library", view: "grid" });
   const [libraryView, setLibraryView] = React.useState<LibraryView>("grid");
   const loadTimerRef = React.useRef<number | null>(null);
 
   // Resolve live objects from ids so views always show fresh data.
   const gridFolder = folders.find((f) => f.id === gridFolderId) ?? null;
+  const editFolder = folders.find((f) => f.id === editFolderId) ?? null;
   const editSet = sets.find((s) => s.id === editSetId) ?? null;
+  const overviewSet = sets.find((s) => s.id === overviewSetId) ?? null;
   const studySet =
     mode.type === "study" || mode.type === "loading" || mode.type === "test"
       ? sets.find((s) => s.id === mode.setId) ?? null
@@ -224,6 +241,20 @@ export function FlashcardsSection() {
     [libraryView, prefersReducedMotion, touchSet]
   );
 
+  /** Library / grid opens overview first; Home Recent opens the same. */
+  const openSetOverview = React.useCallback((set: FlashcardSet) => {
+    setOverviewSetId(set.id);
+  }, []);
+
+  const startTestForSet = React.useCallback(
+    (set: FlashcardSet) => {
+      touchSet(set.id);
+      if (loadTimerRef.current) window.clearTimeout(loadTimerRef.current);
+      setMode({ type: "test", setId: set.id });
+    },
+    [touchSet]
+  );
+
   const backToLibrary = React.useCallback(() => {
     if (loadTimerRef.current) window.clearTimeout(loadTimerRef.current);
     setMode({ type: "library", view: libraryView });
@@ -249,230 +280,140 @@ export function FlashcardsSection() {
   if (!hydrated) {
     return (
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
-        <div className="space-y-4">
-          <Skeleton className="h-40 rounded-2xl" />
-          <Skeleton className="h-56 rounded-2xl" />
-          <Skeleton className="h-32 rounded-2xl" />
+        <div className="space-y-6 px-1">
+          <Skeleton className="h-4 w-16" />
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-40 w-full" />
         </div>
-        <Skeleton className="h-[calc(100dvh-13rem)] min-h-[480px] rounded-2xl lg:col-span-3" />
+        <Skeleton className="h-[calc(100dvh-16rem)] min-h-[480px] rounded-xl lg:col-span-3" />
       </div>
     );
   }
 
+  const glanceStats = [
+    { label: "Folders", value: folders.length },
+    { label: "Sets", value: sets.length },
+    { label: "Cards", value: totalCards },
+    { label: "Mastery", value: `${avgMastery}%` },
+  ];
+
   return (
     <>
-      <FeatureIntro feature="flashcards" />
       <motion.div
-        initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+        initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.55, ease: EASE }}
-        className="grid grid-cols-1 gap-4 lg:grid-cols-4"
+        transition={{ duration: prefersReducedMotion ? 0 : DURATION.section, ease: EASE }}
+        className="flex flex-col gap-4"
       >
-        {/* ── Home column (1/4) ─────────────────────────────────────── */}
-        <div className="flex max-h-[calc(100dvh-13rem)] min-h-[480px] flex-col gap-4 overflow-y-auto pr-0.5">
-          <h2 className="px-1 pt-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-foreground/50">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
+        {/* ── Home column (1/4) — flat, no scroll; sections divided by rules ─ */}
+        <div className="flex flex-col border-r border-transparent pr-1 lg:self-start lg:border-border/40 lg:pr-4">
+          <h2 className="px-1 pb-1 pt-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-foreground">
             Home
           </h2>
-          {/* Jump right back in */}
-          <HomePanel>
-            <div className="mb-3 flex items-center gap-2">
-              <Play className="h-3.5 w-3.5 text-accent" />
-              <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground/60">
-                Jump right back in
-              </h2>
-            </div>
-            {lastStudiedSet ? (
+
+          <div className="divide-y divide-border">
+          <HomeSection title="At a glance" icon={Gauge}>
+            <ul className="divide-y divide-border/50">
+              {glanceStats.map((stat) => (
+                <li
+                  key={stat.label}
+                  className="flex items-center justify-between gap-3 px-1 py-1.5"
+                >
+                  <span className="text-xs text-muted-foreground">{stat.label}</span>
+                  <span className="font-mono text-xs font-semibold tabular-nums text-foreground">
+                    {stat.value}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </HomeSection>
+
+          <HomeSection title="Recent" icon={History}>
+            {recents.length === 0 ? (
+              <p className="px-1 text-xs leading-relaxed text-muted-foreground">
+                Open a folder or set and it will show up here.
+              </p>
+            ) : (
+              <ul className="divide-y divide-border/50">
+                {recents.slice(0, 4).map((entry) => {
+                  const folder =
+                    entry.kind === "folder"
+                      ? folders.find((f) => f.id === entry.id)
+                      : undefined;
+                  return (
+                    <li key={`${entry.kind}-${entry.id}`}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (entry.kind === "folder") {
+                            if (folder) openFolder(folder);
+                          } else {
+                            const set = sets.find((s) => s.id === entry.id);
+                            if (set) openSetOverview(set);
+                          }
+                        }}
+                        className="group flex w-full cursor-pointer items-center gap-2.5 px-1 py-1.5 text-left transition-colors duration-150 hover:bg-card-hover"
+                      >
+                        {entry.kind === "folder" && folder ? (
+                          <FolderCoverTile
+                            title={folder.title}
+                            color={folder.color}
+                            imageSrc={folder.imageDataUrl}
+                            size="sm"
+                          />
+                        ) : (
+                          <span className="flex h-5 w-5 shrink-0 items-center justify-center text-muted-foreground">
+                            <Layers className="h-3.5 w-3.5" />
+                          </span>
+                        )}
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-xs font-medium text-foreground">
+                            {entry.title}
+                          </span>
+                          <span className="mt-0.5 block font-mono text-[10px] tabular-nums text-muted-foreground">
+                            {formatRelativeTime(entry.openedAt)}
+                          </span>
+                        </span>
+                        <ArrowRight className="h-3 w-3 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </HomeSection>
+
+          <HomeSection title="Create" icon={Plus}>
+            <div className="flex flex-col">
               <button
                 type="button"
-                onClick={() => openSetForStudy(lastStudiedSet)}
-                className="w-full cursor-pointer rounded-xl border border-foreground/8 bg-foreground/[0.04] p-3.5 text-left transition-all duration-200 hover:border-foreground/16 hover:bg-foreground/[0.07]"
-              >
-                <p className="truncate text-sm font-medium text-foreground">{lastStudiedSet.title}</p>
-                <p className="mt-1 text-xs text-foreground/45">
-                  {lastStudiedSet.subject} · {lastStudiedSet.cards.length} card
-                  {lastStudiedSet.cards.length === 1 ? "" : "s"}
-                </p>
-                <span className="mt-2.5 inline-flex items-center gap-1 text-xs font-medium text-accent">
-                  Continue <ArrowRight className="h-3 w-3" />
-                </span>
-              </button>
-            ) : (
-              <p className="rounded-xl border border-dashed border-foreground/10 p-3.5 text-xs leading-relaxed text-foreground/45">
-                Open a set and it will show up here for quick access.
-              </p>
-            )}
-          </HomePanel>
-
-          {/* Create */}
-          <HomePanel>
-            <div className="mb-3 flex items-center gap-2">
-              <Plus className="h-3.5 w-3.5 text-accent" />
-              <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground/60">
-                Create
-              </h2>
-            </div>
-            <div className="flex flex-col gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full cursor-pointer justify-start"
                 onClick={() => setCreateFolderOpen(true)}
+                className="flex w-full cursor-pointer items-center gap-2.5 px-1 py-1.5 text-left text-xs font-medium text-foreground transition-colors duration-150 hover:bg-card-hover hover:text-foreground"
               >
-                <FolderPlus className="h-3.5 w-3.5" /> New folder
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full cursor-pointer justify-start"
+                <FolderPlus className="h-3.5 w-3.5 text-muted-foreground" />
+                New folder
+              </button>
+              <button
+                type="button"
                 onClick={() => {
                   setCreateSetFolderId(undefined);
                   setCreateSetOpen(true);
                 }}
+                className="flex w-full cursor-pointer items-center gap-2.5 px-1 py-1.5 text-left text-xs font-medium text-foreground transition-colors duration-150 hover:bg-card-hover hover:text-foreground"
               >
-                <Layers className="h-3.5 w-3.5" /> New flashcard set
-              </Button>
+                <Layers className="h-3.5 w-3.5 text-muted-foreground" />
+                New flashcard set
+              </button>
             </div>
-          </HomePanel>
-
-          {/* Pinned */}
-          <HomePanel>
-            <div className="mb-3 flex items-center gap-2">
-              <Pin className="h-3.5 w-3.5 text-accent" />
-              <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground/60">
-                Pinned
-              </h2>
-            </div>
-            {pinned.length === 0 ? (
-              <p className="rounded-xl border border-dashed border-foreground/10 p-3.5 text-xs leading-relaxed text-foreground/45">
-                Pin folders or sets in the library for quick access.
-              </p>
-            ) : (
-              <ul className="space-y-1.5">
-                {pinned.map((entry) => (
-                  <li key={`${entry.kind}-${entry.id}`} className="group flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (entry.kind === "folder") {
-                          const folder = folders.find((f) => f.id === entry.id);
-                          if (folder) openFolder(folder);
-                        } else {
-                          const set = sets.find((s) => s.id === entry.id);
-                          if (set) openSetForStudy(set);
-                        }
-                      }}
-                      className="flex min-w-0 flex-1 cursor-pointer items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left transition-colors duration-150 hover:bg-foreground/[0.06]"
-                    >
-                      <span className="flex min-w-0 items-center gap-2">
-                        {entry.kind === "folder" && entry.color && (
-                          <span
-                            className="h-2 w-2 shrink-0 rounded-[2px]"
-                            style={{ backgroundColor: entry.color }}
-                          />
-                        )}
-                        <span className="truncate text-xs font-medium text-foreground/80">
-                          {entry.title}
-                        </span>
-                      </span>
-                      <Badge variant={entry.kind === "folder" ? "secondary" : "accent"}>
-                        {entry.kind}
-                      </Badge>
-                    </button>
-                    <button
-                      type="button"
-                      aria-label={`Unpin ${entry.title}`}
-                      onClick={() =>
-                        entry.kind === "folder"
-                          ? toggleFolderPinned(entry.id)
-                          : toggleSetPinned(entry.id)
-                      }
-                      className="cursor-pointer rounded-md p-1.5 text-accent opacity-70 transition-opacity hover:opacity-100"
-                    >
-                      <Pin className="h-3 w-3 fill-current" />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </HomePanel>
-
-          {/* Completed */}
-          <HomePanel>
-            <div className="mb-3 flex items-center gap-2">
-              <CheckCircle2 className="h-3.5 w-3.5 text-accent" />
-              <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground/60">
-                Completed
-              </h2>
-            </div>
-            {completedSets.length === 0 ? (
-              <p className="rounded-xl border border-dashed border-foreground/10 p-3.5 text-xs leading-relaxed text-foreground/45">
-                Finish studying every card in a set, or finish a test, and it&apos;ll show up here.
-              </p>
-            ) : (
-              <ul className="space-y-1.5">
-                {completedSets.map((set) => (
-                  <li key={set.id}>
-                    <button
-                      type="button"
-                      onClick={() => openSetForStudy(set)}
-                      className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left transition-colors duration-150 hover:bg-foreground/[0.06]"
-                    >
-                      <span className="min-w-0 truncate text-xs font-medium text-foreground/80">
-                        {set.title}
-                      </span>
-                      {set.lastTestResult ? (
-                        <Badge
-                          variant={
-                            set.lastTestResult.correct === set.lastTestResult.total
-                              ? "success"
-                              : "accent"
-                          }
-                        >
-                          {set.lastTestResult.correct}/{set.lastTestResult.total}
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary">Studied</Badge>
-                      )}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </HomePanel>
-
-          {/* Library stats */}
-          <HomePanel>
-            <div className="mb-3 flex items-center gap-2">
-              <Sparkles className="h-3.5 w-3.5 text-accent" />
-              <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground/60">
-                At a glance
-              </h2>
-            </div>
-            <dl className="grid grid-cols-2 gap-2">
-              {[
-                { label: "Folders", value: folders.length },
-                { label: "Sets", value: sets.length },
-                { label: "Cards", value: totalCards },
-                { label: "Mastery", value: `${avgMastery}%` },
-              ].map((stat) => (
-                <div
-                  key={stat.label}
-                  className="rounded-lg border border-foreground/8 bg-foreground/[0.04] p-2.5 text-center"
-                >
-                  <p className="font-mono text-sm font-semibold tabular-nums text-foreground">{stat.value}</p>
-                  <p className="mt-0.5 text-[10px] uppercase tracking-wide text-foreground/45">
-                    {stat.label}
-                  </p>
-                </div>
-              ))}
-            </dl>
-          </HomePanel>
+          </HomeSection>
+          </div>
         </div>
 
         {/* ── Library (3/4): grid (default) ↔ dome ↔ study ──────────── */}
         <div
           className={cn(
-            "relative h-[calc(100dvh-13rem)] min-h-[480px] rounded-2xl border border-foreground/8 bg-background/40 lg:col-span-3",
+            "relative h-[calc(100dvh-16rem)] min-h-[420px] rounded-xl border border-border bg-card shadow-[var(--shadow-elevation-1)] lg:col-span-3",
             mode.type === "study" ? "overflow-y-auto p-5 md:p-6" : "overflow-hidden"
           )}
         >
@@ -486,8 +427,8 @@ export function FlashcardsSection() {
                 exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.98 }}
                 transition={{ duration: 0.25, ease: EASE }}
               >
-                <div className="flex items-center justify-between gap-2 border-b border-foreground/8 bg-foreground/[0.02] px-4 py-2.5">
-                  <h2 className="text-[11px] font-semibold uppercase tracking-[0.24em] text-foreground/50">
+                <div className="flex items-center justify-between gap-2 border-b border-border bg-surface/60 px-4 py-2.5">
+                  <h2 className="text-[11px] font-semibold uppercase tracking-[0.24em] text-foreground">
                     Library
                   </h2>
                   <div className="flex items-center gap-2">
@@ -506,7 +447,7 @@ export function FlashcardsSection() {
                         </span>
                       ) : null}
                     </Button>
-                    <div className="inline-flex items-center gap-0.5 rounded-lg border border-foreground/10 bg-foreground/[0.03] p-0.5">
+                    <div className="inline-flex items-center gap-0.5 rounded-lg border border-border bg-surface p-0.5">
                       <button
                         type="button"
                         onClick={() => {
@@ -517,7 +458,7 @@ export function FlashcardsSection() {
                           "rounded-md px-2.5 py-1 text-[10px] font-medium transition-colors",
                           mode.view === "grid"
                             ? "bg-accent text-accent-foreground"
-                            : "text-foreground/50 hover:text-foreground"
+                            : "text-muted-foreground hover:text-foreground"
                         )}
                       >
                         Grid
@@ -532,13 +473,13 @@ export function FlashcardsSection() {
                           "rounded-md px-2.5 py-1 text-[10px] font-medium transition-colors",
                           mode.view === "dome"
                             ? "bg-accent text-accent-foreground"
-                            : "text-foreground/50 hover:text-foreground"
+                            : "text-muted-foreground hover:text-foreground"
                         )}
                       >
                         Visual gallery
                       </button>
                     </div>
-                    <span className="font-mono text-[10px] tabular-nums text-foreground/35">
+                    <span className="font-mono text-[10px] tabular-nums text-muted-foreground">
                       {sets.length} set{sets.length === 1 ? "" : "s"}
                     </span>
                   </div>
@@ -554,8 +495,9 @@ export function FlashcardsSection() {
                       layout={gridLayout}
                       onLayoutChange={setGridLayout}
                       onOpenFolder={openFolder}
+                      onEditFolder={(f) => setEditFolderId(f.id)}
                       onBack={() => setGridFolderId(null)}
-                      onOpenSet={openSetForStudy}
+                      onOpenSet={openSetOverview}
                       onToggleFolderPin={toggleFolderPinned}
                       onToggleSetPin={toggleSetPinned}
                       onShowInDome={toggleFolderInDome}
@@ -582,7 +524,7 @@ export function FlashcardsSection() {
                       <DomeGallery
                         sets={sets}
                         folders={folders}
-                        onSetClick={openSetForStudy}
+                        onSetClick={openSetOverview}
                         onCreateSet={(folderId) => {
                           setCreateSetFolderId(folderId);
                           setCreateSetOpen(true);
@@ -662,12 +604,38 @@ export function FlashcardsSection() {
             )}
           </AnimatePresence>
         </div>
+        </div>
       </motion.div>
 
-      <CreateFolderDialog
+      <FolderDialog
         open={createFolderOpen}
         onOpenChange={setCreateFolderOpen}
         onCreate={(input) => addFolder(input)}
+      />
+
+      <FolderDialog
+        open={editFolderId !== null}
+        folder={editFolder}
+        onOpenChange={(open) => {
+          if (!open) setEditFolderId(null);
+        }}
+        onSave={(id, input) => {
+          updateFolder(id, {
+            title: input.title,
+            color: input.color,
+            imageDataUrl: input.imageDataUrl,
+          });
+        }}
+      />
+
+      <SetOverviewDialog
+        set={overviewSet}
+        onOpenChange={(open) => {
+          if (!open) setOverviewSetId(null);
+        }}
+        onStudy={openSetForStudy}
+        onEdit={(set) => setEditSetId(set.id)}
+        onTest={startTestForSet}
       />
 
       <CreateSetDialog
@@ -738,8 +706,8 @@ function LibraryCreateBar({
   onNewSet: (folderId?: string) => void;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 border-t border-foreground/8 bg-foreground/[0.02] px-4 py-2.5">
-      <p className="min-w-0 truncate text-[11px] uppercase tracking-[0.2em] text-foreground/40">
+    <div className="flex items-center justify-between gap-3 border-t border-border bg-surface/60 px-4 py-2.5">
+      <p className="min-w-0 truncate text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
         {hint ??
           (folder
             ? `Inside ${folder.title}`

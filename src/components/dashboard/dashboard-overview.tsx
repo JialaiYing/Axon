@@ -35,7 +35,6 @@ import { Panel } from "@/components/ui/panel";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TiltCard } from "@/components/ui/tilt-card";
 import { FeatureIntro } from "@/components/onboarding/feature-intro";
 import { TodayAgendaPanel } from "@/components/dashboard/today-agenda-panel";
 import { useObjectives } from "@/hooks/use-objectives";
@@ -47,28 +46,37 @@ import { useDisplayName } from "@/hooks/use-display-name";
 import {
   dayElapsedFraction,
   goalPaceStatus,
-  isToday,
   weekElapsedFraction,
 } from "@/lib/goals-utils";
-import { canMarkObjectiveDone, isOverdue, isScheduleOverdue, priorityDotClass, priorityTextClass } from "@/lib/kanban-utils";
-import { getScheduledEvent, isSameDay } from "@/lib/calendar-utils";
-import { DURATION, EASE, enterVariants, staggerContainer } from "@/lib/motion";
+import { canMarkObjectiveDone } from "@/lib/kanban-utils";
+import { buildUpNextQueue } from "@/lib/dashboard-agenda";
+import { DURATION, EASE, STAGGER, enterVariants, staggerContainer } from "@/lib/motion";
 import { computeCurrentStreak } from "@/lib/progress/streak";
 import { formatRelativeTime } from "@/lib/time";
 import type { Goal, Objective, PomodoroSession } from "@/types";
 import { cn } from "@/lib/utils";
 
-// House motion language — see src/lib/motion.ts. Every entrance on this page
-// pulls from there so it stays in lockstep with the rest of the app.
-const container = {
+// Motion budget: greeting → agenda (hero) → up next / stats. Secondary
+// focal (week chart) and supporting sections use quieter delayed fades —
+// no uniform stagger across every peer card, no TiltCard.
+const heroContainer = {
   hidden: {},
-  visible: { transition: staggerContainer() },
+  visible: { transition: staggerContainer(STAGGER.tight) },
 };
 
 const enter = enterVariants(8);
-const item = {
+const heroItem = {
   hidden: enter.hidden,
   visible: { ...enter.visible, transition: { duration: DURATION.section, ease: EASE } },
+};
+
+const secondaryEnter = {
+  hidden: { opacity: 0, y: 6 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: DURATION.base, ease: EASE, delay: 0.12 },
+  },
 };
 
 function dayKey(date: Date) {
@@ -122,54 +130,16 @@ function percentTrend(current: number, previous: number): Trend | undefined {
   return { direction: pct > 0 ? "up" : "down", label: `${Math.abs(pct)}%` };
 }
 
-const PRIORITY_ORDER: Record<Objective["priority"], number> = {
-  urgent: 0,
-  high: 1,
-  medium: 2,
-  low: 3,
-};
-
-/** True when an objective is already surfaced by the Agenda panel above
- *  (overdue, due today, or scheduled today) — kept in sync with the same
- *  predicates `today-agenda-panel.tsx` uses, so nothing shows up twice. */
-function isShownInAgendaToday(o: Objective, now: Date) {
-  if (isOverdue(o.dueDate, o.status) || isScheduleOverdue(o)) return true;
-  if (o.dueDate && isToday(o.dueDate)) return true;
-  const event = getScheduledEvent(o);
-  if (event && isSameDay(event.start, now)) return true;
-  return false;
-}
-
-function upNext(objectives: Objective[]) {
-  const now = new Date();
-  return objectives
-    .filter(
-      (o) =>
-        (o.status === "todo" || o.status === "in-progress") &&
-        o.showOnKanban !== false &&
-        !isShownInAgendaToday(o, now)
-    )
-    .sort((a, b) => {
-      const aTime = a.scheduledStart ?? a.dueDate;
-      const bTime = b.scheduledStart ?? b.dueDate;
-      if (aTime && bTime) return new Date(aTime).getTime() - new Date(bTime).getTime();
-      if (aTime) return -1;
-      if (bTime) return 1;
-      return PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority];
-    })
-    .slice(0, 5);
-}
 
 interface RecentEntry {
   key: string;
   icon: React.ComponentType<{ className?: string }>;
   title: string;
-  subtitle: string;
   timestamp: string;
   href: string;
 }
 
-/** Most recently touched flashcard set, focus session, and objective — one "resume" list across features. */
+/** Top three most recently touched items across flashcards, focus, and objectives. */
 function buildRecentEntries(
   objectives: Objective[],
   sessions: PomodoroSession[],
@@ -182,41 +152,42 @@ function buildRecentEntries(
       key: `set-${lastStudiedSet.id}`,
       icon: BookOpen,
       title: lastStudiedSet.title,
-      subtitle: `${lastStudiedSet.cards.length} card${lastStudiedSet.cards.length === 1 ? "" : "s"}`,
       timestamp: lastStudiedSet.lastOpenedAt,
       href: "/flashcards",
     });
   }
 
-  const lastSession = sessions
+  sessions
     .filter((s) => s.type === "work" && s.durationMinutes > 0)
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
-  if (lastSession) {
-    entries.push({
-      key: `session-${lastSession.id}`,
-      icon: Timer,
-      title: lastSession.label || "Focus session",
-      subtitle: `${lastSession.durationMinutes} min focused`,
-      timestamp: lastSession.date,
-      href: "/pomodoro",
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 3)
+    .forEach((lastSession) => {
+      entries.push({
+        key: `session-${lastSession.id}`,
+        icon: Timer,
+        title: lastSession.label || "Focus session",
+        timestamp: lastSession.date,
+        href: "/pomodoro",
+      });
     });
-  }
 
-  const lastObjective = objectives
+  objectives
     .filter((o) => o.status !== "recycled")
-    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())[0];
-  if (lastObjective) {
-    entries.push({
-      key: `objective-${lastObjective.id}`,
-      icon: ListTodo,
-      title: lastObjective.title,
-      subtitle: lastObjective.status === "done" ? "Completed" : lastObjective.subject,
-      timestamp: lastObjective.updatedAt,
-      href: "/kanban",
+    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+    .slice(0, 3)
+    .forEach((lastObjective) => {
+      entries.push({
+        key: `objective-${lastObjective.id}`,
+        icon: ListTodo,
+        title: lastObjective.title,
+        timestamp: lastObjective.updatedAt,
+        href: "/kanban",
+      });
     });
-  }
 
-  return entries.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  return entries
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+    .slice(0, 3);
 }
 
 interface Trend {
@@ -224,9 +195,6 @@ interface Trend {
   label: string;
 }
 
-/** Small trend chip for stat cards — a bare number is the weakest way to show
- *  a metric, so every card that can be compared against a prior period gets
- *  one of these next to the value (Vercel/Stripe analytics convention). */
 const TrendBadge = React.memo(function TrendBadge({ direction, label }: Trend) {
   const Icon = direction === "up" ? TrendingUp : direction === "down" ? TrendingDown : Minus;
   return (
@@ -245,11 +213,7 @@ const TrendBadge = React.memo(function TrendBadge({ direction, label }: Trend) {
 });
 
 /** Border classes for one cell in the 4-up stats strip — a 2x2 grid on
- *  mobile (col divider on odd cells, row divider on the bottom row) that
- *  collapses to a single divided row of 4 at `md`. One shared `Panel`
- *  border frames the whole strip; this is only the internal dividers, so
- *  it reads as one stats bar (Vercel's analytics-row pattern), not four
- *  separate boxed cards. */
+ *  mobile that collapses to a single divided row of 4 at `md`. */
 function statCellBorderClass(index: number) {
   return cn(
     index % 2 === 1 && "border-l border-border",
@@ -279,24 +243,21 @@ const StatCell = React.memo(function StatCell({
   className?: string;
 }) {
   return (
-    <div className={cn("flex flex-col justify-between p-4", className)}>
+    <div className={cn("flex flex-col justify-between p-3.5", className)}>
       <div className="flex items-center justify-between">
-        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-foreground/60">
+        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-foreground">
           {label}
         </p>
-        {/* Icon sits directly in its semantic color — no bordered chip
-            behind it. A box around every single icon on the page is what
-            reads as "bubbles"; the color alone is enough to distinguish it. */}
         <Icon className={cn("h-4 w-4", iconClassName)} />
       </div>
-      <div className="mt-4">
+      <div className="mt-3">
         <div className="flex items-baseline gap-2">
           <p className="font-mono text-2xl font-semibold tabular-nums text-foreground">
             <AnimatedCounter value={value} suffix={suffix} />
           </p>
           {trend && <TrendBadge {...trend} />}
         </div>
-        <p className="mt-1 text-xs text-foreground/60">{hint}</p>
+        <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
       </div>
     </div>
   );
@@ -306,13 +267,13 @@ const PersonalGoalRow = React.memo(function PersonalGoalRow({ goal }: { goal: Go
   const percent = goal.target > 0 ? (goal.progress / goal.target) * 100 : 0;
   return (
     <div>
-      <div className="flex items-center justify-between gap-2 text-[11px] text-foreground/55">
+      <div className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
         <span className="truncate">{goal.title}</span>
         <span className="flex shrink-0 items-center gap-2">
           <span
             className={cn(
               "text-[10px] font-medium uppercase tracking-[0.08em]",
-              goal.completed ? "text-success" : "text-foreground/50"
+              goal.completed ? "text-success" : "text-muted-foreground"
             )}
           >
             {goal.completed ? "Done" : "Personal"}
@@ -323,19 +284,22 @@ const PersonalGoalRow = React.memo(function PersonalGoalRow({ goal }: { goal: Go
           </span>
         </span>
       </div>
-      <ProgressBar value={percent} size="sm" className="mt-1.5" />
+      <ProgressBar
+        value={percent}
+        size="sm"
+        className="mt-1.5"
+        barClassName={goal.completed ? "bg-success" : undefined}
+      />
     </div>
   );
 });
 
 /**
- * Personal-goals surface for the dashboard. Daily/weekly focus-time and
- * objective-count progress already live in the Agenda panel above — this
- * card intentionally does NOT repeat those bars, it only shows the goals
- * that have nowhere else to live, plus a contextual nudge when the
- * daily/weekly pace (computed, not re-rendered) is slipping.
+ * Supporting personal-goals block — flat rows under a label, not a peer
+ * glass card. Daily/weekly bars live in Agenda; this only shows personal goals.
+ * Structure: header → body (flex-1) → footer — matches Rank / Recent in the trio band.
  */
-function PersonalGoalsCard({
+function PersonalGoalsSection({
   dailyGoal,
   weeklyGoal,
   personalGoals,
@@ -358,57 +322,57 @@ function PersonalGoalsCard({
         : null;
 
   return (
-    <TiltCard maxTilt={5} className="h-full">
-      <Panel variant="glass" className="flex h-full flex-col justify-between p-5">
-        <div className="flex items-center justify-between">
-          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-foreground/55">
-            Personal goals
+    <section className="flex h-full min-h-0 flex-col">
+      <div className="mb-3 flex items-center justify-between">
+        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-foreground">
+          Personal goals
+        </p>
+        <Target className="h-3.5 w-3.5 text-muted-foreground" />
+      </div>
+      <div className="min-h-0 flex-1 space-y-3">
+        {visiblePersonalGoals.length > 0 ? (
+          <>
+            {visiblePersonalGoals.map((goal) => (
+              <PersonalGoalRow key={goal.id} goal={goal} />
+            ))}
+            {remainingPersonalGoals > 0 && (
+              <Link
+                href="/goals"
+                className="inline-flex cursor-pointer items-center gap-1 text-[11px] text-muted-foreground transition-colors duration-200 hover:text-foreground"
+              >
+                +{remainingPersonalGoals} more personal goal{remainingPersonalGoals === 1 ? "" : "s"}
+              </Link>
+            )}
+          </>
+        ) : (
+          <p className="text-xs text-muted-foreground">
+            No personal goals yet — add one to track something outside daily/weekly focus time.
           </p>
-          <Target className="h-4 w-4 text-success" />
-        </div>
-        <div className="mt-4 flex-1 space-y-3">
-          {visiblePersonalGoals.length > 0 ? (
-            <>
-              {visiblePersonalGoals.map((goal) => (
-                <PersonalGoalRow key={goal.id} goal={goal} />
-              ))}
-              {remainingPersonalGoals > 0 && (
-                <Link
-                  href="/goals"
-                  className="inline-flex cursor-pointer items-center gap-1 text-[11px] text-foreground/60 transition-colors duration-200 hover:text-foreground"
-                >
-                  +{remainingPersonalGoals} more personal goal{remainingPersonalGoals === 1 ? "" : "s"}
-                </Link>
-              )}
-            </>
-          ) : (
-            <p className="text-xs text-foreground/60">
-              No personal goals yet — add one to track something outside daily/weekly focus time.
-            </p>
-          )}
-        </div>
-        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1">
-          {contextualCta && (
-            <Link
-              href={contextualCta.href}
-              className="inline-flex cursor-pointer items-center gap-1 text-[11px] text-foreground/70 transition-colors duration-200 hover:text-foreground"
-            >
-              {contextualCta.label} <ArrowRight className="h-3 w-3" />
-            </Link>
-          )}
+        )}
+      </div>
+      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-border pt-3">
+        {contextualCta && (
           <Link
-            href="/goals"
-            className="inline-flex cursor-pointer items-center gap-1 text-[11px] text-foreground/60 transition-colors duration-200 hover:text-foreground"
+            href={contextualCta.href}
+            className="inline-flex cursor-pointer items-center gap-1 text-[11px] text-foreground/70 transition-colors duration-200 hover:text-foreground"
           >
-            {personalGoals.length === 0 ? "Add a personal goal" : "Manage goals"} <ArrowRight className="h-3 w-3" />
+            {contextualCta.label} <ArrowRight className="h-3 w-3" />
           </Link>
-        </div>
-      </Panel>
-    </TiltCard>
+        )}
+        <Link
+          href="/goals"
+          className="inline-flex cursor-pointer items-center gap-1 text-[11px] text-muted-foreground transition-colors duration-200 hover:text-foreground"
+        >
+          {personalGoals.length === 0 ? "Add a personal goal" : "Manage goals"}{" "}
+          <ArrowRight className="h-3 w-3" />
+        </Link>
+      </div>
+    </section>
   );
 }
 
-function RankHero({
+/** Rank column — same header / body / footer rhythm as siblings so the trio band aligns. */
+function RankStrip({
   rankLabel,
   level,
   xpIntoLevel,
@@ -426,45 +390,88 @@ function RankHero({
   todayXp: number;
 }) {
   return (
-    <Panel variant="glass" className="p-6">
-      <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3.5">
-          <Trophy className="h-8 w-8 shrink-0 text-foreground/70" />
-          <div>
-            <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-foreground/60">
-              Current rank
-            </p>
-            <p className="mt-0.5 text-xl font-semibold tracking-tight text-foreground">{rankLabel}</p>
-          </div>
-        </div>
-        {/* One neutral chip instead of two competing colored pills — same
-            pattern as the Agenda header's streak/rank chip. */}
-        <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-2.5 py-1">
+    <section className="flex h-full min-h-0 flex-col">
+      <div className="mb-3 flex items-center justify-between">
+        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-foreground">
+          Rank
+        </p>
+        <Trophy className="h-3.5 w-3.5 text-muted-foreground" />
+      </div>
+      <div className="min-h-0 flex-1">
+        <p className="text-sm font-semibold tracking-tight text-foreground">{rankLabel}</p>
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
+          <span className="font-mono tabular-nums">Level {level}</span>
           {todayXp > 0 && (
-            <>
-              <span className="flex items-center gap-1.5 text-xs font-medium text-accent">
-                <Sparkles className="h-3.5 w-3.5" />
-                +{todayXp} XP today
-              </span>
-              <span className="h-3 w-px bg-border" aria-hidden />
-            </>
+            <span className="flex items-center gap-1 font-medium text-foreground">
+              <Sparkles className="h-3 w-3" />
+              +{todayXp} today
+            </span>
           )}
-          <span className="text-xs font-medium text-muted-foreground">Level {level} / 30</span>
         </div>
       </div>
-
-      <div className="mt-5">
-        <div className="mb-1.5 flex items-center justify-between text-xs text-foreground/55">
-          <span>{isMaxLevel ? "Max level reached" : "XP to next level"}</span>
+      <div className="mt-3 border-t border-border pt-3">
+        <div className="mb-1.5 flex items-center justify-between text-[11px] text-muted-foreground">
+          <span>{isMaxLevel ? "Max level" : "XP to next level"}</span>
           {!isMaxLevel && (
             <span className="font-mono tabular-nums text-foreground/70">
               {xpIntoLevel.toLocaleString()} / {xpForNextLevel?.toLocaleString()}
             </span>
           )}
         </div>
-        <ProgressBar value={progressPercent} />
+        <ProgressBar value={progressPercent} size="sm" />
       </div>
-    </Panel>
+    </section>
+  );
+}
+
+function RecentSection({ recent }: { recent: RecentEntry[] }) {
+  return (
+    <section className="flex h-full min-h-0 flex-col">
+      <div className="mb-3 flex items-center justify-between">
+        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-foreground">
+          Recent
+        </p>
+        <History className="h-3.5 w-3.5 text-muted-foreground" />
+      </div>
+      <div className="min-h-0 flex-1">
+        {recent.length === 0 ? (
+          <div className="flex h-full flex-col items-center justify-center gap-2 py-2 text-center">
+            <History className="h-5 w-5 text-muted-foreground" />
+            <p className="text-xs text-muted-foreground">Nothing to resume yet</p>
+          </div>
+        ) : (
+          <ul className="divide-y divide-border border-y border-border">
+            {recent.map((entry) => {
+              const Icon = entry.icon;
+              return (
+                <li key={entry.key}>
+                  <Link
+                    href={entry.href}
+                    className="flex cursor-pointer items-center gap-2.5 py-2 transition-colors duration-200 hover:bg-card-hover"
+                  >
+                    <Icon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                    <p className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
+                      {entry.title}
+                    </p>
+                    <span className="shrink-0 font-mono text-[11px] tabular-nums text-muted-foreground">
+                      {formatRelativeTime(entry.timestamp)}
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+      <div className="mt-3 border-t border-border pt-3">
+        <Link
+          href="/analytics"
+          className="inline-flex cursor-pointer items-center gap-1 text-[11px] text-muted-foreground transition-colors duration-200 hover:text-foreground"
+        >
+          View activity <ArrowRight className="h-3 w-3" />
+        </Link>
+      </div>
+    </section>
   );
 }
 
@@ -486,19 +493,27 @@ const ChartTooltip = React.memo(function ChartTooltip({
   );
 });
 
+/** Skeleton mirrors live hierarchy: hero agenda → flat up-next → one stats
+ *  strip → week chart → three light supporting columns. */
 function LoadingState() {
   return (
     <div className="space-y-5">
-      <Skeleton className="h-32 rounded-2xl" />
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {[0, 1, 2, 3].map((i) => (
-          <Skeleton key={i} className="h-32 rounded-2xl" />
-        ))}
+      <div className="space-y-2">
+        <Skeleton className="h-3 w-40" />
+        <Skeleton className="h-8 w-56" />
       </div>
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Skeleton className="h-72 rounded-2xl" />
-        <Skeleton className="h-72 rounded-2xl" />
+      <Skeleton className="h-56 rounded-xl" />
+      <div className="space-y-2">
+        <Skeleton className="h-3 w-16" />
+        <div className="space-y-0 divide-y divide-border border-y border-border">
+          <Skeleton className="h-10 rounded-none" />
+          <Skeleton className="h-10 rounded-none" />
+          <Skeleton className="h-10 rounded-none" />
+        </div>
       </div>
+      <Skeleton className="h-28 rounded-xl" />
+      <Skeleton className="h-72 rounded-xl" />
+      <Skeleton className="h-40 rounded-xl" />
     </div>
   );
 }
@@ -535,7 +550,15 @@ export function DashboardOverview() {
     () => percentTrend(todayFocusMinutes, yesterdayFocusMinutes),
     [todayFocusMinutes, yesterdayFocusMinutes]
   );
-  const queue = React.useMemo(() => upNext(objectives), [objectives]);
+  const queue = React.useMemo(() => buildUpNextQueue(objectives), [objectives]);
+  const hasOpenBoard = React.useMemo(
+    () =>
+      objectives.some(
+        (o) =>
+          (o.status === "todo" || o.status === "in-progress") && o.showOnKanban !== false
+      ),
+    [objectives]
+  );
   const recent = React.useMemo(
     () => buildRecentEntries(objectives, sessions, lastStudiedSet),
     [objectives, sessions, lastStudiedSet]
@@ -553,293 +576,274 @@ export function DashboardOverview() {
 
   return (
     <>
-    <FeatureIntro feature="dashboard" />
-    <motion.div
-      variants={container}
-      initial={prefersReducedMotion ? false : "hidden"}
-      animate="visible"
-      className="space-y-5"
-    >
-      {/* Greeting + quick actions */}
-      <motion.div
-        variants={item}
-        className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"
-      >
-        <div>
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-foreground/60">
-            {new Date().toLocaleDateString(undefined, {
-              weekday: "long",
-              month: "long",
-              day: "numeric",
-            })}
-          </p>
-          <h1 className="mt-1.5 text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
-            {greeting}
-          </h1>
-        </div>
-        <div className="flex items-center gap-2.5">
-          <Button asChild size="sm" variant="outline" className="cursor-pointer">
-            <Link href="/kanban" className="inline-flex items-center gap-1.5">
-              <Plus className="h-3.5 w-3.5" /> New objective
-            </Link>
-          </Button>
-          <Button asChild size="sm" className="cursor-pointer">
-            <Link href="/pomodoro" className="inline-flex items-center gap-1.5">
-              <Timer className="h-3.5 w-3.5" /> Start focus
-            </Link>
-          </Button>
-        </div>
-      </motion.div>
-
-      {/* Glance-and-go agenda — primary dashboard surface */}
-      <motion.div variants={item}>
-        <TodayAgendaPanel
-          objectives={objectives}
-          dailyGoal={dailyGoal}
-          weeklyGoal={weeklyGoal}
-          streak={streak}
-          rankLabel={rank.label}
-        />
-      </motion.div>
-
-      {/* Compact up-next queue — a flat divided list, not another grid of
-          boxed mini-cards competing with the agenda panel above it. */}
-      <motion.div variants={item}>
-        <div className="flex flex-col gap-2">
-          <p className="mb-0.5 text-[10px] uppercase tracking-wide text-foreground/60">Up next</p>
-          {queue.length === 0 ? (
-            <Link
-              href="/kanban"
-              className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-card/60 p-6 text-center transition-colors duration-200 hover:border-border-strong hover:bg-card-hover"
-            >
-              <Circle className="h-4 w-4 text-foreground/40" />
-              <p className="text-xs text-foreground/55">No objectives yet</p>
-              <span className="inline-flex items-center gap-1 text-[11px] text-foreground/60">
-                Create one on the board <ArrowRight className="h-3 w-3" />
-              </span>
-            </Link>
-          ) : (
-            <ul className="overflow-hidden rounded-xl border border-border bg-card">
-              {queue.map((objective, index) => (
-                <li
-                  key={objective.id}
-                  className={cn(
-                    "flex items-center gap-2.5 px-3.5 py-2.5 transition-colors duration-150 hover:bg-card-hover",
-                    index > 0 && "border-t border-border"
-                  )}
-                >
-                  <Link
-                    href="/kanban"
-                    className="min-w-0 flex-1 cursor-pointer truncate text-sm font-medium text-foreground"
-                  >
-                    {objective.title}
-                  </Link>
-                  {/* A colored dot + plain text label carries the same
-                      priority signal as a bordered pill, without adding
-                      another bubble to a five-row list. */}
-                  <span className="flex shrink-0 items-center gap-1.5 text-xs font-medium capitalize">
-                    <span className={cn("h-1.5 w-1.5 rounded-full", priorityDotClass(objective.priority))} />
-                    <span className={priorityTextClass(objective.priority)}>{objective.priority}</span>
-                  </span>
-                  <button
-                    type="button"
-                    aria-label={`Mark "${objective.title}" done`}
-                    disabled={!canMarkObjectiveDone(objective)}
-                    title={
-                      canMarkObjectiveDone(objective)
-                        ? "Mark done"
-                        : "Complete estimated study time (and any subtasks) first"
-                    }
-                    onClick={() => {
-                      if (!canMarkObjectiveDone(objective)) return;
-                      completeObjective(objective.id);
-                    }}
-                    className="shrink-0 cursor-pointer rounded-md p-0.5 text-foreground/40 transition-colors duration-150 hover:text-success disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:text-foreground/40"
-                  >
-                    <Circle className="h-3.5 w-3.5" />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </motion.div>
-
-      {/* Stats strip — one bordered bar with internal dividers (Vercel's
-          analytics-row pattern), not four separate boxed cards. */}
-      <motion.div variants={item}>
-        <Panel variant="standard" className="grid grid-cols-2 md:grid-cols-4">
-          {[
-            {
-              icon: Flame,
-              label: "Streak",
-              value: streak,
-              suffix: streak === 1 ? " day" : " days",
-              hint: streak > 0 ? "Keep it going" : "Finish a session to start one",
-              iconClassName: "text-warning",
-            },
-            {
-              icon: Timer,
-              label: "Focus today",
-              value: todayFocusMinutes,
-              suffix: " min",
-              hint: `${todaySessions.length} session${todaySessions.length === 1 ? "" : "s"} today · vs yesterday`,
-              iconClassName: "text-accent",
-              trend: focusTrend,
-            },
-            {
-              icon: Repeat,
-              label: "Intervals",
-              value: stats.intervalsCompleted,
-              hint: "All-time completed",
-              iconClassName: "text-foreground/60",
-            },
-            {
-              icon: Gauge,
-              label: "Productivity",
-              value: stats.productivityIndex,
-              suffix: "%",
-              hint: "Last 7 days",
-              iconClassName: "text-foreground/60",
-            },
-          ].map((cell, index) => (
-            <StatCell key={cell.label} {...cell} className={statCellBorderClass(index)} />
-          ))}
-        </Panel>
-      </motion.div>
-
-      {/* Daily goal + Current rank / XP — mirrors the homepage pair */}
-      <motion.div variants={item}>
-        <FeatureIntro feature="gamification" />
-      </motion.div>
-      <motion.div variants={item} className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <PersonalGoalsCard dailyGoal={dailyGoal} weeklyGoal={weeklyGoal} personalGoals={personalGoals} />
-        <RankHero
-          rankLabel={rank.label}
-          level={progression.level}
-          xpIntoLevel={progression.xpIntoLevel}
-          xpForNextLevel={progression.xpForNextLevel}
-          progressPercent={progression.progressPercent}
-          isMaxLevel={progression.isMaxLevel}
-          todayXp={todayXp}
-        />
-      </motion.div>
-
-      <motion.div variants={item}>
-        <Panel variant="glass" className="flex h-full flex-col p-6">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-foreground">Recent</h2>
-            <History className="h-3.5 w-3.5 text-foreground/40" />
-          </div>
-          {recent.length === 0 ? (
-            <div className="flex flex-1 flex-col items-center justify-center gap-3 py-8 text-center">
-              <History className="h-8 w-8 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">Nothing to resume yet</p>
-            </div>
-          ) : (
-            <ul className="-mx-1 divide-y divide-border">
-              {recent.map((entry) => {
-                const Icon = entry.icon;
-                return (
-                  <li key={entry.key}>
-                    <Link
-                      href={entry.href}
-                      className="flex cursor-pointer items-center gap-3 rounded-lg px-1 py-2.5 transition-colors duration-200 hover:bg-card-hover"
-                    >
-                      <Icon className="h-4 w-4 shrink-0 text-foreground/70" />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium text-foreground">{entry.title}</p>
-                        <p className="mt-0.5 text-[11px] text-foreground/60">{entry.subtitle}</p>
-                      </div>
-                      <span className="shrink-0 text-[11px] text-foreground/60">
-                        {formatRelativeTime(entry.timestamp)}
-                      </span>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </Panel>
-      </motion.div>
-
-      {/* Focus this week */}
-      <motion.div variants={item}>
-        <Panel variant="glass" className="flex flex-col p-6">
-          <div className="mb-4 flex items-center justify-between">
+      <FeatureIntro feature="dashboard" />
+      <div className="space-y-5">
+        {/* Hero band: greeting → agenda → up next → stats */}
+        <motion.div
+          variants={heroContainer}
+          initial={prefersReducedMotion ? false : "hidden"}
+          animate="visible"
+          className="space-y-5"
+        >
+          <motion.div
+            variants={heroItem}
+            className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"
+          >
             <div>
-              <h2 className="text-sm font-semibold text-foreground">Focus this week</h2>
-              <div className="mt-0.5 flex items-center gap-2">
-                <p className="text-xs text-foreground/60">
-                  {weekTotal} minutes across the last 7 days
-                </p>
-                {weekTrend && <TrendBadge {...weekTrend} />}
-              </div>
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                {new Date().toLocaleDateString(undefined, {
+                  weekday: "long",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </p>
+              <h1 className="mt-1.5 text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
+                {greeting}
+              </h1>
             </div>
-            <p className="font-mono text-xl font-semibold tabular-nums text-accent">
-              <AnimatedCounter value={weekTotal} suffix=" min" />
-            </p>
-          </div>
-          {weekTotal === 0 ? (
-            <div className="flex flex-1 flex-col items-center justify-center gap-3 py-10 text-center">
-              <Timer className="h-8 w-8 text-foreground/70" />
-              <p className="text-sm text-foreground/60">No focus sessions yet this week</p>
+            <div className="flex items-center gap-2.5">
               <Button asChild size="sm" variant="outline" className="cursor-pointer">
+                <Link href="/kanban" className="inline-flex items-center gap-1.5">
+                  <Plus className="h-3.5 w-3.5" /> New objective
+                </Link>
+              </Button>
+              <Button asChild size="sm" className="cursor-pointer shadow-[var(--shadow-elevation-1)] hover:shadow-[var(--shadow-elevation-2)]">
                 <Link href="/pomodoro" className="inline-flex items-center gap-1.5">
-                  Start your first session <ArrowRight className="h-3.5 w-3.5" />
+                  <Timer className="h-3.5 w-3.5" /> Start focus
                 </Link>
               </Button>
             </div>
-          ) : (
-            <div className="flex flex-col gap-3">
-              <div className="h-56 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={weekData} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="focusFill" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="var(--color-accent)" stopOpacity={0.4} />
-                        <stop offset="100%" stopColor="var(--color-accent)" stopOpacity={0.02} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid stroke="var(--color-border)" vertical={false} />
-                    <XAxis
-                      dataKey="label"
-                      tick={{ fill: "var(--color-muted-foreground)", fontSize: 11 }}
-                      axisLine={false}
-                      tickLine={false}
-                    />
-                    <YAxis
-                      tick={{ fill: "var(--color-muted-foreground)", fontSize: 11 }}
-                      axisLine={false}
-                      tickLine={false}
-                      width={46}
-                    />
-                    <Tooltip
-                      content={<ChartTooltip />}
-                      cursor={{ stroke: "var(--color-border-strong)" }}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="minutes"
-                      stroke="var(--color-accent)"
-                      strokeWidth={2}
-                      fill="url(#focusFill)"
-                      isAnimationActive={!prefersReducedMotion}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-              <Link
-                href="/analytics"
-                className="inline-flex cursor-pointer items-center gap-1 self-end text-[11px] text-foreground/60 transition-colors duration-200 hover:text-foreground"
-              >
-                View analytics <ArrowRight className="h-3 w-3" />
-              </Link>
+          </motion.div>
+
+          <motion.div variants={heroItem}>
+            <TodayAgendaPanel
+              objectives={objectives}
+              dailyGoal={dailyGoal}
+              weeklyGoal={weeklyGoal}
+            />
+          </motion.div>
+
+          {/* Flat up-next — same row rhythm as Agenda (eyebrow + divide-y). */}
+          <motion.div variants={heroItem}>
+            <div className="flex flex-col gap-1">
+              <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                Up next
+              </p>
+              {queue.length === 0 ? (
+                <Link
+                  href="/kanban"
+                  className="flex cursor-pointer items-center gap-2 border-y border-dashed border-border/60 py-4 text-xs text-muted-foreground transition-colors duration-200 hover:text-foreground"
+                >
+                  <Circle className="h-3.5 w-3.5 shrink-0" />
+                  <span className="min-w-0 flex-1">
+                    {hasOpenBoard
+                      ? "Queue clear — everything open is in Today above"
+                      : "No objectives yet"}
+                  </span>
+                  <span className="inline-flex shrink-0 items-center gap-1 text-[11px]">
+                    {hasOpenBoard ? "Open board" : "Create one on the board"}{" "}
+                    <ArrowRight className="h-3 w-3" />
+                  </span>
+                </Link>
+              ) : (
+                <ul className="-mx-2 divide-y divide-border sm:-mx-3">
+                  {queue.map((objective) => (
+                    <li
+                      key={objective.id}
+                      className="flex items-center gap-2.5 px-2 py-2.5 transition-colors duration-150 hover:bg-card-hover sm:px-3"
+                    >
+                      <span
+                        aria-hidden
+                        className="h-1.5 w-1.5 shrink-0 rounded-full bg-muted-foreground"
+                        style={
+                          objective.color
+                            ? { backgroundColor: objective.color }
+                            : undefined
+                        }
+                      />
+                      <Link
+                        href="/kanban"
+                        className="min-w-0 flex-1 cursor-pointer truncate text-sm font-medium text-foreground"
+                      >
+                        {objective.title}
+                      </Link>
+                      <button
+                        type="button"
+                        aria-label={`Mark "${objective.title}" done`}
+                        disabled={!canMarkObjectiveDone(objective)}
+                        title={
+                          canMarkObjectiveDone(objective)
+                            ? "Mark done"
+                            : "Complete estimated study time (and any subtasks) first"
+                        }
+                        onClick={() => {
+                          if (!canMarkObjectiveDone(objective)) return;
+                          completeObjective(objective.id);
+                        }}
+                        className="shrink-0 cursor-pointer rounded-md p-0.5 text-muted-foreground transition-colors duration-150 hover:text-success focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-border-strong disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:text-muted-foreground"
+                      >
+                        <Circle className="h-3.5 w-3.5" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
-          )}
+          </motion.div>
+
+          {/* Stats strip — streak lives here only (not in Agenda). */}
+          <motion.div variants={heroItem}>
+            <Panel variant="standard" className="grid grid-cols-2 md:grid-cols-4">
+              {[
+                {
+                  icon: Flame,
+                  label: "Streak",
+                  value: streak,
+                  suffix: streak === 1 ? " day" : " days",
+                  hint: streak > 0 ? "Keep it going" : "Finish a session to start one",
+                  iconClassName: "text-warning",
+                },
+                {
+                  icon: Timer,
+                  label: "Focus today",
+                  value: todayFocusMinutes,
+                  suffix: " min",
+                  hint: `${todaySessions.length} session${todaySessions.length === 1 ? "" : "s"} today · vs yesterday`,
+                  iconClassName: "text-accent",
+                  trend: focusTrend,
+                },
+                {
+                  icon: Repeat,
+                  label: "Intervals",
+                  value: stats.intervalsCompleted,
+                  hint: "All-time completed",
+                  iconClassName: "text-muted-foreground",
+                },
+                {
+                  icon: Gauge,
+                  label: "Productivity",
+                  value: stats.productivityIndex,
+                  suffix: "%",
+                  hint: "Last 7 days",
+                  iconClassName: "text-muted-foreground",
+                },
+              ].map((cell, index) => (
+                <StatCell key={cell.label} {...cell} className={statCellBorderClass(index)} />
+              ))}
+            </Panel>
+          </motion.div>
+        </motion.div>
+
+        {/* Sole full-width secondary focal — week chart */}
+        <motion.div
+          initial={prefersReducedMotion ? false : "hidden"}
+          animate="visible"
+          variants={secondaryEnter}
+        >
+          <Panel variant="standard" className="flex flex-col p-5 sm:p-6">
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <h2 className="text-sm font-semibold text-foreground">Focus this week</h2>
+                <div className="mt-0.5 flex items-center gap-2">
+                  <p className="text-xs text-muted-foreground">
+                    {weekTotal} minutes across the last 7 days
+                  </p>
+                  {weekTrend && <TrendBadge {...weekTrend} />}
+                </div>
+              </div>
+              <p className="font-mono text-xl font-semibold tabular-nums text-foreground">
+                <AnimatedCounter value={weekTotal} suffix=" min" />
+              </p>
+            </div>
+            {weekTotal === 0 ? (
+              <div className="flex flex-1 flex-col items-center justify-center gap-3 py-10 text-center">
+                <Timer className="h-8 w-8 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">No focus sessions yet this week</p>
+                <Button asChild size="sm" variant="outline" className="cursor-pointer">
+                  <Link href="/pomodoro" className="inline-flex items-center gap-1.5">
+                    Start your first session <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                </Button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                <div className="h-56 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={weekData} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="focusFill" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="var(--color-accent)" stopOpacity={0.22} />
+                          <stop offset="100%" stopColor="var(--color-accent)" stopOpacity={0.02} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid stroke="var(--color-border)" vertical={false} />
+                      <XAxis
+                        dataKey="label"
+                        tick={{ fill: "var(--color-muted-foreground)", fontSize: 11 }}
+                        axisLine={false}
+                        tickLine={false}
+                      />
+                      <YAxis
+                        tick={{ fill: "var(--color-muted-foreground)", fontSize: 11 }}
+                        axisLine={false}
+                        tickLine={false}
+                        width={46}
+                      />
+                      <Tooltip
+                        content={<ChartTooltip />}
+                        cursor={{ stroke: "var(--color-border-strong)" }}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="minutes"
+                        stroke="var(--color-accent)"
+                        strokeWidth={2}
+                        fill="url(#focusFill)"
+                        isAnimationActive={!prefersReducedMotion}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+                <Link
+                  href="/analytics"
+                  className="inline-flex cursor-pointer items-center gap-1 self-end text-[11px] text-muted-foreground transition-colors duration-200 hover:text-foreground"
+                >
+                  View analytics <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
+            )}
+          </Panel>
+        </motion.div>
+
+        {/* Supporting trio — one shared plane, equal columns, matched header/body/footer */}
+        <FeatureIntro feature="gamification" />
+        <Panel
+          variant="standard"
+          className="grid grid-cols-1 divide-y divide-border md:grid-cols-3 md:divide-x md:divide-y-0"
+        >
+          <div className="p-5">
+            <PersonalGoalsSection
+              dailyGoal={dailyGoal}
+              weeklyGoal={weeklyGoal}
+              personalGoals={personalGoals}
+            />
+          </div>
+          <div className="p-5">
+            <RankStrip
+              rankLabel={rank.label}
+              level={progression.level}
+              xpIntoLevel={progression.xpIntoLevel}
+              xpForNextLevel={progression.xpForNextLevel}
+              progressPercent={progression.progressPercent}
+              isMaxLevel={progression.isMaxLevel}
+              todayXp={todayXp}
+            />
+          </div>
+          <div className="p-5">
+            <RecentSection recent={recent} />
+          </div>
         </Panel>
-      </motion.div>
-    </motion.div>
+      </div>
     </>
   );
 }

@@ -1,9 +1,14 @@
 "use client";
 
 import * as React from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { getWeekDays, isSameDay, type ScheduledEvent } from "@/lib/calendar-utils";
+import {
+  formatWeekdayShort,
+  getWeekDays,
+  isSameDay,
+  type ScheduledEvent,
+} from "@/lib/calendar-utils";
 import { TimeGrid } from "@/components/calendar/time-grid";
 import type { ScheduleInput } from "@/components/calendar/schedule-popover";
 import type { Objective, PomodoroTimerInstance } from "@/types";
@@ -23,27 +28,30 @@ interface WeekViewProps {
 }
 
 export function WeekView({ currentDate, ...actions }: WeekViewProps) {
+  const prefersReducedMotion = useReducedMotion();
   const days = React.useMemo(() => getWeekDays(currentDate), [currentDate]);
   const now = new Date();
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 6 }}
+      initial={prefersReducedMotion ? false : { opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -6 }}
-      transition={{ duration: 0.22, ease: [0.21, 0.47, 0.32, 0.98] }}
+      exit={prefersReducedMotion ? undefined : { opacity: 0, y: -6 }}
+      transition={{ duration: prefersReducedMotion ? 0 : 0.22, ease: [0.21, 0.47, 0.32, 0.98] }}
     >
       <TimeGrid
         days={days}
         renderDayHeader={(day) => (
           <div className="flex flex-col items-center gap-1">
             <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-              {day.toLocaleDateString(undefined, { weekday: "short" })}
+              {formatWeekdayShort(day)}
             </span>
             <span
               className={cn(
-                "flex h-6 w-6 items-center justify-center rounded-full font-mono text-xs font-semibold",
-                isSameDay(day, now) ? "bg-accent text-accent-foreground shadow-[0_0_8px_rgba(94,106,210,0.5)]" : "text-foreground"
+                "flex h-7 min-w-7 items-center justify-center rounded-full px-1.5 font-mono text-sm font-semibold tabular-nums",
+                isSameDay(day, now)
+                  ? "bg-accent text-accent-foreground"
+                  : "text-foreground"
               )}
             >
               {day.getDate()}
@@ -55,3 +63,4 @@ export function WeekView({ currentDate, ...actions }: WeekViewProps) {
     </motion.div>
   );
 }
+

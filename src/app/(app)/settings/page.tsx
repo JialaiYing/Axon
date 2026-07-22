@@ -22,7 +22,6 @@ import { Panel } from "@/components/ui/panel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -183,11 +182,16 @@ export default function SettingsPage() {
       title="Settings"
       description="Appearance, profile, privacy, and study preferences."
     >
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Panel variant="interactive" className="p-5">
+      <div className="space-y-8">
+        <section className="space-y-4">
+          <h2 className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+            You
+          </h2>
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <Panel variant="standard" className="p-6">
           <div className="mb-3 flex items-center gap-2">
-            <UserRound className="h-4 w-4 text-accent" />
-            <h2 className="text-sm font-semibold text-foreground">Profile</h2>
+            <UserRound className="h-4 w-4 text-muted-foreground" />
+            <h3 className="text-sm font-semibold text-foreground">Profile</h3>
           </div>
           <p className="mb-3 text-sm leading-relaxed text-muted">
             Your display name powers dashboard greetings ({`“Good morning, …”`}). Stored locally
@@ -218,10 +222,10 @@ export default function SettingsPage() {
           </div>
         </Panel>
 
-        <Panel variant="interactive" className="p-5">
+        <Panel variant="standard" className="p-6">
           <div className="mb-3 flex items-center gap-2">
-            <Palette className="h-4 w-4 text-accent" />
-            <h2 className="text-sm font-semibold text-foreground">Appearance</h2>
+            <Palette className="h-4 w-4 text-muted-foreground" />
+            <h3 className="text-sm font-semibold text-foreground">Appearance</h3>
           </div>
           <p className="mb-3 text-sm leading-relaxed text-muted">
             Switch between dark and light. Dashboard backgrounds also adapt their palette.
@@ -248,10 +252,17 @@ export default function SettingsPage() {
           </div>
         </Panel>
 
-        <Panel variant="interactive" className="p-5 lg:col-span-2">
+          </div>
+        </section>
+
+        <section className="space-y-4">
+          <h2 className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+            Atmosphere
+          </h2>
+        <Panel variant="standard" className="p-6">
           <div className="mb-3 flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-accent" />
-            <h2 className="text-sm font-semibold text-foreground">Dashboard backgrounds</h2>
+            <Sparkles className="h-4 w-4 text-muted-foreground" />
+            <h3 className="text-sm font-semibold text-foreground">Dashboard backgrounds</h3>
           </div>
           <p className="mb-4 text-sm leading-relaxed text-muted">
             Default is a solid canvas. Unlock React Bits ambient backgrounds as you level up —
@@ -268,9 +279,9 @@ export default function SettingsPage() {
                   disabled={!unlocked}
                   onClick={() => setBackgroundId(bg.id)}
                   className={cn(
-                    "rounded-xl border p-4 text-left transition-colors",
+                    "rounded-lg border p-4 text-left transition-colors",
                     selected
-                      ? "border-accent bg-accent-muted/30"
+                      ? "border-accent/50 bg-accent-muted/20"
                       : "border-border bg-surface/40 hover:border-border-strong",
                     !unlocked && "cursor-not-allowed opacity-50"
                   )}
@@ -279,12 +290,14 @@ export default function SettingsPage() {
                     <p className="text-sm font-medium text-foreground">{bg.name}</p>
                     {unlocked ? (
                       selected ? (
-                        <Badge variant="accent">Active</Badge>
+                        <span className="text-[11px] font-medium text-accent">Active</span>
                       ) : (
-                        <Badge variant="secondary">Unlocked</Badge>
+                        <span className="text-[11px] text-muted-foreground">Unlocked</span>
                       )
                     ) : (
-                      <Badge variant="default">Lvl {bg.unlockLevel}</Badge>
+                      <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
+                        Lvl {bg.unlockLevel}
+                      </span>
                     )}
                   </div>
                   <p className="mt-1.5 text-xs text-muted-foreground">{bg.description}</p>
@@ -293,22 +306,28 @@ export default function SettingsPage() {
             })}
           </div>
         </Panel>
+        </section>
 
-        <Panel variant="interactive" className="p-5">
+        <section className="space-y-4">
+          <h2 className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+            Account &amp; study
+          </h2>
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <Panel variant="standard" className="p-6">
           <div className="mb-3 flex items-center gap-2">
-            <Shield className="h-4 w-4 text-accent" />
-            <h2 className="text-sm font-semibold text-foreground">Data &amp; privacy</h2>
+            <Shield className="h-4 w-4 text-muted-foreground" />
+            <h3 className="text-sm font-semibold text-foreground">Data &amp; privacy</h3>
           </div>
           <p className="text-sm leading-relaxed text-muted">
             Axon is local-first: study data lives in this browser by default. When you sign in,
             encrypted sessions with Supabase sync your data to your account only — Row Level
             Security ensures other users cannot read your rows. We do not sell personal data.
             Review our{" "}
-            <Link href="/privacy" className="text-accent underline">
+            <Link href="/privacy" className="text-muted-foreground underline decoration-border underline-offset-2 transition-colors hover:text-accent hover:decoration-accent">
               Privacy Policy
             </Link>{" "}
             and{" "}
-            <Link href="/terms" className="text-accent underline">
+            <Link href="/terms" className="text-muted-foreground underline decoration-border underline-offset-2 transition-colors hover:text-accent hover:decoration-accent">
               Terms of Use
             </Link>
             .
@@ -365,10 +384,10 @@ export default function SettingsPage() {
           )}
         </Panel>
 
-        <Panel variant="interactive" className="p-5">
+        <Panel variant="standard" className="p-6">
           <div className="mb-3 flex items-center gap-2">
-            <Focus className="h-4 w-4 text-accent" />
-            <h2 className="text-sm font-semibold text-foreground">Focus Mode</h2>
+            <Focus className="h-4 w-4 text-muted-foreground" />
+            <h3 className="text-sm font-semibold text-foreground">Focus Mode</h3>
           </div>
           <p className="mb-3 text-sm leading-relaxed text-muted">
             In-app Focus Mode when a Pomodoro starts. Leaving the tab pauses your session and can
@@ -400,10 +419,10 @@ export default function SettingsPage() {
           </div>
         </Panel>
 
-        <Panel variant="interactive" className="p-5">
+        <Panel variant="standard" className="p-6">
           <div className="mb-3 flex items-center gap-2">
-            <Bell className="h-4 w-4 text-accent" />
-            <h2 className="text-sm font-semibold text-foreground">Notifications</h2>
+            <Bell className="h-4 w-4 text-muted-foreground" />
+            <h3 className="text-sm font-semibold text-foreground">Notifications</h3>
           </div>
           <p className="mb-3 text-sm leading-relaxed text-muted">
             Lean by design: Pomodoro completion and missed-block alerts are on by default. Optional
@@ -460,10 +479,10 @@ export default function SettingsPage() {
           )}
         </Panel>
 
-        <Panel variant="interactive" className="p-5">
+        <Panel variant="standard" className="p-6">
           <div className="mb-3 flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-accent" />
-            <h2 className="text-sm font-semibold text-foreground">Feature tips</h2>
+            <Sparkles className="h-4 w-4 text-muted-foreground" />
+            <h3 className="text-sm font-semibold text-foreground">Feature tips</h3>
           </div>
           <p className="mb-3 text-sm leading-relaxed text-muted">
             Every page shows a short one-time tip the first time you visit it, right alongside
@@ -494,10 +513,10 @@ export default function SettingsPage() {
           )}
         </Panel>
 
-        <Panel variant="interactive" className="p-5">
+        <Panel variant="standard" className="p-6">
           <div className="mb-3 flex items-center gap-2">
-            <Home className="h-4 w-4 text-accent" />
-            <h2 className="text-sm font-semibold text-foreground">Homepage</h2>
+            <Home className="h-4 w-4 text-muted-foreground" />
+            <h3 className="text-sm font-semibold text-foreground">Homepage</h3>
           </div>
           <p className="mb-4 text-sm leading-relaxed text-muted">
             Leave the app and return to the Axon landing page.
@@ -509,6 +528,8 @@ export default function SettingsPage() {
             </Link>
           </Button>
         </Panel>
+          </div>
+        </section>
       </div>
     </AppPage>
 

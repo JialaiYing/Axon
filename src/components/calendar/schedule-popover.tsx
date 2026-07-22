@@ -116,7 +116,7 @@ export function SchedulePopover({
             exit={{ opacity: 0, y: -6, scale: 0.97 }}
             transition={{ duration: 0.16, ease: [0.21, 0.47, 0.32, 0.98] }}
             className={cn(
-              "absolute top-full z-50 mt-2 w-72 rounded-xl border border-border bg-card/95 p-4 shadow-[0_1px_2px_rgba(0,0,0,0.4),0_20px_48px_-16px_rgba(0,0,0,0.65)] backdrop-blur-xl",
+              "absolute top-full z-50 mt-2 w-72 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-overlay)]",
               align === "end" ? "right-0" : "left-0"
             )}
           >

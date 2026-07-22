@@ -14,15 +14,51 @@ function isRecycled(item: { recycledAt?: string }) {
   return Boolean(item.recycledAt);
 }
 
+/** Jewel tones for fast grid differentiation — same family as analytics subject hues.
+ *  Folder color's job is glanceable identity; desaturated stone/slate defeats that. */
 export const FOLDER_COLORS = [
-  "#5227FF",
-  "#3b82f6",
-  "#a855f7",
-  "#22c55e",
-  "#f59e0b",
-  "#ef4444",
-  "#FF9FFC",
+  "#5b8def", // steel blue — accent
+  "#8b7ec8", // periwinkle — secondary
+  "#5fa88f", // teal
+  "#c99a5b", // amber
+  "#b381ad", // mauve
+  "#6f9fc4", // slate blue
+  "#7fb069", // sage green
 ];
+
+/** Map legacy loud / muted / token colors onto the jewel palette. */
+const FOLDER_COLOR_ALIASES: Record<string, string> = {
+  "#5227FF": FOLDER_COLORS[4]!,
+  "#5227ff": FOLDER_COLORS[4]!,
+  "#FF9FFC": FOLDER_COLORS[3]!,
+  "#ff9ffc": FOLDER_COLORS[3]!,
+  "#a855f7": FOLDER_COLORS[0]!,
+  "#3b82f6": FOLDER_COLORS[0]!,
+  "#5b8def": FOLDER_COLORS[0]!,
+  "#22c55e": FOLDER_COLORS[2]!,
+  "#f59e0b": FOLDER_COLORS[3]!,
+  "#ef4444": FOLDER_COLORS[0]!,
+  "var(--color-accent)": FOLDER_COLORS[0]!,
+  "var(--color-secondary)": FOLDER_COLORS[1]!,
+  "var(--color-success)": FOLDER_COLORS[2]!,
+  "var(--color-warning)": FOLDER_COLORS[3]!,
+  "var(--color-danger)": FOLDER_COLORS[0]!,
+  "var(--color-muted)": FOLDER_COLORS[4]!,
+  "var(--color-border-strong)": FOLDER_COLORS[5]!,
+  // Prior desaturated stone/slate swatches → jewel remap
+  "#8b8680": FOLDER_COLORS[0]!,
+  "#7a8494": FOLDER_COLORS[1]!,
+  "#6e7a6e": FOLDER_COLORS[2]!,
+  "#8a7e6e": FOLDER_COLORS[3]!,
+  "#6b7280": FOLDER_COLORS[4]!,
+  "#78716c": FOLDER_COLORS[5]!,
+  "#64748b": FOLDER_COLORS[6]!,
+};
+
+export function resolveFolderColor(color: string | undefined): string {
+  if (!color) return FOLDER_COLORS[0]!;
+  return FOLDER_COLOR_ALIASES[color] ?? FOLDER_COLOR_ALIASES[color.toLowerCase()] ?? color;
+}
 
 function createId() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -42,7 +78,9 @@ function normalizeFolder(value: FlashcardFolder): FlashcardFolder | null {
     ...value,
     title: typeof value.title === "string" && value.title.trim() ? value.title : "Untitled folder",
     imageDataUrl: typeof value.imageDataUrl === "string" ? value.imageDataUrl : undefined,
-    color: typeof value.color === "string" ? value.color : FOLDER_COLORS[0] ?? "#5227FF",
+    color: resolveFolderColor(
+      typeof value.color === "string" ? value.color : FOLDER_COLORS[0]
+    ),
     createdAt: validIso(value.createdAt) ?? new Date().toISOString(),
     lastOpenedAt: validIso(value.lastOpenedAt),
     // Omit = visible. Only an explicit `false` hides the folder from the dome.
@@ -158,7 +196,9 @@ export function useFlashcards() {
         id: createId(),
         title: input.title,
         imageDataUrl: input.imageDataUrl,
-        color: input.color ?? FOLDER_COLORS[Math.floor(Math.random() * FOLDER_COLORS.length)] ?? "#5227FF",
+        color: resolveFolderColor(
+          input.color ?? FOLDER_COLORS[Math.floor(Math.random() * FOLDER_COLORS.length)]
+        ),
         createdAt: new Date().toISOString(),
         showInDome: true,
         pinned: false,
@@ -187,6 +227,16 @@ export function useFlashcards() {
       setFolders((prev) =>
         prev.map((folder) => (folder.id === id ? { ...folder, ...patch } : folder))
       );
+      if (typeof patch.imageDataUrl === "string" && patch.imageDataUrl.startsWith("data:")) {
+        void import("@/lib/supabase/storage").then(({ maybeUploadFlashcardImage }) =>
+          maybeUploadFlashcardImage(patch.imageDataUrl, id).then((url) => {
+            if (!url || url === patch.imageDataUrl) return;
+            setFolders((prev) =>
+              prev.map((f) => (f.id === id ? { ...f, imageDataUrl: url } : f))
+            );
+          })
+        );
+      }
     },
     [setFolders]
   );
@@ -506,7 +556,7 @@ export function useFlashcards() {
     [setSets]
   );
 
-  /** Most recently completed sets (full study pass or finished test) — powers the home "Completed" panel. */
+  /** Most recently completed sets (full study pass or finished test). */
   const completedSets = React.useMemo(() => {
     return sets
       .filter((set) => Boolean(set.completedAt))
@@ -536,7 +586,7 @@ export function useFlashcards() {
       .slice(0, 6);
   }, [folders, sets]);
 
-  /** The single most recently opened set — powers "Jump right back in". */
+  /** The single most recently opened set. */
   const lastStudiedSet = React.useMemo(() => {
     return (
       sets
@@ -585,18 +635,25 @@ export function useFlashcards() {
     [setSets]
   );
 
-  /** Pinned folders and sets interleaved — folders first within each group, then by title. */
+  /** Pinned folders and sets — used by callers that need a combined pin list. */
   const pinned = React.useMemo(() => {
     const entries: {
       kind: "folder" | "set";
       id: string;
       title: string;
       color?: string;
+      imageDataUrl?: string;
       subject?: string;
     }[] = [];
     for (const folder of folders) {
       if (folder.pinned)
-        entries.push({ kind: "folder", id: folder.id, title: folder.title, color: folder.color });
+        entries.push({
+          kind: "folder",
+          id: folder.id,
+          title: folder.title,
+          color: folder.color,
+          imageDataUrl: folder.imageDataUrl,
+        });
     }
     for (const set of sets) {
       if (set.pinned)

@@ -114,7 +114,7 @@ export function XpBurstOverlay() {
           return (
             <motion.span
               key={particle.id}
-              className="absolute left-0 top-0 rounded-full bg-accent shadow-[0_0_12px_rgba(94,106,210,0.65)]"
+              className="absolute left-0 top-0 rounded-full bg-accent shadow-[0_0_12px_color-mix(in_srgb,var(--color-accent)_65%,transparent)]"
               style={{
                 width: particle.size,
                 height: particle.size,
@@ -185,7 +185,7 @@ export function XpBurstOverlay() {
                   transition={{ duration: 0.7, ease: EASE }}
                 />
               )}
-              <span className="relative inline-flex items-center gap-1 rounded-pill border border-accent/40 bg-accent-muted/95 px-3 py-1.5 font-mono text-sm font-semibold tabular-nums tracking-tight text-accent shadow-[0_0_24px_rgba(94,106,210,0.35),var(--shadow-elevation-2)] backdrop-blur-sm">
+              <span className="relative inline-flex items-center gap-1 rounded-pill border border-accent/40 bg-accent-muted/95 px-3 py-1.5 font-mono text-sm font-semibold tabular-nums tracking-tight text-accent shadow-[0_0_24px_color-mix(in_srgb,var(--color-accent)_35%,transparent),var(--shadow-elevation-2)] backdrop-blur-sm">
                 <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-accent/80">+</span>
                 {flight.amount}
                 <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-accent/75">XP</span>

@@ -774,7 +774,7 @@ export default function DomeGallery({
                       onClick={() => {
                         if (guardClick()) onSetClick?.(tile.set);
                       }}
-                      className="glass-panel glass-panel-hover flex h-[84px] w-40 cursor-pointer flex-col justify-between rounded-xl p-3 text-left touch-none select-none"
+                      className="flex h-[84px] w-40 cursor-pointer flex-col justify-between rounded-xl border border-border bg-card p-3 text-left shadow-[var(--shadow-elevation-2)] transition-[border-color,box-shadow] duration-200 hover:border-border-strong hover:shadow-[var(--shadow-elevation-3)] touch-none select-none"
                     >
                       <div>
                         <p className="truncate text-xs font-semibold text-foreground">
@@ -801,10 +801,10 @@ export default function DomeGallery({
                         if (guardClick()) onCreateSet?.(tile.folderId);
                       }}
                       className={cn(
-                        "flex h-[84px] w-40 cursor-pointer items-center justify-center rounded-xl border border-dashed backdrop-blur-md transition-colors duration-200",
+                        "flex h-[84px] w-40 cursor-pointer items-center justify-center rounded-xl border border-dashed transition-colors duration-200",
                         isDropFolder
                           ? "border-accent/50 bg-accent/10"
-                          : "border-border bg-card/60 hover:border-border-strong hover:bg-card"
+                          : "border-border bg-card hover:border-border-strong hover:bg-card-hover"
                       )}
                     >
                       <Plus className="h-4 w-4 text-muted-foreground" />
@@ -833,7 +833,7 @@ export default function DomeGallery({
               top: setDrag.y,
             }}
           >
-            <div className="glass-panel flex h-[84px] w-40 flex-col justify-between rounded-xl p-3 text-left shadow-[var(--shadow-elevation-3)]">
+            <div className="flex h-[84px] w-40 flex-col justify-between rounded-xl border border-border bg-card p-3 text-left shadow-[var(--shadow-elevation-3)]">
               <div>
                 <p className="truncate text-xs font-semibold text-foreground">{setDrag.set.title}</p>
                 <p className="mt-0.5 truncate text-[10px] text-muted-foreground">{setDrag.set.subject}</p>

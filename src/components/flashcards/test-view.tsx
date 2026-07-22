@@ -17,9 +17,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import type { Flashcard, FlashcardSet } from "@/types";
+import { EASE } from "@/lib/motion";
 import { cn } from "@/lib/utils";
-
-const EASE = [0.21, 0.47, 0.32, 0.98] as const;
 
 type QuestionType = "written" | "multipleChoice" | "trueFalse";
 
@@ -395,7 +394,7 @@ export function TestView({ set, onBack, onRecordResult, onComplete }: TestViewPr
                       {pendingCorrect ? "Correct" : "Not quite"}
                     </p>
                     {!pendingCorrect && (
-                      <p className="mt-1 text-foreground/80">
+                      <p className="mt-1 text-foreground">
                         Correct answer: <span className="font-medium">{question.card.back}</span>
                       </p>
                     )}
@@ -437,7 +436,7 @@ export function TestView({ set, onBack, onRecordResult, onComplete }: TestViewPr
 
             {question.type === "trueFalse" && (
               <>
-                <div className="glass-panel w-full max-w-md rounded-xl p-4 text-center text-sm font-medium text-foreground">
+                <div className="w-full max-w-md rounded-xl border border-border bg-card p-4 text-center text-sm font-medium text-foreground shadow-[var(--shadow-elevation-2)]">
                   {question.shownAnswer}
                 </div>
                 <div className="flex gap-3">
@@ -477,7 +476,7 @@ export function TestView({ set, onBack, onRecordResult, onComplete }: TestViewPr
                   </Button>
                 </div>
                 {revealed && !pendingCorrect && (
-                  <p className="text-sm text-foreground/80">
+                  <p className="text-sm text-foreground">
                     Correct answer: <span className="font-medium">{question.card.back}</span>
                   </p>
                 )}
@@ -523,7 +522,7 @@ export function TestView({ set, onBack, onRecordResult, onComplete }: TestViewPr
                         className="rounded-lg border border-danger/20 bg-danger-muted/40 p-3 text-sm"
                       >
                         <p className="font-medium text-foreground">{a.question.card.front}</p>
-                        <p className="mt-1 text-foreground/70">
+                        <p className="mt-1 text-muted-foreground">
                           You answered: <span className="text-danger">{a.userAnswerText}</span>
                         </p>
                         <p className="text-success">Correct: {a.question.card.back}</p>

@@ -17,8 +17,10 @@ const panelVariants = cva(
   {
     variants: {
       variant: {
-        standard: "border-border bg-card shadow-[var(--shadow-elevation-1)]",
-        glass: "border-border bg-card shadow-[var(--shadow-elevation-2)]",
+        standard:
+          "border-border bg-card shadow-[var(--shadow-elevation-1),inset_0_1px_0_rgba(255,255,255,0.04)] light:shadow-[var(--shadow-elevation-1)]",
+        glass:
+          "border-border bg-card shadow-[var(--shadow-elevation-2),inset_0_1px_0_rgba(255,255,255,0.05)] light:shadow-[var(--shadow-elevation-2)]",
         interactive:
           "border-border bg-card shadow-[var(--shadow-elevation-1)] hover:border-border-strong hover:bg-card-hover hover:shadow-[var(--shadow-elevation-2)]",
       },

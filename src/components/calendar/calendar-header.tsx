@@ -40,21 +40,28 @@ export function CalendarHeader({
 
   return (
     <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex items-center gap-3">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">Calendar</h1>
+      <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+        <div className="min-w-0">
+          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+            Calendar
+          </p>
+          <h1 className="truncate text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+            {title}
+          </h1>
+        </div>
         <div className="flex items-center gap-0.5 rounded-md border border-border bg-surface p-0.5">
           <button
             type="button"
             aria-label="Previous"
             onClick={onPrev}
-            className="flex h-7 w-7 items-center justify-center rounded-[5px] text-muted transition-colors duration-150 hover:bg-card hover:text-foreground"
+            className="flex h-7 w-7 items-center justify-center rounded-[5px] text-muted transition-colors duration-150 hover:bg-card hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-border-strong"
           >
             <ChevronLeft className="h-3.5 w-3.5" />
           </button>
           <button
             type="button"
             onClick={onToday}
-            className="rounded-[5px] px-2.5 py-1 text-xs font-medium text-muted transition-colors duration-150 hover:bg-card hover:text-foreground"
+            className="rounded-[5px] px-2.5 py-1 text-xs font-medium text-muted transition-colors duration-150 hover:bg-card hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-border-strong"
           >
             Today
           </button>
@@ -62,12 +69,11 @@ export function CalendarHeader({
             type="button"
             aria-label="Next"
             onClick={onNext}
-            className="flex h-7 w-7 items-center justify-center rounded-[5px] text-muted transition-colors duration-150 hover:bg-card hover:text-foreground"
+            className="flex h-7 w-7 items-center justify-center rounded-[5px] text-muted transition-colors duration-150 hover:bg-card hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-border-strong"
           >
             <ChevronRight className="h-3.5 w-3.5" />
           </button>
         </div>
-        <p className="hidden text-sm text-muted sm:block">{title}</p>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -79,7 +85,8 @@ export function CalendarHeader({
           </TabsList>
         </Tabs>
         <Button
-          variant="outline"
+          variant="ghost"
+          size="sm"
           disabled={exportableCount === 0}
           onClick={() => downloadObjectivesIcs(scheduledObjectives)}
           title={
@@ -87,11 +94,12 @@ export function CalendarHeader({
               ? "Schedule at least one objective to export"
               : `Export ${exportableCount} scheduled event${exportableCount === 1 ? "" : "s"}`
           }
+          className="text-muted-foreground"
         >
           <Download className="h-4 w-4" />
-          Export .ics
+          <span className="hidden sm:inline">Export</span>
         </Button>
-        <Button variant="outline" onClick={onAddExisting}>
+        <Button onClick={onAddExisting}>
           <CalendarPlus className="h-4 w-4" />
           Add event
         </Button>

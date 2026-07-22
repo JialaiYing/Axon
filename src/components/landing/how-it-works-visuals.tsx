@@ -1,12 +1,11 @@
 import {
-  ArrowRight,
   Flame,
   Gauge,
+  History,
   Layers,
   Minimize2,
   Pause,
   Pin,
-  Play,
   Plus,
   Repeat,
   Search,
@@ -209,7 +208,7 @@ function PomodoroVisual() {
               width: "85%",
               height: "85%",
               background:
-                "radial-gradient(circle, rgba(94,106,210,0.2), transparent 70%)",
+                "radial-gradient(circle, color-mix(in srgb, var(--color-accent) 20%, transparent), transparent 70%)",
             }}
           />
           <svg className="relative h-full w-full -rotate-90" viewBox="0 0 100 100" aria-hidden>
@@ -300,47 +299,44 @@ function FlashcardsVisual() {
     <div className={cn(FRAME, "gap-2")}>
       {/* Mirrors FlashcardsSection — Home column + library grid */}
       <div className="grid min-h-0 flex-1 grid-cols-[0.9fr_1.4fr] gap-2">
-        <div className="flex min-h-0 flex-col gap-2 overflow-hidden">
-          <p className="px-0.5 text-[9px] font-semibold uppercase tracking-[0.2em] text-foreground/50">
+        <div className="flex min-h-0 flex-col gap-3 overflow-hidden px-0.5">
+          <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-foreground">
             Home
           </p>
 
-          <div className="glass-panel rounded-xl p-2.5">
-            <div className="mb-2 flex items-center gap-1.5">
-              <Play className="h-3 w-3 text-accent" aria-hidden />
-              <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-foreground/60">
-                Jump right back in
-              </p>
-            </div>
-            <div className="rounded-lg border border-foreground/8 bg-foreground/[0.04] p-2.5">
-              <p className="truncate text-xs font-medium text-foreground">Organic Chem · Deck A</p>
-              <p className="mt-0.5 text-[10px] text-foreground/45">Chemistry · 12 cards</p>
-              <span className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-medium text-accent">
-                Continue <ArrowRight className="h-2.5 w-2.5" aria-hidden />
-              </span>
-            </div>
-          </div>
-
-          <div className="glass-panel min-h-0 flex-1 rounded-xl p-2.5">
-            <div className="mb-2 flex items-center gap-1.5">
-              <Sparkles className="h-3 w-3 text-accent" aria-hidden />
-              <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-foreground/60">
+          <div>
+            <div className="mb-1.5 flex items-center gap-1.5">
+              <Gauge className="h-3 w-3 text-muted-foreground" aria-hidden />
+              <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-foreground/50">
                 At a glance
               </p>
             </div>
-            <dl className="grid grid-cols-2 gap-1.5">
+            <ul className="divide-y divide-border/60">
               {glance.map((stat) => (
-                <div
+                <li
                   key={stat.label}
-                  className="rounded-lg border border-foreground/8 bg-foreground/[0.04] p-2 text-center"
+                  className="flex items-center justify-between gap-2 py-1.5"
                 >
-                  <p className="text-sm font-semibold tabular-nums text-foreground">{stat.value}</p>
-                  <p className="mt-0.5 text-[8px] uppercase tracking-wide text-foreground/45">
-                    {stat.label}
-                  </p>
-                </div>
+                  <span className="text-[10px] text-muted-foreground">{stat.label}</span>
+                  <span className="font-mono text-[10px] font-semibold tabular-nums text-foreground">
+                    {stat.value}
+                  </span>
+                </li>
               ))}
-            </dl>
+            </ul>
+          </div>
+
+          <div>
+            <div className="mb-1.5 flex items-center gap-1.5">
+              <History className="h-3 w-3 text-muted-foreground" aria-hidden />
+              <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-foreground/50">
+                Recent
+              </p>
+            </div>
+            <div className="py-1.5">
+              <p className="truncate text-xs font-medium text-foreground">Organic Chem · Deck A</p>
+              <p className="mt-0.5 text-[10px] text-foreground/45">Opened just now</p>
+            </div>
           </div>
         </div>
 

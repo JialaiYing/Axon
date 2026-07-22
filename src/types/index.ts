@@ -50,6 +50,11 @@ export interface Objective {
   color?: string;
   notes?: string;
   /**
+   * Optional place for the block — used by calendar-only events
+   * (`showOnKanban === false`). Kanban task cards omit this field.
+   */
+  location?: string;
+  /**
    * Scheduling metadata — when the user actually plans to work on this
    * objective. Optional and intentionally separate from `dueDate` (the
    * deadline) and `estimatedStudyTime` (the plan-level estimate). Lives
@@ -94,7 +99,7 @@ export interface FlashcardFolder {
    * Defaults to true when missing (single source of truth: omit = visible).
    */
   showInDome?: boolean;
-  /** Whether this folder appears in the home "Pinned" list. */
+  /** Whether this folder is pinned to the top of the library grid. */
   pinned?: boolean;
   /** Set when the folder is sent to the recycle bin. Drives the 30-day auto-delete. */
   recycledAt?: string;
@@ -109,11 +114,11 @@ export interface FlashcardSet {
   folderId?: string;
   createdAt: string;
   updatedAt: string;
-  /** Bumped whenever the set is opened — drives "Jump right back in". */
+  /** Bumped whenever the set is opened — drives Home Recent. */
   lastOpenedAt?: string;
-  /** Whether this set appears in the home "Pinned" list. */
+  /** Whether this set is pinned to the top of the library grid. */
   pinned?: boolean;
-  /** Set the moment a full study pass or test run is finished — drives the home "Completed" list. */
+  /** Set the moment a full study pass or test run is finished. */
   completedAt?: string;
   /** Most recent Test-mode result, shown as a score badge next to completed sets. */
   lastTestResult?: {

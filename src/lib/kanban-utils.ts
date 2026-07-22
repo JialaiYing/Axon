@@ -8,7 +8,7 @@ export function priorityBadgeVariant(priority: Priority) {
     case "high":
       return "warning" as const;
     case "medium":
-      return "accent" as const;
+      return "default" as const;
     case "low":
     default:
       return "default" as const;
@@ -25,7 +25,7 @@ export function priorityDotClass(priority: Priority) {
     case "high":
       return "bg-warning" as const;
     case "medium":
-      return "bg-accent" as const;
+      return "bg-muted" as const;
     case "low":
     default:
       return "bg-foreground/35" as const;
@@ -40,7 +40,7 @@ export function priorityTextClass(priority: Priority) {
     case "high":
       return "text-warning" as const;
     case "medium":
-      return "text-accent" as const;
+      return "text-muted" as const;
     case "low":
     default:
       return "text-foreground/60" as const;

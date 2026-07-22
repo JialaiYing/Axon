@@ -42,6 +42,20 @@ function paceBadgeVariant(status: GoalPaceStatus): "success" | "warning" | "defa
   return "default";
 }
 
+/** Icon/label tone for "x of y goals on track" — red / amber / green by ratio. */
+function onTrackTone(onTrack: number, total: number) {
+  if (total <= 0 || onTrack <= 0) return "danger" as const;
+  if (onTrack >= total) return "success" as const;
+  return "warning" as const;
+}
+
+/** Missed-history % readout: red → amber → green by how close they got. */
+function missedPctClass(pct: number) {
+  if (pct >= 75) return "text-success";
+  if (pct >= 40) return "text-warning";
+  return "text-danger";
+}
+
 function LoadingState() {
   return (
     <div className="space-y-5">
@@ -86,7 +100,7 @@ function ActiveGoalCard({
   }, [editing, goal.target]);
 
   return (
-    <Panel variant="glass" className="flex h-full flex-col p-5">
+    <Panel variant="standard" className="flex h-full flex-col p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
@@ -200,7 +214,7 @@ function HistoryGrid({
                 <p
                   className={cn(
                     "mt-0.5 text-[11px]",
-                    entry.hit ? "text-success" : "text-muted-foreground"
+                    entry.hit ? "text-success" : missedPctClass(pct)
                   )}
                 >
                   {entry.hit ? "Hit" : "Missed"} · {pct}%
@@ -299,6 +313,7 @@ export function GoalsOverview() {
     (s) => s === "on-track" || s === "done"
   ).length;
   const totalTracked = [dailyGoal, weeklyGoal].filter(Boolean).length;
+  const trackTone = onTrackTone(onTrackCount, totalTracked);
 
   const dailyHistory = React.useMemo(
     () => history.filter((e) => e.type === "daily").slice(0, 14),
@@ -333,7 +348,7 @@ export function GoalsOverview() {
       description="Daily and weekly targets that update from your real focus and completed objectives."
       actions={
         <div className="flex flex-wrap gap-2">
-          <Button size="sm" variant="outline" onClick={() => setCreateOpen((v) => !v)}>
+          <Button size="sm" onClick={() => setCreateOpen((v) => !v)}>
             <Plus className="h-3.5 w-3.5" />
             Personal goal
           </Button>
@@ -358,8 +373,8 @@ export function GoalsOverview() {
             weeklyGoal?.progress === 0 &&
             dailyHistory.length === 0 &&
             weeklyHistory.length === 0 && (
-              <Panel variant="interactive" className="flex flex-col items-center gap-3 p-8 text-center">
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-foreground/6 text-accent">
+              <Panel variant="standard" className="flex flex-col items-center gap-3 p-8 text-center">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-surface text-muted-foreground">
                   <Timer className="h-5 w-5" />
                 </span>
                 <div>
@@ -386,15 +401,29 @@ export function GoalsOverview() {
               </Panel>
             )}
 
-          {/* Overview header */}
+          {/* Overview header — sole elevated surface */}
           <Panel variant="glass" className="p-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-start gap-3">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-foreground/6 text-success">
+                <span
+                  className={cn(
+                    "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border",
+                    trackTone === "success" && "border-success/30 bg-success-muted text-success",
+                    trackTone === "warning" && "border-warning/30 bg-warning-muted text-warning",
+                    trackTone === "danger" && "border-danger/30 bg-danger-muted text-danger"
+                  )}
+                >
                   <Target className="h-5 w-5" />
                 </span>
                 <div>
-                  <p className="text-sm font-semibold text-foreground">
+                  <p
+                    className={cn(
+                      "text-sm font-semibold",
+                      trackTone === "success" && "text-success",
+                      trackTone === "warning" && "text-warning",
+                      trackTone === "danger" && "text-danger"
+                    )}
+                  >
                     {onTrackCount} of {totalTracked} goals on track
                   </p>
                   <p className="mt-1 text-sm text-muted-foreground">
@@ -402,9 +431,16 @@ export function GoalsOverview() {
                   </p>
                 </div>
               </div>
-              <div className="flex flex-wrap gap-2">
-                <Badge variant="accent">Daily hit rate {dailyHitRate}%</Badge>
-                <Badge variant="secondary">Weekly hit rate {weeklyHitRate}%</Badge>
+              <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                <span>
+                  Daily hit{" "}
+                  <span className="font-mono tabular-nums text-foreground">{dailyHitRate}%</span>
+                </span>
+                <span className="hidden text-border sm:inline">·</span>
+                <span>
+                  Weekly hit{" "}
+                  <span className="font-mono tabular-nums text-foreground">{weeklyHitRate}%</span>
+                </span>
               </div>
             </div>
           </Panel>
@@ -531,12 +567,12 @@ export function GoalsOverview() {
                 {personalGoals.map((goal) => {
                   const percent = goal.target > 0 ? (goal.progress / goal.target) * 100 : 0;
                   return (
-                    <Panel key={goal.id} variant="interactive" className="p-5">
+                    <Panel key={goal.id} variant="standard" className="p-5">
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <Badge variant="secondary" className="capitalize">
+                          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
                             {goal.type} · personal
-                          </Badge>
+                          </p>
                           <p className="mt-2 text-base font-semibold text-foreground">{goal.title}</p>
                         </div>
                         <button
@@ -581,7 +617,7 @@ export function GoalsOverview() {
           )}
 
           {/* History */}
-          <Panel variant="glass" className="space-y-6 p-5">
+          <Panel variant="standard" className="space-y-6 p-5">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-sm font-semibold text-foreground">Goal history</h2>
@@ -591,13 +627,13 @@ export function GoalsOverview() {
               </div>
               <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
                 <span className="inline-flex items-center gap-1.5">
-                  <Flame className="h-3.5 w-3.5 text-warning" />
+                  <Flame className="h-3.5 w-3.5 text-muted-foreground" />
                   Daily streak {dailyStreak.current}
                   <span className="text-muted-foreground/50">·</span>
                   best {dailyStreak.best}
                 </span>
                 <span className="inline-flex items-center gap-1.5">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-success" />
+                  <CheckCircle2 className="h-3.5 w-3.5 text-muted-foreground" />
                   Weekly streak {weeklyStreak.current}
                   <span className="text-muted-foreground/50">·</span>
                   best {weeklyStreak.best}
@@ -618,15 +654,15 @@ export function GoalsOverview() {
           </Panel>
 
           {/* Insights */}
-          <Panel variant="glass" className="p-5">
+          <Panel variant="standard" className="p-5">
             <div className="flex items-start gap-3">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-foreground/6 text-accent">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-surface text-muted-foreground">
                 <Sparkles className="h-4 w-4" />
               </span>
               <div className="min-w-0 flex-1">
                 <h2 className="text-sm font-semibold text-foreground">Insights</h2>
                 <p className="mt-1.5 text-sm text-muted-foreground">{insight.message}</p>
-                <p className="mt-3 rounded-lg border border-border bg-foreground/[0.03] px-3 py-2.5 text-sm text-foreground">
+                <p className="mt-3 rounded-lg border border-border bg-surface px-3 py-2.5 text-sm text-foreground">
                   {insight.suggestion}
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">

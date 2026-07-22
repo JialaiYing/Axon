@@ -40,7 +40,10 @@ export function KanbanColumn({
   const ids = objectives.map((o) => o.id);
 
   return (
-    <Panel variant="glass" className="flex h-full w-full min-w-0 flex-col p-3">
+    <Panel
+      variant="standard"
+      className="flex h-full w-full min-w-0 flex-col bg-surface p-3 shadow-none"
+    >
       <div className="mb-3.5 flex items-center justify-between px-1 pt-0.5">
         <div>
           <div className="flex items-center gap-2">
@@ -55,7 +58,7 @@ export function KanbanColumn({
           type="button"
           aria-label={`Add objective to ${column.title}`}
           onClick={() => onAdd(column.id)}
-          className="flex h-7 w-7 items-center justify-center rounded-md text-muted transition-all duration-200 hover:scale-105 hover:bg-card hover:text-foreground active:scale-90"
+          className="flex h-7 w-7 items-center justify-center rounded-md text-muted transition-colors duration-200 hover:bg-card hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-border-strong active:scale-90"
         >
           <Plus className="h-4 w-4" />
         </button>
@@ -64,22 +67,22 @@ export function KanbanColumn({
       <div
         ref={setNodeRef}
         className={cn(
-          "flex min-h-[200px] flex-1 flex-col gap-2.5 rounded-lg border border-transparent p-1.5 transition-all duration-300",
-          isOver && "border-accent/50 bg-accent-muted/25 shadow-[inset_0_0_0_1px_rgba(94,106,210,0.15)]"
+          "flex min-h-[200px] flex-1 flex-col gap-2 rounded-lg border border-transparent p-1.5 transition-[border-color,background-color] duration-200",
+          isOver && "border-accent/50 bg-accent-muted/20"
         )}
       >
         <SortableContext items={ids} strategy={verticalListSortingStrategy}>
           <AnimatePresence initial={false}>
             {objectives.map((objective) => (
-             <KanbanCard
-             key={objective.id}
-             objective={objective}
-             onEdit={onEdit}
-             onDelete={onDelete}
-             onSendToRecycleBin={onSendToRecycleBin}
-             onSchedule={onSchedule}
-             onUnschedule={onUnschedule}
-           />
+              <KanbanCard
+                key={objective.id}
+                objective={objective}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                onSendToRecycleBin={onSendToRecycleBin}
+                onSchedule={onSchedule}
+                onUnschedule={onUnschedule}
+              />
             ))}
           </AnimatePresence>
         </SortableContext>
@@ -88,7 +91,7 @@ export function KanbanColumn({
           <button
             type="button"
             onClick={() => onAdd(column.id)}
-            className="flex flex-1 flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-border py-8 text-xs text-muted-foreground transition-all duration-200 hover:border-accent/40 hover:bg-accent-muted/10 hover:text-muted"
+            className="flex flex-1 flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-border py-8 text-xs text-muted-foreground transition-colors duration-200 hover:border-border-strong hover:bg-card-hover hover:text-foreground"
           >
             <Plus className="h-4 w-4" />
             Add an objective

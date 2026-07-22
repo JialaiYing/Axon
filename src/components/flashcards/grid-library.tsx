@@ -18,13 +18,15 @@ import {
   Check,
   ChevronDown,
   Eye,
+  EyeOff,
   LayoutGrid,
   Layers,
   List,
+  Pencil,
   Pin,
   Trash2,
 } from "lucide-react";
-import { FolderIcon } from "@/components/flashcards/folder";
+import { FolderCoverTile } from "@/components/flashcards/folder-cover-tile";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,7 +44,7 @@ const LAYOUT_OPTIONS: {
   description: string;
   icon: React.ComponentType<{ className?: string }>;
 }[] = [
-  { id: "icons", label: "Icons", description: "Large tiles", icon: LayoutGrid },
+  { id: "icons", label: "Icons", description: "Cover tiles", icon: LayoutGrid },
   { id: "list", label: "List", description: "Name and details", icon: List },
 ];
 
@@ -54,6 +56,7 @@ interface FlashcardsGridLibraryProps {
   layout: GridLayoutMode;
   onLayoutChange: (layout: GridLayoutMode) => void;
   onOpenFolder: (folder: FlashcardFolder) => void;
+  onEditFolder?: (folder: FlashcardFolder) => void;
   onBack: () => void;
   onOpenSet: (set: FlashcardSet) => void;
   onToggleFolderPin: (id: string) => void;
@@ -74,6 +77,15 @@ function folderDropId(id: string) {
 }
 const ROOT_DROP_ID = "library-root";
 
+/** Pinned items float to the top (iMessage-style), then title. */
+function pinFirst<T extends { pinned?: boolean; title: string }>(items: T[]): T[] {
+  return [...items].sort((a, b) => {
+    const pin = Number(Boolean(b.pinned)) - Number(Boolean(a.pinned));
+    if (pin !== 0) return pin;
+    return a.title.localeCompare(b.title);
+  });
+}
+
 function parseSetDragId(id: string | number) {
   const value = String(id);
   return value.startsWith("set:") ? value.slice(4) : null;
@@ -91,6 +103,7 @@ export function FlashcardsGridLibrary({
   layout,
   onLayoutChange,
   onOpenFolder,
+  onEditFolder,
   onBack,
   onOpenSet,
   onToggleFolderPin,
@@ -116,6 +129,32 @@ export function FlashcardsGridLibrary({
       null
     );
   }, [activeSetId, folderSets, unfiledSets]);
+
+  const sortedFolderSets = React.useMemo(() => pinFirst(folderSets), [folderSets]);
+
+  /** Root library: pinned folders + pinned sets first, then the rest (iMessage-style). */
+  const rootItems = React.useMemo(() => {
+    type Item =
+      | { kind: "folder"; folder: FlashcardFolder }
+      | { kind: "set"; set: FlashcardSet };
+    const pinned: Item[] = [];
+    const rest: Item[] = [];
+    for (const f of folders) {
+      (f.pinned ? pinned : rest).push({ kind: "folder", folder: f });
+    }
+    for (const s of unfiledSets) {
+      (s.pinned ? pinned : rest).push({ kind: "set", set: s });
+    }
+    const byTitle = (a: Item, b: Item) => {
+      const aTitle = a.kind === "folder" ? a.folder.title : a.set.title;
+      const bTitle = b.kind === "folder" ? b.folder.title : b.set.title;
+      const aKind = a.kind === "folder" ? 0 : 1;
+      const bKind = b.kind === "folder" ? 0 : 1;
+      if (aKind !== bKind) return aKind - bKind;
+      return aTitle.localeCompare(bTitle);
+    };
+    return [...pinned.sort(byTitle), ...rest.sort(byTitle)];
+  }, [folders, unfiledSets]);
 
   const handleDragStart = React.useCallback((event: DragStartEvent) => {
     const setId = parseSetDragId(event.active.id);
@@ -154,19 +193,21 @@ export function FlashcardsGridLibrary({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-      <div className="flex items-center justify-between gap-2 border-b border-foreground/8 px-4 py-2">
+      <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-2">
         <div className="flex min-w-0 items-center gap-2">
           {folder ? (
             <>
               <RootDropZone onBack={onBack} active={Boolean(activeSetId)} />
-              <span
-                className="h-2 w-2 shrink-0 rounded-[2px]"
-                style={{ backgroundColor: folder.color }}
+              <FolderCoverTile
+                title={folder.title}
+                color={folder.color}
+                imageSrc={folder.imageDataUrl}
+                size="sm"
               />
               <p className="truncate text-sm font-medium text-foreground">{folder.title}</p>
             </>
           ) : (
-            <p className="text-xs font-medium text-foreground/50">All items</p>
+            <p className="text-xs font-medium text-muted-foreground">All items</p>
           )}
         </div>
         <div className="flex shrink-0 items-center gap-1">
@@ -174,7 +215,7 @@ export function FlashcardsGridLibrary({
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className="inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-md border border-foreground/10 bg-foreground/[0.03] px-2 text-[11px] font-medium text-foreground/70 transition-colors hover:bg-foreground/[0.06] hover:text-foreground"
+                className="inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-md border border-border bg-surface px-2 text-[11px] font-medium text-foreground transition-colors hover:bg-card-hover hover:text-foreground"
                 aria-label="Change library view"
               >
                 <LayoutIcon className="h-3.5 w-3.5" />
@@ -212,7 +253,7 @@ export function FlashcardsGridLibrary({
               type="button"
               aria-label={`Move folder ${folder.title} to recycle bin`}
               onClick={onDeleteFolder}
-              className="cursor-pointer rounded-md px-2 py-1.5 text-[11px] text-foreground/35 transition-colors hover:bg-foreground/[0.06] hover:text-destructive"
+              className="cursor-pointer rounded-md px-2 py-1.5 text-[11px] text-muted-foreground transition-colors hover:bg-card-hover hover:text-danger"
             >
               Delete
             </button>
@@ -229,12 +270,12 @@ export function FlashcardsGridLibrary({
         <div className="min-h-0 flex-1 overflow-y-auto p-4">
           {empty ? (
             <div className="flex h-full min-h-[280px] flex-col items-center justify-center gap-3 text-center">
-              <Layers className="h-8 w-8 text-foreground/35" />
+              <Layers className="h-8 w-8 text-muted-foreground" />
               <div>
                 <p className="text-sm font-medium text-foreground">
                   {folder ? "No sets in this folder" : "No folders or sets yet"}
                 </p>
-                <p className="mt-1 max-w-xs text-xs text-foreground/45">
+                <p className="mt-1 max-w-xs text-xs text-muted-foreground">
                   {folder
                     ? "Use Create below to add a set, or drag one here from another folder."
                     : "Use Create below to add a folder or an unfiled set."}
@@ -242,9 +283,9 @@ export function FlashcardsGridLibrary({
               </div>
             </div>
           ) : layout === "icons" ? (
-            <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
               {folder
-                ? folderSets.map((set) => (
+                ? sortedFolderSets.map((set) => (
                     <li key={set.id}>
                       <SetItem
                         set={set}
@@ -255,49 +296,45 @@ export function FlashcardsGridLibrary({
                       />
                     </li>
                   ))
-                : (
-                    <>
-                      {folders.map((f) => (
-                        <li key={f.id}>
-                          <FolderItem
-                            folder={f}
-                            setCount={setsInFolder(f.id).length}
-                            layout="icons"
-                            onOpen={() => onOpenFolder(f)}
-                            onTogglePin={() => onToggleFolderPin(f.id)}
-                            onRecycle={() => onRecycleFolder(f)}
-                            onShowInDome={
-                              f.showInDome === false && onShowInDome
-                                ? () => onShowInDome(f.id)
-                                : undefined
-                            }
-                          />
-                        </li>
-                      ))}
-                      {unfiledSets.map((set) => (
-                        <li key={set.id}>
-                          <SetItem
-                            set={set}
-                            layout="icons"
-                            onOpen={() => onOpenSet(set)}
-                            onTogglePin={() => onToggleSetPin(set.id)}
-                            onRecycle={() => onRecycleSet(set)}
-                          />
-                        </li>
-                      ))}
-                    </>
+                : rootItems.map((item) =>
+                    item.kind === "folder" ? (
+                      <li key={item.folder.id}>
+                        <FolderItem
+                          folder={item.folder}
+                          setCount={setsInFolder(item.folder.id).length}
+                          layout="icons"
+                          onOpen={() => onOpenFolder(item.folder)}
+                          onEdit={onEditFolder ? () => onEditFolder(item.folder) : undefined}
+                          onTogglePin={() => onToggleFolderPin(item.folder.id)}
+                          onRecycle={() => onRecycleFolder(item.folder)}
+                          onToggleInDome={
+                            onShowInDome ? () => onShowInDome(item.folder.id) : undefined
+                          }
+                        />
+                      </li>
+                    ) : (
+                      <li key={item.set.id}>
+                        <SetItem
+                          set={item.set}
+                          layout="icons"
+                          onOpen={() => onOpenSet(item.set)}
+                          onTogglePin={() => onToggleSetPin(item.set.id)}
+                          onRecycle={() => onRecycleSet(item.set)}
+                        />
+                      </li>
+                    )
                   )}
             </ul>
           ) : (
-            <div className="overflow-hidden rounded-xl border border-foreground/10">
-              <div className="grid grid-cols-[minmax(0,1fr)_7rem_6rem] gap-2 border-b border-foreground/8 bg-foreground/[0.03] px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-foreground/40">
+            <div className="overflow-hidden rounded-xl border border-border">
+              <div className="grid grid-cols-[minmax(0,1fr)_7rem_6rem] gap-2 border-b border-border bg-surface px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                 <span>Name</span>
                 <span>Type</span>
                 <span className="text-right">Details</span>
               </div>
               <ul>
                 {folder
-                  ? folderSets.map((set) => (
+                  ? sortedFolderSets.map((set) => (
                       <li key={set.id}>
                         <SetItem
                           set={set}
@@ -308,37 +345,33 @@ export function FlashcardsGridLibrary({
                         />
                       </li>
                     ))
-                  : (
-                      <>
-                        {folders.map((f) => (
-                          <li key={f.id}>
-                            <FolderItem
-                              folder={f}
-                              setCount={setsInFolder(f.id).length}
-                              layout="list"
-                              onOpen={() => onOpenFolder(f)}
-                              onTogglePin={() => onToggleFolderPin(f.id)}
-                              onRecycle={() => onRecycleFolder(f)}
-                              onShowInDome={
-                                f.showInDome === false && onShowInDome
-                                  ? () => onShowInDome(f.id)
-                                  : undefined
-                              }
-                            />
-                          </li>
-                        ))}
-                        {unfiledSets.map((set) => (
-                          <li key={set.id}>
-                            <SetItem
-                              set={set}
-                              layout="list"
-                              onOpen={() => onOpenSet(set)}
-                              onTogglePin={() => onToggleSetPin(set.id)}
-                              onRecycle={() => onRecycleSet(set)}
-                            />
-                          </li>
-                        ))}
-                      </>
+                  : rootItems.map((item) =>
+                      item.kind === "folder" ? (
+                        <li key={item.folder.id}>
+                          <FolderItem
+                            folder={item.folder}
+                            setCount={setsInFolder(item.folder.id).length}
+                            layout="list"
+                            onOpen={() => onOpenFolder(item.folder)}
+                            onEdit={onEditFolder ? () => onEditFolder(item.folder) : undefined}
+                            onTogglePin={() => onToggleFolderPin(item.folder.id)}
+                            onRecycle={() => onRecycleFolder(item.folder)}
+                            onToggleInDome={
+                              onShowInDome ? () => onShowInDome(item.folder.id) : undefined
+                            }
+                          />
+                        </li>
+                      ) : (
+                        <li key={item.set.id}>
+                          <SetItem
+                            set={item.set}
+                            layout="list"
+                            onOpen={() => onOpenSet(item.set)}
+                            onTogglePin={() => onToggleSetPin(item.set.id)}
+                            onRecycle={() => onRecycleSet(item.set)}
+                          />
+                        </li>
+                      )
                     )}
               </ul>
             </div>
@@ -349,7 +382,7 @@ export function FlashcardsGridLibrary({
           {activeSet ? (
             <div className="w-52 rounded-xl border border-accent/40 bg-card px-3 py-2.5 shadow-[var(--shadow-elevation-3)]">
               <p className="truncate text-sm font-semibold text-foreground">{activeSet.title}</p>
-              <p className="mt-0.5 text-[11px] text-foreground/45">
+              <p className="mt-0.5 text-[11px] text-muted-foreground">
                 {activeSet.subject || "General"} · {activeSet.cards.length} card
                 {activeSet.cards.length === 1 ? "" : "s"}
               </p>
@@ -372,7 +405,7 @@ function RootDropZone({ onBack, active }: { onBack: () => void; active: boolean 
         "inline-flex cursor-pointer items-center gap-1 rounded-md px-1.5 py-1 text-xs transition-colors",
         isOver && active
           ? "bg-accent/15 text-accent"
-          : "text-foreground/55 hover:bg-foreground/[0.06] hover:text-foreground"
+          : "text-muted-foreground hover:bg-card-hover hover:text-foreground"
       )}
     >
       <ArrowLeft className="h-3.5 w-3.5" />
@@ -404,8 +437,8 @@ function MiniPinButton({
       className={cn(
         "cursor-pointer rounded-md p-1.5 transition-colors",
         pinned
-          ? "text-accent"
-          : "text-foreground/30 opacity-0 group-hover:opacity-100 hover:text-foreground/70 focus-visible:opacity-100",
+          ? "text-muted-foreground hover:text-foreground"
+          : "text-muted-foreground hover:text-foreground",
         className
       )}
     >
@@ -434,7 +467,7 @@ function MiniTrashButton({
       }}
       onPointerDown={(e) => e.stopPropagation()}
       className={cn(
-        "cursor-pointer rounded-md p-1.5 text-foreground/30 opacity-0 transition-colors group-hover:opacity-100 hover:text-destructive focus-visible:opacity-100",
+        "cursor-pointer rounded-md p-1.5 text-muted-foreground transition-colors hover:text-danger",
         className
       )}
     >
@@ -443,70 +476,110 @@ function MiniTrashButton({
   );
 }
 
+function MiniEditButton({
+  label,
+  onClick,
+}: {
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={`Edit ${label}`}
+      title="Edit folder"
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
+      onPointerDown={(e) => e.stopPropagation()}
+      className="cursor-pointer rounded-md p-1.5 text-muted-foreground transition-colors hover:text-foreground"
+    >
+      <Pencil className="h-3.5 w-3.5" />
+    </button>
+  );
+}
+
+const itemActionsClass =
+  "flex shrink-0 items-center opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100";
+
+const itemActionsOverlayClass =
+  "absolute right-1 top-1 z-10 flex items-center gap-0.5 rounded-md bg-card p-0.5 opacity-0 shadow-[var(--shadow-elevation-1)] transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100";
+
 function FolderItem({
   folder,
   setCount,
   layout,
   onOpen,
+  onEdit,
   onTogglePin,
   onRecycle,
-  onShowInDome,
+  onToggleInDome,
 }: {
   folder: FlashcardFolder;
   setCount: number;
   layout: GridLayoutMode;
   onOpen: () => void;
+  onEdit?: () => void;
   onTogglePin: () => void;
   onRecycle: () => void;
-  onShowInDome?: () => void;
+  onToggleInDome?: () => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({
     id: folderDropId(folder.id),
     data: { kind: "folder", folderId: folder.id },
   });
+  const inDome = folder.showInDome !== false;
 
   if (layout === "list") {
     return (
       <div
         ref={setNodeRef}
         className={cn(
-          "group grid grid-cols-[minmax(0,1fr)_7rem_6rem] items-center gap-2 border-b border-foreground/6 px-2 py-1.5 last:border-b-0",
-          isOver && "bg-accent/10"
+          "group grid grid-cols-[minmax(0,1fr)_7rem_6rem] items-center gap-2 border-b border-border px-2 py-1.5 last:border-b-0",
+          isOver && "bg-accent-muted/30"
         )}
       >
         <div className="flex min-w-0 items-center gap-1">
           <button
             type="button"
             onClick={onOpen}
-            className="flex min-w-0 flex-1 cursor-pointer items-center gap-2.5 rounded-lg px-1.5 py-1.5 text-left transition-colors hover:bg-foreground/[0.05]"
+            className="flex min-w-0 flex-1 cursor-pointer items-center gap-2.5 rounded-lg px-1.5 py-1.5 text-left transition-colors hover:bg-card-hover"
           >
-            <span
-              className="h-3 w-3 shrink-0 rounded-[3px]"
-              style={{ backgroundColor: folder.color }}
+            <FolderCoverTile
+              title={folder.title}
+              color={folder.color}
+              imageSrc={folder.imageDataUrl}
+              size="sm"
             />
             <span className="truncate text-sm font-medium text-foreground">{folder.title}</span>
           </button>
-          <div className="flex shrink-0 items-center">
-            {onShowInDome && (
+          <div className={itemActionsClass}>
+            {onEdit && <MiniEditButton label={folder.title} onClick={onEdit} />}
+            {onToggleInDome && (
               <button
                 type="button"
-                aria-label={`Show ${folder.title} in dome gallery`}
-                title="Show in visual gallery"
+                aria-label={
+                  inDome
+                    ? `Hide ${folder.title} from dome gallery`
+                    : `Show ${folder.title} in dome gallery`
+                }
+                title={inDome ? "Hide from visual gallery" : "Show in visual gallery"}
                 onClick={(e) => {
                   e.stopPropagation();
-                  onShowInDome();
+                  onToggleInDome();
                 }}
-                className="cursor-pointer rounded-md p-1.5 text-foreground/35 transition-colors hover:text-foreground/70"
+                className="cursor-pointer rounded-md p-1.5 text-muted-foreground transition-colors hover:text-foreground"
               >
-                <Eye className="h-3.5 w-3.5" />
+                {inDome ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
               </button>
             )}
             <MiniPinButton pinned={folder.pinned} label={folder.title} onClick={onTogglePin} />
             <MiniTrashButton label={folder.title} onClick={onRecycle} />
           </div>
         </div>
-        <span className="text-xs text-foreground/45">Folder</span>
-        <span className="text-right font-mono text-xs tabular-nums text-foreground/45">
+        <span className="text-xs text-muted-foreground">Folder</span>
+        <span className="text-right font-mono text-xs tabular-nums text-muted-foreground">
           {setCount} set{setCount === 1 ? "" : "s"}
         </span>
       </div>
@@ -517,23 +590,28 @@ function FolderItem({
     <div
       ref={setNodeRef}
       className={cn(
-        "group relative rounded-xl transition-colors",
-        isOver && "ring-2 ring-accent/50 ring-offset-2 ring-offset-background"
+        "group relative rounded-lg transition-colors",
+        isOver && "ring-1 ring-inset ring-accent/40"
       )}
     >
-      <div className="absolute right-2 top-2 z-10 flex items-center gap-0.5">
-        {onShowInDome && (
+      <div className={itemActionsOverlayClass}>
+        {onEdit && <MiniEditButton label={folder.title} onClick={onEdit} />}
+        {onToggleInDome && (
           <button
             type="button"
-            aria-label={`Show ${folder.title} in dome gallery`}
-            title="Show in visual gallery"
+            aria-label={
+              inDome
+                ? `Hide ${folder.title} from dome gallery`
+                : `Show ${folder.title} in dome gallery`
+            }
+            title={inDome ? "Hide from visual gallery" : "Show in visual gallery"}
             onClick={(e) => {
               e.stopPropagation();
-              onShowInDome();
+              onToggleInDome();
             }}
-            className="cursor-pointer rounded-md p-1.5 text-foreground/35 transition-colors hover:text-foreground/70"
+            className="cursor-pointer rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground"
           >
-            <Eye className="h-3.5 w-3.5" />
+            {inDome ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
           </button>
         )}
         <MiniPinButton pinned={folder.pinned} label={folder.title} onClick={onTogglePin} />
@@ -543,20 +621,17 @@ function FolderItem({
         type="button"
         onClick={onOpen}
         className={cn(
-          "flex h-full w-full cursor-pointer flex-col items-center rounded-xl border border-foreground/10 bg-foreground/[0.04] p-4 pt-5 text-center transition-colors hover:border-foreground/20 hover:bg-foreground/[0.07]",
-          isOver && "border-accent/40 bg-accent/10"
+          "flex h-full w-full cursor-pointer flex-col items-center rounded-lg border border-border bg-card px-2 pb-3 pt-5 text-center transition-colors hover:border-border-strong hover:bg-card-hover",
+          isOver && "border-accent/40 bg-accent-muted/20"
         )}
       >
-        <FolderIcon
+        <FolderCoverTile
+          title={folder.title}
           color={folder.color}
-          size={0.72}
           imageSrc={folder.imageDataUrl}
-          openOnClick={false}
+          setCount={setCount}
+          size="md"
         />
-        <p className="mt-2 w-full truncate text-sm font-semibold text-foreground">{folder.title}</p>
-        <p className="mt-1 text-xs text-foreground/45">
-          {setCount} set{setCount === 1 ? "" : "s"}
-        </p>
       </button>
     </div>
   );
@@ -589,7 +664,7 @@ function SetItem({
       <div
         ref={setNodeRef}
         style={style}
-        className="group grid grid-cols-[minmax(0,1fr)_7rem_6rem] items-center gap-2 border-b border-foreground/6 px-2 py-1.5 last:border-b-0"
+        className="group grid grid-cols-[minmax(0,1fr)_7rem_6rem] items-center gap-2 border-b border-border px-2 py-1.5 last:border-b-0"
       >
         <div className="flex min-w-0 items-center gap-1">
           <button
@@ -597,16 +672,18 @@ function SetItem({
             {...attributes}
             {...listeners}
             onClick={onOpen}
-            className="flex min-w-0 flex-1 cursor-grab items-center gap-2.5 rounded-lg px-1.5 py-1.5 text-left transition-colors hover:bg-foreground/[0.05] active:cursor-grabbing"
+            className="flex min-w-0 flex-1 cursor-grab items-center gap-2.5 rounded-lg px-1.5 py-1.5 text-left transition-colors hover:bg-card-hover active:cursor-grabbing"
           >
-            <Layers className="h-3.5 w-3.5 shrink-0 text-accent" />
+            <Layers className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
             <span className="truncate text-sm font-medium text-foreground">{set.title}</span>
           </button>
-          <MiniPinButton pinned={set.pinned} label={set.title} onClick={onTogglePin} />
-          <MiniTrashButton label={set.title} onClick={onRecycle} />
+          <div className={itemActionsClass}>
+            <MiniPinButton pinned={set.pinned} label={set.title} onClick={onTogglePin} />
+            <MiniTrashButton label={set.title} onClick={onRecycle} />
+          </div>
         </div>
-        <span className="text-xs text-foreground/45">Set</span>
-        <span className="truncate text-right text-xs text-foreground/45">
+        <span className="text-xs text-muted-foreground">Set</span>
+        <span className="truncate text-right text-xs text-muted-foreground">
           {set.cards.length} card{set.cards.length === 1 ? "" : "s"}
         </span>
       </div>
@@ -615,7 +692,7 @@ function SetItem({
 
   return (
     <div ref={setNodeRef} style={style} className="group relative h-full">
-      <div className="absolute right-2 top-2 z-10 flex items-center gap-0.5">
+      <div className={itemActionsOverlayClass}>
         <MiniPinButton pinned={set.pinned} label={set.title} onClick={onTogglePin} />
         <MiniTrashButton label={set.title} onClick={onRecycle} />
       </div>
@@ -624,15 +701,15 @@ function SetItem({
         {...attributes}
         {...listeners}
         onClick={onOpen}
-        className="flex h-full w-full cursor-grab flex-col rounded-xl border border-foreground/10 bg-foreground/[0.04] p-4 text-left transition-colors hover:border-foreground/20 hover:bg-foreground/[0.07] active:cursor-grabbing"
+        className="flex h-full w-full cursor-grab flex-col rounded-lg border border-border bg-card p-3 text-left transition-colors hover:border-border-strong hover:bg-card-hover active:cursor-grabbing"
       >
-        <p className="truncate pr-14 text-sm font-semibold text-foreground">{set.title}</p>
-        <p className="mt-1 text-xs text-foreground/45">
+        <p className="truncate pr-10 text-sm font-medium text-foreground">{set.title}</p>
+        <p className="mt-1 text-[11px] text-muted-foreground">
           {set.subject || "General"} · {set.cards.length} card
           {set.cards.length === 1 ? "" : "s"}
         </p>
-        <span className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-accent">
-          Study <ArrowRight className="h-3 w-3" />
+        <span className="mt-2 inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground">
+          Open <ArrowRight className="h-3 w-3" />
         </span>
       </button>
     </div>

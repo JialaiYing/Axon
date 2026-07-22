@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { activeTimerForObjective } from "@/lib/pomodoro-utils";
@@ -12,13 +12,13 @@ import {
   MINUTES_IN_DAY,
   PX_PER_MINUTE,
   clampMinutes,
-  formatDurationLabel,
   formatTimeLabel,
   isPastEvent,
   minutesSinceMidnight,
   type ScheduledEvent,
 } from "@/lib/calendar-utils";
-import { EventActionsMenu } from "@/components/calendar/event-actions-menu";
+import { EventDetailPopover } from "@/components/calendar/event-detail-popover";
+import { EventStatusIcons, eventAccentColor } from "@/components/calendar/event-status-icons";
 import type { ScheduleInput } from "@/components/calendar/schedule-popover";
 import type { Objective, PomodoroTimerInstance } from "@/types";
 
@@ -53,8 +53,9 @@ export function EventBlock({
   onResizeCommit,
 }: EventBlockProps) {
   const { objective } = event;
-  const [menuOpen, setMenuOpen] = React.useState(false);
+  const [expanded, setExpanded] = React.useState(false);
   const [resizePreview, setResizePreview] = React.useState<number | null>(null);
+  const resizePreviewRef = React.useRef<number | null>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
 
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
@@ -67,12 +68,14 @@ export function EventBlock({
   });
 
   React.useEffect(() => {
-    if (!menuOpen) return;
+    if (!expanded) return;
     function onOutside(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) setMenuOpen(false);
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setExpanded(false);
+      }
     }
     function onEscape(e: KeyboardEvent) {
-      if (e.key === "Escape") setMenuOpen(false);
+      if (e.key === "Escape") setExpanded(false);
     }
     document.addEventListener("mousedown", onOutside);
     document.addEventListener("keydown", onEscape);
@@ -80,7 +83,7 @@ export function EventBlock({
       document.removeEventListener("mousedown", onOutside);
       document.removeEventListener("keydown", onEscape);
     };
-  }, [menuOpen]);
+  }, [expanded]);
 
   function handleResizePointerDown(e: React.PointerEvent) {
     e.stopPropagation();
@@ -88,11 +91,14 @@ export function EventBlock({
     const startY = e.clientY;
     const startDuration = event.durationMinutes;
     const maxDuration = Math.max(GRID_STEP_MINUTES, MINUTES_IN_DAY - minutesSinceMidnight(event.start));
+    resizePreviewRef.current = startDuration;
     setResizePreview(startDuration);
 
     function onMove(ev: PointerEvent) {
       const deltaMinutes = (ev.clientY - startY) / PX_PER_MINUTE;
-      setResizePreview(clampMinutes(startDuration + deltaMinutes, GRID_STEP_MINUTES, maxDuration));
+      const next = clampMinutes(startDuration + deltaMinutes, GRID_STEP_MINUTES, maxDuration);
+      resizePreviewRef.current = next;
+      setResizePreview(next);
     }
     function cleanup() {
       window.removeEventListener("pointermove", onMove);
@@ -100,17 +106,20 @@ export function EventBlock({
       window.removeEventListener("keydown", onKey);
     }
     function onUp() {
-      setResizePreview((preview) => {
-        if (preview !== null) {
-          const snapped = Math.max(GRID_STEP_MINUTES, Math.round(preview / GRID_STEP_MINUTES) * GRID_STEP_MINUTES);
-          if (snapped !== startDuration) onResizeCommit(objective, snapped);
-        }
-        return null;
-      });
+      const preview = resizePreviewRef.current;
       cleanup();
+      resizePreviewRef.current = null;
+      setResizePreview(null);
+      if (preview === null) return;
+      const snapped = Math.max(
+        GRID_STEP_MINUTES,
+        Math.round(preview / GRID_STEP_MINUTES) * GRID_STEP_MINUTES
+      );
+      if (snapped !== startDuration) onResizeCommit(objective, snapped);
     }
     function onKey(ev: KeyboardEvent) {
       if (ev.key === "Escape") {
+        resizePreviewRef.current = null;
         setResizePreview(null);
         cleanup();
       }
@@ -122,17 +131,19 @@ export function EventBlock({
 
   const durationMinutes = resizePreview ?? event.durationMinutes;
   const isResizing = resizePreview !== null;
-  const top = minutesSinceMidnight(event.start) * PX_PER_MINUTE;
-  const height = Math.max(20, durationMinutes * PX_PER_MINUTE);
+  const startMinutes = minutesSinceMidnight(event.start);
+  const endMinutes = startMinutes + durationMinutes;
+  const top = startMinutes * PX_PER_MINUTE;
+  const height = Math.max(22, durationMinutes * PX_PER_MINUTE);
   const gap = 3;
   const widthPct = 100 / cols;
+  const compact = height < 40;
 
   const activeTimer = activeTimerForObjective(objective.id, timers);
   const isLive = activeTimer?.status === "running";
-  const isPaused = activeTimer?.status === "paused";
   const isDone = objective.status === "done";
   const isPast = isPastEvent(event) && !isDone;
-  const color = objective.color ?? "var(--color-accent)";
+  const accent = eventAccentColor(objective);
 
   return (
     <div
@@ -143,7 +154,7 @@ export function EventBlock({
         height,
         left: `calc(${col * widthPct}% + ${gap}px)`,
         width: `calc(${widthPct}% - ${gap * 2}px)`,
-        zIndex: menuOpen ? 40 : isDragging ? 30 : isHovered ? 20 : 10,
+        zIndex: expanded ? 40 : isDragging ? 30 : isHovered ? 20 : 10,
       }}
       onMouseEnter={() => onHover(objective.id)}
       onMouseLeave={() => onHover(null)}
@@ -152,38 +163,46 @@ export function EventBlock({
         ref={setNodeRef}
         {...attributes}
         {...listeners}
-        onClick={() => setMenuOpen((o) => !o)}
+        onClick={() => setExpanded((o) => !o)}
         style={{
           transform: transform ? CSS.Translate.toString(transform) : undefined,
-          borderColor: isHovered ? color : undefined,
+          borderLeftColor: accent,
         }}
         className={cn(
-          "group flex h-full w-full cursor-grab flex-col overflow-hidden rounded-md border px-2 py-1 text-left shadow-sm transition-shadow duration-150 active:cursor-grabbing",
+          "group flex h-full w-full cursor-grab flex-col overflow-hidden rounded-md border border-l-[3px] px-2 py-1 text-left shadow-[var(--shadow-elevation-1)] transition-[background-color,border-color] duration-150 active:cursor-grabbing",
           isDone
-            ? "border-success/30 bg-success-muted/40"
+            ? "border-success/40 bg-success-muted text-foreground"
             : isPast
-              ? "border-warning/30 bg-warning-muted/30"
-              : "border-accent/25 bg-accent-muted/40",
+              ? "border-warning/40 bg-warning-muted text-foreground"
+              : "border-border-strong bg-card-hover text-foreground",
           isDragging && "opacity-50",
-          isResizing && "shadow-lg ring-1 ring-accent/40",
-          isHovered && "shadow-[0_4px_16px_-6px_rgba(0,0,0,0.4)] ring-1 ring-accent/30",
-          isLive && "animate-pulse-glow ring-2 ring-accent/60"
+          isResizing && "ring-1 ring-border-strong",
+          isHovered && !isDone && !isPast && "border-border-strong bg-foreground/[0.08]",
+          isLive && "border-accent/50 bg-accent-muted",
+          expanded && "ring-1 ring-border-strong"
         )}
       >
-        <div className="flex min-h-0 flex-1 flex-col">
-          <p className="truncate text-[11px] font-semibold leading-tight text-foreground">
-            {isDone && <CheckCircle2 className="mr-1 inline h-3 w-3 text-success" />}
-            {objective.title}
-          </p>
-          {height > 32 && (
-            <p className="truncate text-[10px] leading-tight text-muted-foreground">
-              {formatTimeLabel(minutesSinceMidnight(event.start))} · {formatDurationLabel(durationMinutes)}
+        <div className="flex min-h-0 flex-1 flex-col gap-0.5">
+          {compact ? (
+            <p className="flex items-center gap-1 truncate text-[11px] font-semibold leading-tight">
+              {isDone && <CheckCircle2 className="h-3 w-3 shrink-0 text-success" />}
+              <span className="font-mono text-[10px] font-medium text-muted-foreground">
+                {formatTimeLabel(startMinutes)}
+              </span>
+              <span className="min-w-0 truncate">{objective.title}</span>
+              <EventStatusIcons objective={objective} event={event} />
             </p>
-          )}
-          {height > 52 && (
-            <span className="mt-1 inline-flex w-fit items-center rounded-pill border border-border/60 bg-background/40 px-1.5 py-0.5 text-[9px] font-medium text-muted-foreground">
-              {objective.subject}
-            </span>
+          ) : (
+            <>
+              <p className="flex items-center gap-1 truncate text-[11px] font-semibold leading-tight">
+                {isDone && <CheckCircle2 className="h-3 w-3 shrink-0 text-success" />}
+                <span className="min-w-0 truncate">{objective.title}</span>
+                <EventStatusIcons objective={objective} event={event} />
+              </p>
+              <p className="truncate font-mono text-[10px] leading-tight text-muted-foreground">
+                {formatTimeLabel(startMinutes)}–{formatTimeLabel(endMinutes)}
+              </p>
+            </>
           )}
         </div>
 
@@ -196,16 +215,16 @@ export function EventBlock({
       </div>
 
       <AnimatePresence>
-        {menuOpen && (
-          <EventActionsMenu
-            objective={objective}
+        {expanded && (
+          <EventDetailPopover
+            event={{ ...event, durationMinutes }}
             timers={timers}
             onStartFocusSession={onStartFocusSession}
             onResumeTimer={onResumeTimer}
             onReschedule={(input) => onReschedule(objective, input)}
             onUnschedule={() => onUnschedule(objective)}
             onViewEdit={() => onViewEdit(objective)}
-            onClose={() => setMenuOpen(false)}
+            onClose={() => setExpanded(false)}
           />
         )}
       </AnimatePresence>

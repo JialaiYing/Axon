@@ -36,6 +36,7 @@ export type ObjectiveInput = {
   status: ObjectiveStatus;
   color?: string;
   notes?: string;
+  location?: string;
   scheduledStart?: string;
   scheduledDurationMinutes?: number;
   /** Defaults to true. False = calendar-only event, hidden from Kanban columns. */
@@ -159,6 +160,10 @@ function normalizeObjective(value: Objective): Objective | null {
     recycledAt: status === "recycled" ? validIso(value.recycledAt) ?? now : validIso(value.recycledAt),
     color: typeof value.color === "string" ? value.color : undefined,
     notes: typeof value.notes === "string" ? value.notes : undefined,
+    location:
+      typeof value.location === "string" && value.location.trim()
+        ? value.location.trim()
+        : undefined,
     scheduledStart: validIso(value.scheduledStart),
     scheduledDurationMinutes,
     // Omit = visible on the board. Only an explicit `false` hides it.
@@ -221,6 +226,7 @@ export function useObjectives() {
         completedAt: input.status === "done" ? now : undefined,
         color: input.color,
         notes: input.notes,
+        location: input.location?.trim() || undefined,
         scheduledStart: validIso(input.scheduledStart),
         scheduledDurationMinutes:
           typeof input.scheduledDurationMinutes === "number" &&

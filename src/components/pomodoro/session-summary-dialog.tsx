@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Flame, Sparkles, Target, Timer } from "lucide-react";
+import { CheckCircle2, Flame, Target, Timer } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -49,8 +49,8 @@ export function SessionSummaryDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-md bg-accent-muted">
-            <Sparkles className="h-4.5 w-4.5 text-accent" />
+          <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-md border border-border bg-surface text-muted-foreground">
+            <CheckCircle2 className="h-4.5 w-4.5" />
           </div>
           <DialogTitle>Session complete</DialogTitle>
           <DialogDescription>
@@ -65,7 +65,7 @@ export function SessionSummaryDialog({
             value={`${stats.focusedMinutes} min`}
           />
           <SummaryTile
-            icon={<Sparkles className="h-3.5 w-3.5" />}
+            icon={<span className="font-mono text-[10px] font-semibold">XP</span>}
             label="XP earned"
             value={`+${stats.sessionXp}`}
           />
@@ -75,7 +75,7 @@ export function SessionSummaryDialog({
             value={String(stats.tasksDoneToday)}
           />
           <SummaryTile
-            icon={<Flame className="h-3.5 w-3.5 text-warning" />}
+            icon={<Flame className="h-3.5 w-3.5" />}
             label="Streak"
             value={`${stats.streakDays} day${stats.streakDays === 1 ? "" : "s"}`}
           />

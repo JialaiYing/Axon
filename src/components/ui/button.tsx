@@ -11,14 +11,14 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-accent text-accent-foreground hover:bg-accent/90 shadow-[var(--shadow-elevation-2)] hover:shadow-[var(--shadow-elevation-3)]",
+          "bg-accent text-accent-foreground hover:bg-accent/90 shadow-[var(--shadow-elevation-1)] hover:shadow-[var(--shadow-elevation-2)]",
         secondary:
-          "bg-secondary/90 text-secondary-foreground shadow-[0_1px_2px_rgba(0,0,0,0.2)] hover:bg-secondary hover:shadow-[0_8px_22px_-10px_rgba(139,126,200,0.4)] light:shadow-[0_1px_2px_rgba(23,24,28,0.12)] light:hover:shadow-[0_2px_8px_-2px_rgba(23,24,28,0.2)]",
+          "bg-secondary/90 text-secondary-foreground shadow-[var(--shadow-elevation-1)] hover:bg-secondary hover:shadow-[var(--shadow-elevation-2)]",
         outline:
           "border border-border bg-card/40 text-foreground hover:border-border-strong hover:bg-card-hover hover:shadow-[var(--shadow-elevation-1)] light:bg-card/70 light:hover:bg-card",
         ghost: "bg-transparent text-foreground hover:bg-card-hover",
         destructive:
-          "bg-danger/90 text-white shadow-[0_1px_2px_rgba(0,0,0,0.2)] hover:bg-danger hover:shadow-[0_8px_22px_-10px_rgba(224,85,85,0.4)] light:shadow-[0_1px_2px_rgba(23,24,28,0.12)] light:hover:shadow-[0_2px_8px_-2px_rgba(220,38,38,0.25)]",
+          "bg-danger/90 text-white shadow-[var(--shadow-elevation-1)] hover:bg-danger hover:shadow-[var(--shadow-elevation-2)]",
         link: "text-accent underline-offset-4 hover:underline p-0 h-auto hover:translate-y-0 hover:scale-100",
       },
       size: {

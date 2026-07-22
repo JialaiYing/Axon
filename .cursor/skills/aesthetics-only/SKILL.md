@@ -1,4 +1,4 @@
----
+c---
 name: aesthetics-only
 description: Explicit command — improves visual and interaction polish on the current page or component with a hard constraint against adding any new functionality, data, or props. Invoke with /aesthetics-only.
 disable-model-invocation: true

@@ -49,6 +49,7 @@ const objectiveSchema = z.object({
   labels: z.string().max(200).optional(),
   color: z.string().optional(),
   notes: z.string().max(1000).optional(),
+  location: z.string().max(200).optional(),
   recurrence: z.enum(["none", "daily", "weekly"]),
 });
 
@@ -110,10 +111,12 @@ export function ObjectiveForm({
       labels: initialValues?.labels?.join(", ") ?? "",
       color: initialValues?.color ?? OBJECTIVE_COLORS[0],
       notes: initialValues?.notes ?? "",
+      location: initialValues?.location ?? "",
       recurrence: (initialValues?.recurrence as Recurrence | undefined) ?? "none",
     },
   });
 
+  const isCalendarOnly = initialValues?.showOnKanban === false;
   const selectedColor = watch("color");
   const progress = watch("progress");
 
@@ -138,6 +141,7 @@ export function ObjectiveForm({
         : [],
       color: values.color,
       notes: values.notes?.trim() || undefined,
+      location: isCalendarOnly ? values.location?.trim() || undefined : initialValues?.location,
       subtasks,
       attachments,
       dependencies,
@@ -285,6 +289,17 @@ export function ObjectiveForm({
       <SubtaskEditor subtasks={subtasks} onChange={setSubtasks} />
 
       <AttachmentEditor attachments={attachments} onChange={setAttachments} />
+
+      {isCalendarOnly && (
+        <div className="space-y-1.5">
+          <Label htmlFor="location">Location</Label>
+          <Input
+            id="location"
+            placeholder="Room, campus, link…"
+            {...register("location")}
+          />
+        </div>
+      )}
 
       <div className="space-y-1.5">
         <Label htmlFor="notes">Notes</Label>

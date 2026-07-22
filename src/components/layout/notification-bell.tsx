@@ -64,11 +64,8 @@ export function NotificationBell() {
   }, [open]);
 
   function handleToggle() {
-    setOpen((prev) => {
-      const next = !prev;
-      if (next) markAllRead();
-      return next;
-    });
+    if (!open) markAllRead();
+    setOpen((prev) => !prev);
   }
 
   function handleOpenNotification(n: TimerNotification) {
@@ -111,7 +108,7 @@ export function NotificationBell() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.97 }}
             transition={{ duration: 0.16, ease: [0.21, 0.47, 0.32, 0.98] }}
-            className="absolute right-0 top-11 z-50 w-80 overflow-hidden rounded-xl border border-border bg-card/95 shadow-[0_1px_2px_rgba(0,0,0,0.4),0_20px_48px_-16px_rgba(0,0,0,0.65)] backdrop-blur-xl"
+            className="absolute right-0 top-11 z-50 w-80 overflow-hidden rounded-xl border border-border bg-card/95 shadow-[var(--shadow-overlay)] backdrop-blur-xl"
           >
             <div className="flex items-center justify-between border-b border-border px-4 py-3">
               <p className="text-sm font-semibold text-foreground">Notifications</p>

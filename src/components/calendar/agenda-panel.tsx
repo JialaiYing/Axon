@@ -1,21 +1,19 @@
 "use client";
 
 import * as React from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   AlertTriangle,
   CalendarClock,
   Flag,
-  Sparkles,
   Sun,
   Sunrise,
   Timer as TimerIcon,
 } from "lucide-react";
 import { Panel } from "@/components/ui/panel";
-import { Badge } from "@/components/ui/badge";
 import { TimerControls } from "@/components/pomodoro/timer-controls";
 import { cn } from "@/lib/utils";
-import { priorityBadgeVariant, formatDueDate, isOverdue, isScheduleOverdue } from "@/lib/kanban-utils";
+import { formatDueDate, isOverdue, isScheduleOverdue } from "@/lib/kanban-utils";
 import { addDays, formatTimeLabel, getScheduledEvent, isSameDay, type ScheduledEvent } from "@/lib/calendar-utils";
 import { formatClock } from "@/lib/pomodoro-utils";
 import { remainingSecondsOf } from "@/hooks/use-pomodoro-timers";
@@ -30,6 +28,7 @@ interface AgendaPanelProps {
   onPauseTimer: (id: string) => void;
   onResumeTimer: (id: string) => void;
   onStopTimer: (id: string) => void;
+  className?: string;
 }
 
 function useLiveTick(active: boolean, intervalMs = 1000) {
@@ -63,26 +62,29 @@ function AgendaRow({
       onMouseEnter={() => onHover(objective.id)}
       onMouseLeave={() => onHover(null)}
       className={cn(
-        "flex w-full items-start gap-2.5 rounded-lg border px-3 py-2.5 text-left transition-all duration-200",
-        hovered
-          ? "border-accent/50 bg-accent-muted/30 shadow-[0_0_0_1px_rgba(94,106,210,0.15)]"
-          : "border-transparent bg-surface hover:border-border-strong hover:bg-card"
+        "flex w-full items-start gap-2.5 px-1 py-2 text-left transition-colors duration-150",
+        hovered ? "bg-card-hover" : "hover:bg-card-hover"
       )}
     >
       <span
+        aria-hidden
         className={cn(
-          "mt-1 h-1.5 w-1.5 shrink-0 rounded-full",
-          tone === "danger" ? "bg-danger" : tone === "warning" ? "bg-warning" : "bg-accent"
+          "mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full",
+          tone === "danger"
+            ? "bg-danger"
+            : tone === "warning"
+              ? "bg-warning"
+              : "bg-muted-foreground"
         )}
+        style={
+          tone === "default" && objective.color
+            ? { backgroundColor: objective.color }
+            : undefined
+        }
       />
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium text-foreground">{objective.title}</p>
-        <div className="mt-1 flex flex-wrap items-center gap-1.5">
-          <Badge variant={priorityBadgeVariant(objective.priority)} className="capitalize">
-            {objective.priority}
-          </Badge>
-          <span className="text-[11px] text-muted-foreground">{meta}</span>
-        </div>
+        <p className="mt-0.5 text-[11px] text-muted-foreground">{meta}</p>
       </div>
     </button>
   );
@@ -91,12 +93,10 @@ function AgendaRow({
 function SectionHeading({ icon: Icon, label, count }: { icon: React.ElementType; label: string; count: number }) {
   if (count === 0) return null;
   return (
-    <div className="mb-2 mt-4 flex items-center gap-1.5 px-1 first:mt-0">
+    <div className="mb-1 mt-4 flex items-center gap-1.5 first:mt-0">
       <Icon className="h-3.5 w-3.5 text-muted-foreground" />
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
-      <span className="rounded-pill bg-surface px-1.5 py-0.5 font-mono text-[10px] font-medium text-muted-foreground">
-        {count}
-      </span>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-foreground">{label}</p>
+      <span className="font-mono text-[10px] font-medium text-muted-foreground">· {count}</span>
     </div>
   );
 }
@@ -104,8 +104,6 @@ function SectionHeading({ icon: Icon, label, count }: { icon: React.ElementType;
 /**
  * The Calendar's "answer the question" panel: what's overdue, what's today
  * and tomorrow, what's coming due, and what's actively running right now.
- * Reads straight off the same objectives/timers the Kanban and Pomodoro
- * pages use — nothing here is calendar-only state.
  */
 export function AgendaPanel({
   objectives,
@@ -116,7 +114,9 @@ export function AgendaPanel({
   onPauseTimer,
   onResumeTimer,
   onStopTimer,
+  className,
 }: AgendaPanelProps) {
+  const prefersReducedMotion = useReducedMotion();
   const runningTimers = React.useMemo(() => timers.filter((t) => t.status !== "finished"), [timers]);
   useLiveTick(runningTimers.some((t) => t.status === "running"));
 
@@ -171,12 +171,9 @@ export function AgendaPanel({
     upcomingDeadlines.length === 0;
 
   return (
-    <Panel variant="interactive" className="flex max-h-[calc(100vh-9.5rem)] flex-col overflow-hidden">
-      <div className="border-b border-border px-4 py-3.5">
-        <p className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
-          <Sparkles className="h-3.5 w-3.5 text-accent" />
-          Agenda
-        </p>
+    <Panel variant="standard" className={cn("flex max-h-[calc(100vh-9.5rem)] flex-col overflow-hidden", className)}>
+      <div className="border-b border-border px-4 py-3">
+        <p className="text-sm font-semibold text-foreground">Agenda</p>
         <p className="mt-0.5 text-[11px] text-muted-foreground">What needs your attention.</p>
       </div>
 
@@ -188,19 +185,20 @@ export function AgendaPanel({
               {runningTimers.map((timer) => (
                 <motion.div
                   key={timer.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.97 }}
+                  layout={!prefersReducedMotion}
+                  initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.97 }}
                   animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
                   className={cn(
                     "rounded-lg border p-3",
                     timer.status === "running"
-                      ? "border-accent/40 bg-accent-muted/20 shadow-[0_0_0_1px_rgba(94,106,210,0.15),0_0_24px_-8px_rgba(94,106,210,0.35)] light:shadow-[0_0_0_1px_rgba(79,70,229,0.25)]"
+                      ? "border-accent/40 bg-accent-muted/20"
                       : "border-border bg-surface"
                   )}
                 >
                   <div className="flex items-center justify-between gap-2">
                     <p className="truncate text-sm font-medium text-foreground">{timer.label}</p>
-                    <span className="shrink-0 font-mono text-sm tabular-nums text-accent">
+                    <span className="shrink-0 font-mono text-sm tabular-nums text-foreground">
                       {formatClock(remainingSecondsOf(timer))}
                     </span>
                   </div>
@@ -219,7 +217,7 @@ export function AgendaPanel({
         )}
 
         <SectionHeading icon={AlertTriangle} label="Overdue" count={overdue.length} />
-        <div className="flex flex-col gap-1.5">
+        <div className="divide-y divide-border border-y border-border">
           {overdue.map((o) => (
             <AgendaRow
               key={o.id}
@@ -238,7 +236,7 @@ export function AgendaPanel({
         </div>
 
         <SectionHeading icon={Sun} label="Today" count={today.length} />
-        <div className="flex flex-col gap-1.5">
+        <div className="divide-y divide-border border-y border-border">
           {today.map(({ objective, start, durationMinutes }) => (
             <AgendaRow
               key={objective.id}
@@ -252,7 +250,7 @@ export function AgendaPanel({
         </div>
 
         <SectionHeading icon={Sunrise} label="Tomorrow" count={tomorrowEvents.length} />
-        <div className="flex flex-col gap-1.5">
+        <div className="divide-y divide-border border-y border-border">
           {tomorrowEvents.map(({ objective, start, durationMinutes }) => (
             <AgendaRow
               key={objective.id}
@@ -266,7 +264,7 @@ export function AgendaPanel({
         </div>
 
         <SectionHeading icon={Flag} label="Upcoming deadlines" count={upcomingDeadlines.length} />
-        <div className="flex flex-col gap-1.5">
+        <div className="divide-y divide-border border-y border-border">
           {upcomingDeadlines.map((o) => (
             <AgendaRow
               key={o.id}

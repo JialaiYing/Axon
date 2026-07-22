@@ -11,7 +11,6 @@ import {
   Trophy,
 } from "lucide-react";
 import { ScrollReveal, ScrollRevealGroup, ScrollRevealItem } from "@/components/ui/scroll-reveal";
-import SpecularButton from "@/components/effects/specular-button";
 
 const FEATURES = [
   {
@@ -78,33 +77,15 @@ export function Features() {
         <ScrollRevealGroup className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4">
           {FEATURES.map((feature) => (
             <ScrollRevealItem key={feature.title} className="h-full">
-              <SpecularButton
-                size="card"
-                radius={16}
-                tint="#ffffff"
-                tintOpacity={0}
-                blur={0}
-                textColor="#f5f5f5"
-                lineColor="#ffffff"
-                baseColor="#525252"
-                intensity={1}
-                shineSize={10}
-                shineFade={40}
-                thickness={1}
-                speed={0.35}
-                followMouse
-                proximity={250}
-                autoAnimate={false}
-                className="h-full min-h-[11rem]"
-              >
+              <div className="flex h-full min-h-[11rem] flex-col rounded-2xl border border-white/[0.08] bg-white/[0.02] p-5 transition-colors duration-200 hover:border-white/[0.14] hover:bg-white/[0.04]">
                 <span className="mb-3 flex h-9 w-9 items-center justify-center rounded-[var(--radius-sm)] border border-white/12 bg-white/[0.04]">
-                  <feature.icon className="h-4 w-4 text-white/85" aria-hidden />
+                  <feature.icon className="h-4 w-4 text-white/70" aria-hidden />
                 </span>
                 <span className="text-sm font-semibold text-white">{feature.title}</span>
                 <span className="mt-2 text-sm font-normal leading-relaxed text-white/55">
                   {feature.description}
                 </span>
-              </SpecularButton>
+              </div>
             </ScrollRevealItem>
           ))}
         </ScrollRevealGroup>

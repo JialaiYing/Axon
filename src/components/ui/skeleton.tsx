@@ -70,3 +70,52 @@ export function ObjectivePickerSkeleton() {
     </div>
   );
 }
+
+/** Grid-first calendar chrome: month grid + quiet side rail. */
+export function CalendarSkeleton() {
+  return (
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="grid grid-cols-7 border-b border-border bg-surface/60 px-2 py-2">
+          {Array.from({ length: 7 }).map((_, i) => (
+            <Skeleton key={i} className="mx-auto h-3 w-8" />
+          ))}
+        </div>
+        <div className="grid grid-cols-7">
+          {Array.from({ length: 35 }).map((_, i) => (
+            <div key={i} className="min-h-[7.5rem] border-b border-r border-border p-1.5">
+              <Skeleton className="mb-2 h-5 w-5 rounded-full" />
+              {i % 4 !== 0 && <Skeleton className="mb-1 h-4 w-full rounded-md" />}
+              {i % 5 === 0 && <Skeleton className="h-4 w-4/5 rounded-md" />}
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="hidden flex-col gap-4 lg:flex">
+        <div className="rounded-xl border border-border bg-card">
+          <div className="border-b border-border px-4 py-3">
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="mt-2 h-3 w-36" />
+          </div>
+          <div className="space-y-3 px-4 py-4">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="flex items-start gap-2.5">
+                <Skeleton className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full" />
+                <div className="min-w-0 flex-1 space-y-1.5">
+                  <Skeleton className="h-3.5 w-3/4" />
+                  <Skeleton className="h-3 w-1/2" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="rounded-xl border border-border bg-card">
+          <div className="flex items-center justify-between px-4 py-3">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-3.5 w-3.5" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

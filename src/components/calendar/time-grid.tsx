@@ -178,7 +178,7 @@ export function TimeGrid({ days, events, renderDayHeader, ...actions }: TimeGrid
             {showNowLine && (
               <div className="pointer-events-none absolute inset-x-0 z-20" style={{ top: nowTop }}>
                 <div className="flex items-center">
-                  <span className="-ml-1 h-2 w-2 rounded-full bg-danger shadow-[0_0_6px_rgba(239,68,68,0.8)]" />
+                  <span className="-ml-1 h-2 w-2 rounded-full bg-danger" />
                   <div className="h-px flex-1 bg-danger/70" />
                 </div>
               </div>

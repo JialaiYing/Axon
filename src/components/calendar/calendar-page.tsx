@@ -12,13 +12,14 @@ import {
   type DragStartEvent,
 } from "@dnd-kit/core";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { CalendarRange } from "lucide-react";
-import { KanbanBoardSkeleton } from "@/components/ui/skeleton";
-import { EASE } from "@/lib/motion";
+import { CalendarRange, ChevronDown } from "lucide-react";
+import { CalendarSkeleton } from "@/components/ui/skeleton";
+import { EASE, DURATION } from "@/lib/motion";
+import { cn } from "@/lib/utils";
 import { ObjectiveDialog } from "@/components/kanban/objective-dialog";
 import { useObjectives } from "@/hooks/use-objectives";
 import { usePomodoroTimers } from "@/hooks/use-pomodoro-timers";
-import { useCalendarState, type CalendarViewMode } from "@/hooks/use-calendar-state";
+import { useCalendarState } from "@/hooks/use-calendar-state";
 import { startFocusSession } from "@/lib/pomodoro-utils";
 import {
   MINUTES_IN_DAY,
@@ -44,9 +45,12 @@ import type { Objective } from "@/types";
 
 interface DragData {
   objective: Objective;
-  originalStart: string;
   durationMinutes: number;
+  originalStart?: string;
+  fromUnscheduled?: boolean;
 }
+
+const DEFAULT_UNSCHEDULED_MINUTES = 9 * 60;
 
 export function CalendarPage() {
   const {
@@ -71,6 +75,7 @@ export function CalendarPage() {
   const [editTarget, setEditTarget] = React.useState<Objective | null>(null);
   const [addTarget, setAddTarget] = React.useState<Date | null>(null);
   const [activeDrag, setActiveDrag] = React.useState<DragData | null>(null);
+  const [mobileRailOpen, setMobileRailOpen] = React.useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -90,6 +95,14 @@ export function CalendarPage() {
     }
     return list;
   }, [visibleObjectives]);
+
+  const unscheduledCount = React.useMemo(
+    () =>
+      visibleObjectives.filter(
+        (o) => !o.scheduledStart && o.status !== "done" && o.status !== "recycled"
+      ).length,
+    [visibleObjectives]
+  );
 
   function handleReschedule(objective: Objective, input: ScheduleInput) {
     scheduleObjective(objective.id, input);
@@ -120,28 +133,50 @@ export function CalendarPage() {
     if (!overId.startsWith("day:")) return;
 
     const targetDay = parseDateInputValue(overId.slice(4));
-    const originalStart = new Date(data.originalStart);
-    let newMinutes = minutesSinceMidnight(originalStart);
+    let newMinutes = DEFAULT_UNSCHEDULED_MINUTES;
 
-    if (view !== "month") {
-      const deltaMinutes = e.delta.y / PX_PER_MINUTE;
-      newMinutes = snapMinutes(clampMinutes(newMinutes + deltaMinutes, 0, MINUTES_IN_DAY - data.durationMinutes));
+    if (!data.fromUnscheduled && data.originalStart) {
+      newMinutes = minutesSinceMidnight(new Date(data.originalStart));
+      if (view !== "month") {
+        const deltaMinutes = e.delta.y / PX_PER_MINUTE;
+        newMinutes = snapMinutes(
+          clampMinutes(newMinutes + deltaMinutes, 0, MINUTES_IN_DAY - data.durationMinutes)
+        );
+      }
     }
 
     const newStart = withMinutesSinceMidnight(targetDay, newMinutes);
-    scheduleObjective(data.objective.id, { start: newStart.toISOString(), durationMinutes: data.durationMinutes });
+    scheduleObjective(data.objective.id, {
+      start: newStart.toISOString(),
+      durationMinutes: data.durationMinutes,
+    });
   }
 
   function handleAddAt(day: Date, minutes: number) {
     setAddTarget(withMinutesSinceMidnight(day, minutes));
   }
 
-  function handleOpenDay(day: Date) {
-    setCurrentDate(day);
-    setView("day");
-  }
-
   const isLoading = !hydrated || !timersHydrated;
+
+  const rail = (
+    <>
+      <AgendaPanel
+        objectives={visibleObjectives}
+        timers={timers}
+        hoveredId={hoveredId}
+        onHover={setHoveredId}
+        onSelect={setEditTarget}
+        onPauseTimer={pauseTimer}
+        onResumeTimer={resumeTimer}
+        onStopTimer={handleStopTimer}
+      />
+      <UnscheduledRail
+        objectives={visibleObjectives}
+        defaultStart={currentDate}
+        onSchedule={handleReschedule}
+      />
+    </>
+  );
 
   return (
     <div className="relative">
@@ -153,19 +188,19 @@ export function CalendarPage() {
         onPrev={goPrev}
         onNext={goNext}
         onToday={goToday}
-        onAddExisting={() => setAddTarget(withMinutesSinceMidnight(currentDate, 9 * 60))}
+        onAddExisting={() => setAddTarget(withMinutesSinceMidnight(currentDate, DEFAULT_UNSCHEDULED_MINUTES))}
         scheduledObjectives={visibleObjectives}
       />
 
       {isLoading ? (
-        <KanbanBoardSkeleton />
+        <CalendarSkeleton />
       ) : (
         <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
           <motion.div
             initial={prefersReducedMotion ? undefined : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, ease: EASE }}
-            className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]"
+            transition={{ duration: prefersReducedMotion ? 0 : DURATION.section, ease: EASE }}
+            className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_280px]"
           >
             <div className="min-w-0">
               <AnimatePresence mode="wait">
@@ -182,8 +217,9 @@ export function CalendarPage() {
                       onReschedule={handleReschedule}
                       onUnschedule={handleUnschedule}
                       onViewEdit={setEditTarget}
-                      onOpenDay={handleOpenDay}
-                      onAddForDay={(day) => setAddTarget(withMinutesSinceMidnight(day, 9 * 60))}
+                      onAddForDay={(day) =>
+                        setAddTarget(withMinutesSinceMidnight(day, DEFAULT_UNSCHEDULED_MINUTES))
+                      }
                     />
                   )}
                   {view === "week" && (
@@ -220,30 +256,42 @@ export function CalendarPage() {
               </AnimatePresence>
             </div>
 
-            <div className="flex flex-col gap-4">
-              <AgendaPanel
-                objectives={visibleObjectives}
-                timers={timers}
-                hoveredId={hoveredId}
-                onHover={setHoveredId}
-                onSelect={setEditTarget}
-                onPauseTimer={pauseTimer}
-                onResumeTimer={resumeTimer}
-                onStopTimer={handleStopTimer}
-              />
-              <UnscheduledRail
-                objectives={visibleObjectives}
-                defaultStart={currentDate}
-                onSchedule={handleReschedule}
-              />
-            </div>
+            <aside className="flex flex-col gap-3 lg:gap-4">
+              <button
+                type="button"
+                onClick={() => setMobileRailOpen((open) => !open)}
+                className="flex items-center justify-between rounded-lg border border-border bg-card px-3.5 py-2.5 text-left lg:hidden"
+                aria-expanded={mobileRailOpen}
+              >
+                <span className="text-sm font-medium text-foreground">
+                  Agenda
+                  <span className="ml-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+                    · {unscheduledCount} unscheduled
+                  </span>
+                </span>
+                <ChevronDown
+                  className={cn(
+                    "h-3.5 w-3.5 text-muted-foreground transition-transform duration-200",
+                    mobileRailOpen && "rotate-180"
+                  )}
+                />
+              </button>
+              <div
+                className={cn(
+                  "flex flex-col gap-4",
+                  mobileRailOpen ? "flex" : "hidden lg:flex"
+                )}
+              >
+                {rail}
+              </div>
+            </aside>
           </motion.div>
 
           <DragOverlay>
             {activeDrag ? (
-              <div className="pointer-events-none w-56 rounded-md border border-accent/40 bg-card px-2.5 py-1.5 text-xs font-medium text-foreground shadow-[0_1px_2px_rgba(0,0,0,0.4),0_20px_48px_-16px_rgba(0,0,0,0.65)]">
+              <div className="pointer-events-none w-56 rounded-md border border-border bg-card px-2.5 py-1.5 text-xs font-medium text-foreground shadow-[var(--shadow-elevation-2)]">
                 <span className="flex items-center gap-1.5">
-                  <CalendarRange className="h-3.5 w-3.5 text-accent" />
+                  <CalendarRange className="h-3.5 w-3.5 text-muted-foreground" />
                   {activeDrag.objective.title}
                 </span>
               </div>
@@ -293,6 +341,10 @@ export function CalendarPage() {
               scheduledStart: input.start?.toISOString(),
               scheduledDurationMinutes: input.start ? input.durationMinutes : undefined,
               showOnKanban: input.showOnKanban,
+              color: input.color,
+              notes: input.notes,
+              location: input.location,
+              recurrence: input.recurrence,
             });
             setAddTarget(null);
           }}

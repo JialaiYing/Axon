@@ -13,13 +13,17 @@ import { TimerFullscreenOverlay } from "@/components/pomodoro/timer-fullscreen";
 import { ObjectivePicker } from "@/components/pomodoro/objective-picker";
 import { PersonalTimerForm } from "@/components/pomodoro/personal-timer-form";
 import { FinishSessionDialog } from "@/components/pomodoro/finish-session-dialog";
+import { SessionSummaryDialog } from "@/components/pomodoro/session-summary-dialog";
 import { useShellChrome } from "@/components/layout/shell-chrome";
 import { useObjectives } from "@/hooks/use-objectives";
 import { usePomodoroTimers, remainingSecondsOf } from "@/hooks/use-pomodoro-timers";
 import { usePomodoroSessions } from "@/hooks/use-pomodoro-sessions";
 import { useFocusPreferences } from "@/hooks/use-focus-preferences";
+import { useUserStats } from "@/hooks/use-user-stats";
 import { asArray, useLocalStorage } from "@/hooks/use-local-storage";
+import { isToday } from "@/lib/goals-utils";
 import { clampPersonalMinutes, startFocusSession } from "@/lib/pomodoro-utils";
+import { focusSessionXp } from "@/lib/progress/xp-rules";
 import type { Objective, TimerSource } from "@/types";
 
 export default function PomodoroPage() {
@@ -39,6 +43,7 @@ export default function PomodoroPage() {
   } = usePomodoroTimers();
   const { preferences: focusPreferences } = useFocusPreferences();
   const { setFocusLock } = useShellChrome();
+  const { stats: userStats } = useUserStats();
 
   const [source, setSource] = React.useState<TimerSource>("objective");
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
@@ -46,10 +51,12 @@ export default function PomodoroPage() {
   const [personalMinutes, setPersonalMinutes] = React.useState(25);
   const [celebrateKey, setCelebrateKey] = React.useState(0);
   const [finishQueue, setFinishQueue] = React.useState<string[]>([]);
+  const [summaryQueue, setSummaryQueue] = React.useState<string[]>([]);
   const [addToKanban, setAddToKanban] = React.useState(false);
   const [personalLinkedObjectiveId, setPersonalLinkedObjectiveId] = React.useState<string | null>(null);
   const [fullscreenTimerId, setFullscreenTimerId] = React.useState<string | null>(null);
   const knownTimerIds = React.useRef<Set<string>>(new Set());
+  const seenPersonalReadyIds = React.useRef<Set<string>>(new Set());
   const [hiddenObjectiveIds, setHiddenObjectiveIds] = useLocalStorage<string[]>(
     "axon:pomodoro:hiddenObjectiveIds",
     []
@@ -212,8 +219,47 @@ export default function PomodoroPage() {
     [objectives, activeFinishTimer]
   );
 
+  const activeSummaryId = summaryQueue[0] ?? null;
+  const activeSummaryTimer = React.useMemo(
+    () => timers.find((t) => t.id === activeSummaryId) ?? null,
+    [timers, activeSummaryId]
+  );
+  const tasksDoneToday = React.useMemo(
+    () => objectives.filter((o) => o.status === "done" && isToday(o.completedAt)).length,
+    [objectives]
+  );
+  const summaryStats = React.useMemo(() => {
+    if (!activeSummaryTimer) return null;
+    const focusedMinutes = Math.max(1, Math.round(activeSummaryTimer.durationSeconds / 60));
+    return {
+      focusedMinutes,
+      sessionXp: focusSessionXp(focusedMinutes),
+      streakDays: userStats.currentStreak,
+      tasksDoneToday,
+      label: activeSummaryTimer.label,
+    };
+  }, [activeSummaryTimer, userStats.currentStreak, tasksDoneToday]);
+
+  // Pure personal timers: open a summary when they settle to Ready (parity with
+  // objective finish dialog — toast alone is not enough for a clear end state).
+  React.useEffect(() => {
+    for (const timer of timers) {
+      if (!timer.hasCompletedRun || timer.objectiveId) continue;
+      if (seenPersonalReadyIds.current.has(timer.id)) continue;
+      seenPersonalReadyIds.current.add(timer.id);
+      setSummaryQueue((q) => (q.includes(timer.id) ? q : [...q, timer.id]));
+    }
+    for (const id of [...seenPersonalReadyIds.current]) {
+      if (!timers.some((t) => t.id === id)) seenPersonalReadyIds.current.delete(id);
+    }
+  }, [timers]);
+
   function dequeueFinish(id: string) {
     setFinishQueue((q) => q.filter((x) => x !== id));
+  }
+
+  function dequeueSummary(id: string) {
+    setSummaryQueue((q) => q.filter((x) => x !== id));
   }
 
   function handleStartNewTimer() {
@@ -262,6 +308,11 @@ export default function PomodoroPage() {
       return;
     }
 
+    if (timer.hasCompletedRun && !timer.objectiveId) {
+      setSummaryQueue((q) => (q.includes(id) ? q : [...q, id]));
+      return;
+    }
+
     // Mid-run stop: keep study-time progress, no focus XP (incomplete session).
     if (!timer.hasCompletedRun) {
       const elapsedMinutes = stopTimer(id);
@@ -276,11 +327,19 @@ export default function PomodoroPage() {
         });
       }
       dequeueFinish(id);
+      dequeueSummary(id);
       return;
     }
 
     removeTimer(id);
     dequeueFinish(id);
+    dequeueSummary(id);
+  }
+
+  function handleSummaryContinue() {
+    if (!activeSummaryTimer) return;
+    removeTimer(activeSummaryTimer.id);
+    dequeueSummary(activeSummaryTimer.id);
   }
 
   function handleFinished() {
@@ -308,6 +367,8 @@ export default function PomodoroPage() {
   function handleRestartTimer(id: string) {
     restartTimer(id);
     dequeueFinish(id);
+    dequeueSummary(id);
+    seenPersonalReadyIds.current.delete(id);
   }
 
   const canStart =
@@ -435,6 +496,15 @@ export default function PomodoroPage() {
         onFinished={handleFinished}
         onKeepWorking={handleKeepWorking}
         onNotYet={handleNotYet}
+      />
+
+      <SessionSummaryDialog
+        open={activeSummaryId !== null && summaryStats !== null}
+        onOpenChange={(open) => {
+          if (!open && activeSummaryTimer) handleSummaryContinue();
+        }}
+        stats={summaryStats}
+        onContinue={handleSummaryContinue}
       />
     </AppPage>
   );

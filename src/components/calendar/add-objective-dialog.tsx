@@ -36,7 +36,9 @@ import {
   toDateInputValue,
   toTimeInputValue,
 } from "@/lib/calendar-utils";
-import type { Objective, Priority } from "@/types";
+import { OBJECTIVE_COLORS } from "@/constants/kanban";
+import { Textarea } from "@/components/ui/textarea";
+import type { Objective, Priority, Recurrence } from "@/types";
 
 interface AddObjectiveDialogProps {
   open: boolean;
@@ -51,6 +53,10 @@ interface AddObjectiveDialogProps {
     priority: Priority;
     durationMinutes: number;
     showOnKanban: boolean;
+    color?: string;
+    notes?: string;
+    location?: string;
+    recurrence?: Recurrence;
     /** Omit to create an unscheduled objective — assign a date later from the calendar. */
     start?: Date;
   }) => void;
@@ -78,6 +84,10 @@ export function AddObjectiveDialog({
   const [priority, setPriority] = React.useState<Priority>("medium");
   const [durationMinutes, setDurationMinutes] = React.useState(30);
   const [addToKanban, setAddToKanban] = React.useState(false);
+  const [color, setColor] = React.useState(OBJECTIVE_COLORS[0]!);
+  const [notes, setNotes] = React.useState("");
+  const [location, setLocation] = React.useState("");
+  const [recurrence, setRecurrence] = React.useState<Recurrence>("none");
   const [date, setDate] = React.useState(() => toDateInputValue(targetDate));
   const [time, setTime] = React.useState(() => toTimeInputValue(targetDate));
   const [dateError, setDateError] = React.useState<string | null>(null);
@@ -94,6 +104,10 @@ export function AddObjectiveDialog({
     setPriority("medium");
     setDurationMinutes(30);
     setAddToKanban(false);
+    setColor(OBJECTIVE_COLORS[Math.floor(Math.random() * OBJECTIVE_COLORS.length)]!);
+    setNotes("");
+    setLocation("");
+    setRecurrence("none");
     setDate(toDateInputValue(targetDate));
     setTime(toTimeInputValue(targetDate));
     setDateError(null);
@@ -171,6 +185,10 @@ export function AddObjectiveDialog({
       priority,
       durationMinutes: Math.max(5, Math.round(durationMinutes) || 30),
       showOnKanban: addToKanban,
+      color,
+      notes: notes.trim() || undefined,
+      location: !addToKanban && location.trim() ? location.trim() : undefined,
+      recurrence,
       start,
     });
   }
@@ -427,11 +445,72 @@ export function AddObjectiveDialog({
                 />
               </div>
 
+              <div className="space-y-1.5">
+                <Label>Color</Label>
+                <div className="flex flex-wrap gap-2">
+                  {OBJECTIVE_COLORS.map((swatch) => (
+                    <button
+                      key={swatch}
+                      type="button"
+                      aria-label={`Color ${swatch}`}
+                      onClick={() => setColor(swatch)}
+                      className={cn(
+                        "h-6 w-6 rounded-full border-2 transition-transform",
+                        color === swatch
+                          ? "scale-110 border-foreground"
+                          : "border-transparent opacity-80 hover:opacity-100"
+                      )}
+                      style={{ backgroundColor: swatch }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Repeats</Label>
+                <Select
+                  value={recurrence}
+                  onValueChange={(v) => setRecurrence(v as Recurrence)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Does not repeat</SelectItem>
+                    <SelectItem value="daily">Daily</SelectItem>
+                    <SelectItem value="weekly">Weekly</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {!addToKanban && (
+                <div className="space-y-1.5">
+                  <Label htmlFor="cal-event-location">Location</Label>
+                  <Input
+                    id="cal-event-location"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    placeholder="Room, campus, link…"
+                  />
+                </div>
+              )}
+
+              <div className="space-y-1.5">
+                <Label htmlFor="cal-event-notes">Notes</Label>
+                <Textarea
+                  id="cal-event-notes"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="What to bring, agenda, reminders…"
+                  className="min-h-[72px]"
+                />
+              </div>
+
               <div className="flex items-center justify-between gap-3 rounded-md border border-border bg-surface px-3 py-2.5">
                 <div>
                   <p className="text-xs font-medium text-foreground">Add to Kanban board?</p>
                   <p className="text-[11px] text-muted-foreground">
-                    Off = calendar-only event. On = also appears as a queued card.
+                    Off = calendar-only event (supports location). On = also appears as a queued card.
                   </p>
                 </div>
                 <button

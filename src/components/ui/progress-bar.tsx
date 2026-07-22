@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 export interface ProgressBarProps {
   value: number; // 0-100
   className?: string;
+  /** Override the fill — default is accent (growth/motion); use for done → success, etc. */
   barClassName?: string;
   size?: "sm" | "md" | "lg";
   showLabel?: boolean;
@@ -36,8 +37,7 @@ export function ProgressBar({
       >
         <div
           className={cn(
-            "h-full rounded-pill bg-accent transition-all duration-500 ease-out",
-            clamped > 0 && "shadow-[0_0_8px_-2px_rgba(94,106,210,0.35)] light:shadow-none",
+            "h-full rounded-pill bg-accent/80 transition-all duration-500 ease-out light:bg-accent/75",
             barClassName
           )}
           style={{ width: `${clamped}%` }}

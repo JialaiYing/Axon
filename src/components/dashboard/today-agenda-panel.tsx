@@ -7,7 +7,6 @@ import {
   ArrowRight,
   CalendarClock,
   CheckCircle2,
-  Flame,
   ListTodo,
   Sun,
   Target,
@@ -18,12 +17,12 @@ import { ProgressBar } from "@/components/ui/progress-bar";
 import {
   dayElapsedFraction,
   goalPaceStatus,
-  isToday as isTodayDate,
   PACE_LABEL,
   weekElapsedFraction,
 } from "@/lib/goals-utils";
-import { formatDueDate, isOverdue, isScheduleOverdue, priorityDotClass, priorityTextClass } from "@/lib/kanban-utils";
-import { formatTimeLabel, getScheduledEvent, isSameDay } from "@/lib/calendar-utils";
+import { formatDueDate } from "@/lib/kanban-utils";
+import { formatTimeLabel } from "@/lib/calendar-utils";
+import { buildTodayAgenda } from "@/lib/dashboard-agenda";
 import type { Goal, Objective } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -31,69 +30,28 @@ interface TodayAgendaPanelProps {
   objectives: Objective[];
   dailyGoal: Goal | null;
   weeklyGoal: Goal | null;
-  streak: number;
-  rankLabel: string;
 }
 
 /**
  * Glance-and-go "Today" panel for the Dashboard — overdue work, due/scheduled
- * today, calendar-only events, and goal progress in one place.
+ * today, in-progress board cards, and (when nothing is time-bound) open
+ * Kanban todos so the hero never claims a "clear day" while the board is full.
  */
 export function TodayAgendaPanel({
   objectives,
   dailyGoal,
   weeklyGoal,
-  streak,
-  rankLabel,
 }: TodayAgendaPanelProps) {
   const now = React.useMemo(() => new Date(), []);
 
-  const active = React.useMemo(
-    () => objectives.filter((o) => o.status !== "done" && o.status !== "recycled"),
-    [objectives]
-  );
-
-  const overdue = React.useMemo(
-    () =>
-      active
-        .filter((o) => isOverdue(o.dueDate, o.status) || isScheduleOverdue(o))
-        .sort((a, b) => {
-          const at = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
-          const bt = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
-          return at - bt;
-        })
-        .slice(0, 5),
-    [active]
-  );
-
-  const dueToday = React.useMemo(
-    () =>
-      active
-        .filter(
-          (o) =>
-            o.dueDate &&
-            isTodayDate(o.dueDate) &&
-            !isOverdue(o.dueDate, o.status) &&
-            !overdue.some((x) => x.id === o.id)
-        )
-        .slice(0, 6),
-    [active, overdue]
-  );
-
-  const scheduledToday = React.useMemo(() => {
-    const items = active
-      .map((o) => {
-        const event = getScheduledEvent(o);
-        if (!event || !isSameDay(event.start, now) || isScheduleOverdue(o)) return null;
-        return event;
-      })
-      .filter((e): e is NonNullable<typeof e> => e !== null)
-      .sort((a, b) => a.start.getTime() - b.start.getTime());
-    return items.slice(0, 8);
-  }, [active, now]);
-
-  const focusBlocks = scheduledToday.filter((e) => e.objective.showOnKanban !== false);
-  const calendarEvents = scheduledToday.filter((e) => e.objective.showOnKanban === false);
+  const {
+    overdue,
+    dueToday,
+    focusBlocks,
+    calendarEvents,
+    inProgress,
+    onBoard,
+  } = React.useMemo(() => buildTodayAgenda(objectives, now), [objectives, now]);
 
   const dailyStatus = dailyGoal ? goalPaceStatus(dailyGoal, dayElapsedFraction(now)) : null;
   const weeklyStatus = weeklyGoal ? goalPaceStatus(weeklyGoal, weekElapsedFraction(now)) : null;
@@ -102,31 +60,30 @@ export function TodayAgendaPanel({
     overdue.length === 0 &&
     dueToday.length === 0 &&
     focusBlocks.length === 0 &&
-    calendarEvents.length === 0;
+    calendarEvents.length === 0 &&
+    inProgress.length === 0 &&
+    onBoard.length === 0;
+
+  const hasGoals = Boolean(dailyGoal || weeklyGoal);
 
   return (
-    // The dashboard's one hero surface — `glass` (elevation-2) so it reads as
-    // the clear focal point above the secondary stat-card row that follows it.
-    <Panel variant="glass" className="p-4 sm:p-5">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">Today</p>
-          <h2 className="mt-0.5 text-base font-semibold text-foreground">Your agenda</h2>
-        </div>
-        {/* One neutral status chip instead of two competing colored ones —
-            the flame icon is the only meaningful color accent here. */}
-        <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-2.5 py-1">
-          <span className="flex items-center gap-1.5 text-xs font-medium text-foreground">
-            <Flame className="h-3.5 w-3.5 text-warning" />
-            {streak > 0 ? `${streak}-day streak` : "No streak yet"}
-          </span>
-          <span className="h-3 w-px bg-border" aria-hidden />
-          <span className="text-xs font-medium text-muted-foreground">{rankLabel}</span>
-        </div>
+    <Panel variant="glass" className="p-5 sm:p-6">
+      <div className="mb-5">
+        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+          Today
+        </p>
+        <h2 className="mt-0.5 text-lg font-semibold tracking-tight text-foreground">
+          Your agenda
+        </h2>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.4fr_0.9fr]">
-        <div className="space-y-3">
+      <div
+        className={cn(
+          "grid grid-cols-1 gap-6",
+          hasGoals && "lg:grid-cols-[1.5fr_minmax(0,0.85fr)] lg:gap-8"
+        )}
+      >
+        <div className="space-y-4">
           {overdue.length > 0 && (
             <AgendaSection icon={AlertTriangle} label="Overdue" count={overdue.length} tone="danger">
               {overdue.map((o) => (
@@ -139,7 +96,7 @@ export function TodayAgendaPanel({
                       ? `Missed block · ${formatDueDate(o.scheduledStart)}`
                       : `Due ${formatDueDate(o.dueDate)}`
                   }
-                  priority={o.priority}
+                  color={o.color}
                   tone="danger"
                 />
               ))}
@@ -154,7 +111,7 @@ export function TodayAgendaPanel({
                   href="/kanban"
                   title={o.title}
                   meta="Due today"
-                  priority={o.priority}
+                  color={o.color}
                 />
               ))}
             </AgendaSection>
@@ -168,7 +125,7 @@ export function TodayAgendaPanel({
                   href="/pomodoro"
                   title={objective.title}
                   meta={`${formatTimeLabel(start.getHours() * 60 + start.getMinutes())} · ${durationMinutes}m`}
-                  priority={objective.priority}
+                  color={objective.color}
                   done={objective.status === "done"}
                 />
               ))}
@@ -183,39 +140,65 @@ export function TodayAgendaPanel({
                   href="/calendar"
                   title={objective.title}
                   meta={`${formatTimeLabel(start.getHours() * 60 + start.getMinutes())} · ${durationMinutes}m`}
-                  priority={objective.priority}
+                  color={objective.color}
                   done={objective.status === "done"}
                 />
               ))}
             </AgendaSection>
           )}
 
+          {inProgress.length > 0 && (
+            <AgendaSection icon={ListTodo} label="In progress" count={inProgress.length}>
+              {inProgress.map((o) => (
+                <AgendaLink
+                  key={o.id}
+                  href="/kanban"
+                  title={o.title}
+                  meta="On the board"
+                  color={o.color}
+                />
+              ))}
+            </AgendaSection>
+          )}
+
+          {onBoard.length > 0 && (
+            <AgendaSection icon={ListTodo} label="On the board" count={onBoard.length}>
+              {onBoard.map((o) => (
+                <AgendaLink
+                  key={o.id}
+                  href="/kanban"
+                  title={o.title}
+                  meta={o.status === "in-progress" ? "In progress" : "To do"}
+                  color={o.color}
+                />
+              ))}
+            </AgendaSection>
+          )}
+
           {isEmpty && (
-            <p className="flex items-center gap-2 rounded-lg border border-dashed border-border/60 px-3 py-4 text-xs text-muted-foreground">
+            <p className="flex items-center gap-2 border-y border-dashed border-border/60 py-4 text-xs text-muted-foreground">
               <Sun className="h-3.5 w-3.5 shrink-0" />
-              Clear day — add an objective or schedule a focus block to fill this view.
+              Clear day — add an objective on the board or schedule a focus block.
             </p>
           )}
         </div>
 
-        <div className="space-y-3 rounded-xl border border-border bg-card p-3.5">
-          <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-            <Target className="h-3.5 w-3.5 text-success" />
-            Goal progress
-          </p>
-          {dailyGoal && dailyStatus && (
-            <GoalMini goal={dailyGoal} status={dailyStatus} />
-          )}
-          {weeklyGoal && weeklyStatus && (
-            <GoalMini goal={weeklyGoal} status={weeklyStatus} />
-          )}
-          <Link
-            href="/goals"
-            className="inline-flex items-center gap-1 text-[11px] text-foreground/60 transition-colors hover:text-foreground"
-          >
-            Manage goals <ArrowRight className="h-3 w-3" />
-          </Link>
-        </div>
+        {hasGoals && (
+          <div className="space-y-3 border-t border-border pt-5 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0">
+            <p className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.14em] text-foreground">
+              <Target className="h-3.5 w-3.5 text-muted-foreground" />
+              Goal progress
+            </p>
+            {dailyGoal && dailyStatus && <GoalMini goal={dailyGoal} status={dailyStatus} />}
+            {weeklyGoal && weeklyStatus && <GoalMini goal={weeklyGoal} status={weeklyStatus} />}
+            <Link
+              href="/goals"
+              className="inline-flex items-center gap-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Manage goals <ArrowRight className="h-3 w-3" />
+            </Link>
+          </div>
+        )}
       </div>
     </Panel>
   );
@@ -236,27 +219,26 @@ function AgendaSection({
 }) {
   return (
     <div>
-      <div className="mb-1.5 flex items-center gap-1.5 px-0.5">
+      <div className="mb-1 flex items-center gap-1.5">
         <Icon
-          className={cn("h-3.5 w-3.5", tone === "danger" ? "text-danger" : "text-foreground/45")}
+          className={cn(
+            "h-3.5 w-3.5",
+            tone === "danger" ? "text-danger" : "text-muted-foreground"
+          )}
         />
         <p
           className={cn(
-            "text-[11px] font-semibold uppercase tracking-wide",
-            tone === "danger" ? "text-danger" : "text-foreground/60"
+            "text-[11px] font-semibold uppercase tracking-[0.14em]",
+            tone === "danger" ? "text-danger" : "text-foreground"
           )}
         >
           {label}
         </p>
-        <span className="text-[11px] font-medium text-foreground/40">· {count}</span>
+        <span className="font-mono text-[10px] font-medium text-muted-foreground">· {count}</span>
       </div>
-      {/* Flat divided rows, not a stack of individually-boxed cards — Linear's
-          list pattern. `divide-y` draws the row separators, so each
-          `AgendaLink` only needs its own background tint (for overdue/done
-          state), never its own border. */}
-      <div className="divide-y divide-border overflow-hidden rounded-lg border border-border">
-        {children}
-      </div>
+      {/* Negative horizontal margin so the hover wash and dividers reach the
+          panel content width. */}
+      <div className="-mx-2 divide-y divide-border sm:-mx-3">{children}</div>
     </div>
   );
 }
@@ -265,14 +247,14 @@ function AgendaLink({
   href,
   title,
   meta,
-  priority,
+  color,
   tone,
   done,
 }: {
   href: string;
   title: string;
   meta: string;
-  priority: Objective["priority"];
+  color?: string;
   tone?: "danger";
   done?: boolean;
 }) {
@@ -280,7 +262,7 @@ function AgendaLink({
     <Link
       href={href}
       className={cn(
-        "flex items-start gap-2.5 px-3 py-2.5 transition-colors duration-200",
+        "flex items-start gap-2.5 px-2 py-2.5 transition-colors duration-200 sm:px-3",
         done
           ? "bg-success-muted/15 hover:bg-success-muted/25"
           : tone === "danger"
@@ -291,10 +273,11 @@ function AgendaLink({
       {done ? (
         <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-success" />
       ) : (
-        // A dot colored by priority replaces both the old generic tone dot
-        // and the bordered priority pill below — one indicator that
-        // actually carries meaning instead of two decorative ones.
-        <span className={cn("mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full", priorityDotClass(priority))} />
+        <span
+          aria-hidden
+          className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-muted-foreground"
+          style={color ? { backgroundColor: color } : undefined}
+        />
       )}
       <div className="min-w-0 flex-1">
         <p
@@ -305,10 +288,7 @@ function AgendaLink({
         >
           {title}
         </p>
-        <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px]">
-          <span className={cn("font-medium capitalize", priorityTextClass(priority))}>{priority}</span>
-          <span className="text-foreground/60">· {meta}</span>
-        </div>
+        <p className="mt-1 text-[11px] text-muted-foreground">{meta}</p>
       </div>
     </Link>
   );
@@ -324,14 +304,14 @@ function GoalMini({
   const percent = goal.target > 0 ? (goal.progress / goal.target) * 100 : 0;
   return (
     <div>
-      <div className="flex items-center justify-between gap-2 text-[11px] text-foreground/55">
+      <div className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
         <span className="truncate">{goal.title}</span>
         <span className="flex shrink-0 items-center gap-2">
           <span
             className={cn(
               "text-[10px] font-medium uppercase tracking-[0.08em]",
               status === "done" && "text-success",
-              status === "on-track" && "text-foreground/50",
+              status === "on-track" && "text-muted-foreground",
               status === "behind" && "text-warning"
             )}
           >
@@ -343,7 +323,12 @@ function GoalMini({
           </span>
         </span>
       </div>
-      <ProgressBar value={percent} size="sm" className="mt-1.5" />
+      <ProgressBar
+        value={percent}
+        size="sm"
+        className="mt-1.5"
+        barClassName={status === "done" ? "bg-success" : undefined}
+      />
     </div>
   );
 }
