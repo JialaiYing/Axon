@@ -47,7 +47,7 @@ export function SubtaskEditor({ subtasks, onChange }: SubtaskEditorProps) {
       </div>
 
       {subtasks.length > 0 && (
-        <ul className="space-y-1.5 rounded-lg border border-border/50 bg-surface/30 p-2">
+        <ul className="space-y-1.5 rounded-md border border-border bg-wash p-2">
           {subtasks.map((subtask) => (
             <li key={subtask.id} className="flex items-center gap-2">
               <button
