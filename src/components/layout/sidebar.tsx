@@ -25,8 +25,8 @@ function navItemClass(active: boolean, expanded: boolean) {
     "flex items-center rounded-md text-[13px] font-medium transition-colors duration-150",
     expanded ? "h-8 gap-2.5 px-2" : "h-8 w-8 justify-center px-0",
     active
-      ? "bg-foreground/[0.08] text-foreground light:bg-black/[0.06]"
-      : "text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground light:hover:bg-black/[0.04]"
+      ? "bg-wash-strong text-foreground"
+      : "text-muted-foreground hover:bg-wash hover:text-foreground"
   );
 }
 
@@ -76,7 +76,7 @@ export function Sidebar({ open, onOpenChange }: SidebarProps) {
               className={cn(
                 navItemClass(isActive, open),
                 item.href === "/dashboard" &&
-                  "data-[xp-pulse=true]:bg-foreground/[0.12] data-[xp-pulse=true]:scale-[1.02]"
+                  "data-[xp-pulse=true]:bg-wash-strong data-[xp-pulse=true]:scale-[1.02]"
               )}
             >
               <Icon className={navIconClass(isActive)} />

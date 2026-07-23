@@ -46,7 +46,7 @@ function SyncBadge() {
       onClick={() => void syncNow()}
       className={cn(
         "flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-[12px] transition-colors",
-        "hover:bg-foreground/[0.04] light:hover:bg-black/[0.04]",
+        "hover:bg-wash",
         status === "error" && "text-danger",
         status === "offline" && "text-warning",
         status === "synced" && "text-muted-foreground",
@@ -77,8 +77,7 @@ export function ProfileMenu() {
           aria-label="User profile"
           className={cn(
             "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[11px] font-medium transition-colors duration-150",
-            "bg-foreground/[0.08] text-foreground hover:bg-foreground/[0.12]",
-            "light:bg-black/[0.08] light:hover:bg-black/[0.12]",
+            "bg-wash text-foreground hover:bg-wash-strong",
             "active:scale-95"
           )}
         >

@@ -132,9 +132,9 @@ export function NotificationBell() {
                         tabIndex={0}
                         onClick={() => handleOpenNotification(n)}
                         onKeyDown={(e) => e.key === "Enter" && handleOpenNotification(n)}
-                        className="group flex w-full items-start gap-2.5 px-3.5 py-2.5 text-left transition-colors hover:bg-foreground/[0.03] light:hover:bg-black/[0.03]"
+                        className="group flex w-full items-start gap-2.5 px-3.5 py-2.5 text-left transition-colors hover:bg-wash"
                       >
-                        <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-foreground/[0.06] text-muted-foreground light:bg-black/[0.05]">
+                        <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-wash text-muted-foreground">
                           <NotificationKindIcon kind={n.kind} />
                         </div>
                         <div className="min-w-0 flex-1">

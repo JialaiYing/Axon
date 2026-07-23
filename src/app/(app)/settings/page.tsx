@@ -325,8 +325,8 @@ export default function SettingsPage() {
                       className={cn(
                         "rounded-md border p-3 text-left transition-colors",
                         selected
-                          ? "border-border/60 bg-foreground/[0.08] light:border-border light:bg-black/[0.06]"
-                          : "border-border/50 hover:bg-foreground/[0.03] light:border-border light:hover:bg-black/[0.03]",
+                          ? "border-border/60 bg-wash-strong light:border-border"
+                          : "border-border/50 hover:bg-wash light:border-border",
                         !unlocked && "cursor-not-allowed opacity-50 hover:bg-transparent"
                       )}
                     >

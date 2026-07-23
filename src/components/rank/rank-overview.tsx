@@ -77,8 +77,8 @@ function RankLadder({ level }: { level: number }) {
               className={cn(
                 "flex flex-col gap-2 rounded-md px-3 py-2.5 transition-colors duration-200 sm:flex-row sm:items-center sm:justify-between",
                 isCurrentRank
-                  ? "bg-foreground/[0.08] light:bg-black/[0.06]"
-                  : "hover:bg-foreground/[0.03] light:hover:bg-black/[0.03]"
+                  ? "bg-wash-strong"
+                  : "hover:bg-wash"
               )}
             >
               <div className="flex items-center gap-2.5">
@@ -121,13 +121,13 @@ function RankLadder({ level }: { level: number }) {
                         "flex h-6 min-w-6 items-center justify-center rounded-md px-1.5 font-mono text-[11px] font-semibold tabular-nums transition-colors duration-200",
                         state === "done" &&
                           cn(
-                            "bg-foreground/[0.06] light:bg-black/[0.05]",
+                            "bg-wash",
                             metal,
                             "opacity-70"
                           ),
                         state === "current" &&
                           cn(
-                            "bg-foreground/[0.1] ring-1 ring-inset ring-foreground/15 light:bg-black/[0.08] light:ring-black/10",
+                            "bg-wash-strong ring-1 ring-inset ring-foreground/15 light:ring-black/10",
                             metal
                           ),
                         state === "locked" && "text-muted-foreground/35"
