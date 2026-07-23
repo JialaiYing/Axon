@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { CheckCircle2, Flame, Target, Timer } from "lucide-react";
+import { CheckCircle2, Target, Timer } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { StreakFlame } from "@/components/ui/streak-flame";
 
 export interface SessionSummaryStats {
   focusedMinutes: number;
@@ -49,8 +50,8 @@ export function SessionSummaryDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-md border border-border bg-surface text-muted-foreground">
-            <CheckCircle2 className="h-4.5 w-4.5" />
+          <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-md border border-border/50 text-muted-foreground light:border-border">
+            <CheckCircle2 className="h-4 w-4" />
           </div>
           <DialogTitle>Session complete</DialogTitle>
           <DialogDescription>
@@ -75,7 +76,7 @@ export function SessionSummaryDialog({
             value={String(stats.tasksDoneToday)}
           />
           <SummaryTile
-            icon={<Flame className="h-3.5 w-3.5" />}
+            icon={<StreakFlame days={stats.streakDays} size="sm" />}
             label="Streak"
             value={`${stats.streakDays} day${stats.streakDays === 1 ? "" : "s"}`}
           />
@@ -84,7 +85,7 @@ export function SessionSummaryDialog({
         <p className="text-xs leading-relaxed text-muted-foreground">{streakNudge}</p>
 
         <DialogFooter>
-          <Button onClick={onContinue} className="w-full sm:w-auto">
+          <Button onClick={onContinue} className="w-full shadow-none sm:w-auto">
             Continue
           </Button>
         </DialogFooter>
@@ -103,12 +104,12 @@ function SummaryTile({
   value: string;
 }) {
   return (
-    <div className="rounded-lg border border-border bg-surface/60 px-3 py-2.5">
-      <p className="flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+    <div className="rounded-md border border-border/50 px-3 py-2.5 light:border-border">
+      <p className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
         {icon}
         {label}
       </p>
-      <p className="mt-1 font-mono text-sm font-semibold tabular-nums text-foreground">{value}</p>
+      <p className="mt-1 font-mono text-[13px] font-semibold tabular-nums text-foreground">{value}</p>
     </div>
   );
 }

@@ -6,7 +6,6 @@ import Tilt from "react-parallax-tilt";
 import CountUp from "react-countup";
 import {
   Circle,
-  Flame,
   Gauge,
   ListTodo,
   Repeat,
@@ -17,6 +16,7 @@ import {
 } from "lucide-react";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { ScrollReveal, ScrollRevealGroup, ScrollRevealItem } from "@/components/ui/scroll-reveal";
+import { StreakFlame } from "@/components/ui/streak-flame";
 import { cn } from "@/lib/utils";
 import { DURATION, EASE } from "@/lib/motion";
 
@@ -34,12 +34,19 @@ const UP_NEXT = [
   { title: "Office hours prep", priority: "high" },
 ];
 
+const DEMO_STREAK = 12;
+
 const STATS = [
-  { label: "Streak", value: 12, suffix: " days", icon: Flame, iconClass: "text-warning" },
+  {
+    label: "Streak",
+    value: DEMO_STREAK,
+    suffix: " days",
+    iconNode: <StreakFlame days={DEMO_STREAK} size="sm" animated={false} />,
+  },
   { label: "Focus today", value: 96, suffix: " min", icon: Timer, iconClass: "text-accent" },
   { label: "Intervals", value: 34, suffix: "", icon: Repeat, iconClass: "text-foreground/60" },
   { label: "Productivity", value: 82, suffix: "%", icon: Gauge, iconClass: "text-foreground/60" },
-];
+] as const;
 
 const PRIORITY_DOT: Record<string, string> = {
   high: "bg-danger",
@@ -113,7 +120,7 @@ function PreviewChrome({
               </div>
               <div className="flex items-center gap-2 rounded-lg border border-border bg-background px-2.5 py-1">
                 <span className="flex items-center gap-1.5 text-[11px] font-medium text-foreground">
-                  <Flame className="h-3.5 w-3.5 text-warning" />
+                  <StreakFlame days={DEMO_STREAK} size="sm" animated={false} />
                   12-day streak
                 </span>
                 <span className="h-3 w-px bg-border" aria-hidden />
@@ -216,7 +223,15 @@ function PreviewChrome({
                     <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-foreground/60">
                       {stat.label}
                     </p>
-                    <stat.icon className={cn("h-3.5 w-3.5", stat.iconClass)} />
+                    {"iconNode" in stat && stat.iconNode
+                      ? stat.iconNode
+                      : "icon" in stat && stat.icon
+                        ? (
+                            <stat.icon
+                              className={cn("h-3.5 w-3.5", "iconClass" in stat ? stat.iconClass : undefined)}
+                            />
+                          )
+                        : null}
                   </div>
                   <p className="mt-3 text-lg font-semibold tabular-nums text-foreground">
                     {prefersReducedMotion ? (
@@ -263,7 +278,7 @@ function PreviewChrome({
             <div className="rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-elevation-2)]">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2.5">
-                  <Trophy className="h-6 w-6 shrink-0 text-foreground/70" />
+                  <Trophy className="h-6 w-6 shrink-0 text-warning" />
                   <div>
                     <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-foreground/60">
                       Current rank

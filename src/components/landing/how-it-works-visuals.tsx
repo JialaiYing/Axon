@@ -1,5 +1,4 @@
 import {
-  Flame,
   Gauge,
   History,
   Layers,
@@ -17,6 +16,7 @@ import {
   Trophy,
 } from "lucide-react";
 import { ProgressBar } from "@/components/ui/progress-bar";
+import { StreakFlame } from "@/components/ui/streak-flame";
 import { cn } from "@/lib/utils";
 
 /** Fills the chrome frame; tight padding so content fills the frame. */
@@ -396,7 +396,11 @@ function FlashcardsVisual() {
 function AnalyticsVisual() {
   const bars = [38, 62, 45, 78, 70, 88, 74];
   const stats = [
-    { label: "Streak", value: "12 days", icon: Flame, iconClass: "text-warning" },
+    {
+      label: "Streak",
+      value: "12 days",
+      iconNode: <StreakFlame days={12} size="xs" animated={false} />,
+    },
     { label: "Focus today", value: "96 min", icon: Timer, iconClass: "text-accent" },
     { label: "Intervals", value: "34", icon: Repeat, iconClass: "text-foreground/60" },
     { label: "Productivity", value: "82%", icon: Gauge, iconClass: "text-foreground/60" },
@@ -420,7 +424,16 @@ function AnalyticsVisual() {
               <p className="text-[9px] font-medium uppercase tracking-[0.14em] text-foreground/60">
                 {stat.label}
               </p>
-              <stat.icon className={cn("h-3 w-3 shrink-0", stat.iconClass)} aria-hidden />
+              {"iconNode" in stat && stat.iconNode
+                ? stat.iconNode
+                : "icon" in stat && stat.icon
+                  ? (
+                      <stat.icon
+                        className={cn("h-3 w-3 shrink-0", "iconClass" in stat ? stat.iconClass : undefined)}
+                        aria-hidden
+                      />
+                    )
+                  : null}
             </div>
             <p className="mt-2 text-sm font-semibold tabular-nums tracking-tight text-foreground">
               {stat.value}
@@ -462,7 +475,7 @@ function AnalyticsVisual() {
       <div className="rounded-[var(--radius-md)] border border-border bg-card p-2.5 shadow-[var(--shadow-elevation-1)]">
         <div className="flex items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2">
-            <Trophy className="h-5 w-5 shrink-0 text-foreground/70" aria-hidden />
+            <Trophy className="h-5 w-5 shrink-0 text-warning" aria-hidden />
             <div className="min-w-0">
               <p className="text-[9px] font-medium uppercase tracking-[0.14em] text-foreground/60">
                 Current rank

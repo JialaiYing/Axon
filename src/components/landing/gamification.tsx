@@ -1,7 +1,8 @@
-import { Flame, Trophy, Star, Sparkles, Target } from "lucide-react";
+import { Trophy, Star, Sparkles, Target } from "lucide-react";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
 import { ScrollReveal, ScrollRevealGroup, ScrollRevealItem } from "@/components/ui/scroll-reveal";
+import { StreakFlame } from "@/components/ui/streak-flame";
 
 /**
  * Landing “Progress you can actually see” — right column mirrors the real
@@ -30,11 +31,11 @@ export function Gamification() {
               XP earned per completed objective and session
             </li>
             <li className="flex items-center gap-2.5">
-              <Flame className="h-4 w-4 shrink-0 text-white/80" aria-hidden />
+              <StreakFlame days={12} size="sm" animated={false} className="shrink-0" />
               Daily and weekly streaks tracked automatically
             </li>
             <li className="flex items-center gap-2.5">
-              <Trophy className="h-4 w-4 shrink-0 text-white/80" aria-hidden />
+              <Trophy className="h-4 w-4 shrink-0 text-warning" aria-hidden />
               Ranks and milestones unlocked from real activity
             </li>
           </ul>
@@ -46,7 +47,7 @@ export function Gamification() {
             <div className="rounded-[var(--radius-lg)] border border-border bg-card p-5 shadow-[var(--shadow-elevation-2)] sm:p-6">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-3.5">
-                  <Trophy className="h-8 w-8 shrink-0 text-foreground/70" aria-hidden />
+                  <Trophy className="h-8 w-8 shrink-0 text-warning" aria-hidden />
                   <div>
                     <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-foreground/60">
                       Current rank
@@ -105,7 +106,7 @@ export function Gamification() {
               <ScrollRevealGroup className="grid grid-cols-3 gap-2 sm:grid-cols-1" stagger={0.08}>
                 <ScrollRevealItem>
                   <div className="rounded-[var(--radius-lg)] border border-border bg-card p-3 text-center shadow-[var(--shadow-elevation-1)] sm:flex sm:items-center sm:gap-2.5 sm:text-left">
-                    <Flame className="mx-auto h-4 w-4 text-warning sm:mx-0" aria-hidden />
+                    <StreakFlame days={12} size="md" animated={false} className="mx-auto sm:mx-0" />
                     <div>
                       <p className="text-sm font-semibold tabular-nums text-foreground">
                         <AnimatedCounter value={12} />
@@ -116,7 +117,7 @@ export function Gamification() {
                 </ScrollRevealItem>
                 <ScrollRevealItem>
                   <div className="rounded-[var(--radius-lg)] border border-border bg-card p-3 text-center shadow-[var(--shadow-elevation-1)] sm:flex sm:items-center sm:gap-2.5 sm:text-left">
-                    <Trophy className="mx-auto h-4 w-4 text-foreground/70 sm:mx-0" aria-hidden />
+                    <Trophy className="mx-auto h-4 w-4 text-warning sm:mx-0" aria-hidden />
                     <div>
                       <p className="text-sm font-semibold tabular-nums text-foreground">
                         <AnimatedCounter value={9} />

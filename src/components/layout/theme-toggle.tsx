@@ -2,6 +2,7 @@
 
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "@/components/providers/theme-provider";
+import { headerIconButtonClass } from "@/components/layout/header-chrome";
 import { cn } from "@/lib/utils";
 
 export function ThemeToggle() {
@@ -15,10 +16,7 @@ export function ThemeToggle() {
       title={isDark ? "Switch to light theme" : "Switch to dark theme"}
       onClick={() => setTheme(isDark ? "light" : "dark")}
       disabled={!hydrated}
-      className={cn(
-        "flex h-8 w-8 items-center justify-center rounded-md text-muted transition-all duration-200",
-        "hover:bg-card hover:text-foreground active:scale-90 disabled:opacity-0"
-      )}
+      className={cn(headerIconButtonClass(false), "disabled:opacity-0")}
     >
       {isDark ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
     </button>

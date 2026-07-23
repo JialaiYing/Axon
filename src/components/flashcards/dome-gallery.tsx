@@ -728,10 +728,7 @@ export default function DomeGallery({
                 style={{ opacity: 0 }}
               >
                 {column.folder && (
-                  <span
-                    className="sphere-face__label-dot"
-                    style={{ backgroundColor: column.folder.color }}
-                  />
+                  <span className="sphere-face__label-dot" />
                 )}
                 <span className="sphere-face__label-text">{column.label}</span>
                 {column.folder && onHideFolder && (

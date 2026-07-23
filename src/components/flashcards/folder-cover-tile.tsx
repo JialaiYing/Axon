@@ -1,63 +1,92 @@
 "use client";
 
-import * as React from "react";
+import { Folder } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type FolderCoverSize = "sm" | "md" | "lg";
 
 interface FolderCoverTileProps {
   title: string;
-  color: string;
   imageSrc?: string;
   setCount?: number;
   size?: FolderCoverSize;
   className?: string;
 }
 
-/** Icon fills ~80% of the tile width so covers are easy to see. */
-const ICON: Record<FolderCoverSize, string> = {
+const MARK: Record<FolderCoverSize, string> = {
   sm: "h-5 w-5",
-  md: "aspect-square w-[80%]",
-  lg: "aspect-square w-[80%] max-w-[11rem]",
+  md: "h-9 w-9",
+  lg: "h-14 w-14",
 };
 
-/** Full folder silhouette used for fill + image clip. */
-const FOLDER_PATH =
-  "M3.5 7.25c0-.97.78-1.75 1.75-1.75h4.12c.4 0 .78.14 1.09.39l1.14.93c.31.25.69.39 1.09.39h6.06c.97 0 1.75.78 1.75 1.75V17.5c0 .97-.78 1.75-1.75 1.75H5.25c-.97 0-1.75-.78-1.75-1.75V7.25Z";
+const FOLDER_ICON: Record<FolderCoverSize, string> = {
+  sm: "h-3.5 w-3.5",
+  md: "h-5 w-5",
+  lg: "h-7 w-7",
+};
 
 /**
- * Quizlet-style folder — cover image is clipped to the full folder frame
- * and scaled with object-cover so it fills the icon interior.
+ * Quiet folder mark — outline icon by default, optional cover image.
+ * No per-folder color; identity comes from title + optional cover.
  */
 export function FolderCoverTile({
   title,
-  color,
   imageSrc,
   setCount,
   size = "md",
   className,
 }: FolderCoverTileProps) {
-  const icon = (
+  const mark = (
     <span
-      className={cn("relative inline-flex shrink-0 items-center justify-center", ICON[size])}
-      style={{ color }}
+      className={cn(
+        "relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-md",
+        MARK[size],
+        imageSrc
+          ? "bg-foreground/[0.04] light:bg-black/[0.04]"
+          : "border border-border/50 text-muted-foreground light:border-border"
+      )}
       aria-hidden
     >
-      <FolderGlyph imageSrc={imageSrc} className="h-full w-full" />
+      {imageSrc ? (
+        // eslint-disable-next-line @next/next/no-img-element -- local/data-url covers
+        <img src={imageSrc} alt="" className="h-full w-full object-cover" />
+      ) : (
+        <Folder className={FOLDER_ICON[size]} strokeWidth={1.5} />
+      )}
     </span>
   );
 
   if (size === "sm") {
-    return <span className={cn("inline-flex", className)}>{icon}</span>;
+    return (
+      <span className={cn("inline-flex items-center", className)}>
+        {imageSrc ? (
+          mark
+        ) : (
+          <Folder
+            className="h-3.5 w-3.5 shrink-0 text-muted-foreground"
+            strokeWidth={1.5}
+            aria-hidden
+          />
+        )}
+      </span>
+    );
   }
 
+  const centered = size === "lg";
+
   return (
-    <div className={cn("flex w-full flex-col items-center text-center", className)}>
-      {icon}
+    <div
+      className={cn(
+        "flex w-full",
+        centered ? "flex-col items-center text-center" : "flex-col items-start text-left",
+        className
+      )}
+    >
+      {mark}
       <p
         className={cn(
-          "mt-2 w-full truncate text-foreground",
-          size === "lg" ? "text-base font-semibold" : "text-sm font-medium"
+          "w-full truncate text-foreground",
+          centered ? "mt-3 text-base font-semibold" : "mt-2 text-[13px] font-medium"
         )}
       >
         {title || "Untitled"}
@@ -68,64 +97,5 @@ export function FolderCoverTile({
         </p>
       )}
     </div>
-  );
-}
-
-function FolderGlyph({
-  imageSrc,
-  className,
-}: {
-  imageSrc?: string;
-  className?: string;
-}) {
-  const rawId = React.useId();
-  const clipId = `folder-shape-${rawId.replace(/:/g, "")}`;
-
-  return (
-    <svg viewBox="0 0 24 24" className={className} aria-hidden>
-      <defs>
-        <clipPath id={clipId}>
-          <path d={FOLDER_PATH} />
-        </clipPath>
-      </defs>
-
-      {imageSrc ? (
-        <>
-          {/* Image fills the entire folder silhouette */}
-          <image
-            href={imageSrc}
-            x="3.5"
-            y="5.5"
-            width="17"
-            height="13.75"
-            clipPath={`url(#${clipId})`}
-            preserveAspectRatio="xMidYMid slice"
-          />
-          {/* Light veil so busy photos still read as a folder */}
-          <path d={FOLDER_PATH} fill="currentColor" opacity="0.12" />
-        </>
-      ) : (
-        <path d={FOLDER_PATH} fill="currentColor" opacity="0.96" />
-      )}
-
-      {/* Crisp outline — keeps the frame readable with or without a cover */}
-      <path
-        d={FOLDER_PATH}
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1"
-        strokeLinejoin="round"
-        opacity={imageSrc ? 0.75 : 0.4}
-      />
-
-      {/* Tab crease for depth */}
-      <path
-        d="M3.5 9.35h17"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="0.7"
-        opacity={imageSrc ? 0.35 : 0.25}
-      />
-    </svg>
   );
 }

@@ -1,0 +1,213 @@
+"use client";
+
+/**
+ * BACKUP — pre–Linear-inspired sidebar (restore this file over sidebar.tsx to revert).
+ * Created 2026-07-23 alongside the Linear sidebar pass.
+ */
+
+import * as React from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { ChevronDown, PanelLeftClose, PanelLeftOpen, Settings } from "lucide-react";
+import { AxonLogo } from "@/components/brand/axon-logo";
+import { NAV_PRIMARY, NAV_PROGRESS } from "@/constants/navigation";
+import { cn } from "@/lib/utils";
+
+interface SidebarProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+/** Inactive nav chrome — full black in light mode, full foreground in dark. */
+const navIdle = "text-foreground light:text-black";
+const navIdleMuted = "text-foreground light:text-black";
+
+export function Sidebar({ open, onOpenChange }: SidebarProps) {
+  const pathname = usePathname();
+  const progressActive = NAV_PROGRESS.children.some((c) => c.href === pathname);
+  const [progressOpen, setProgressOpen] = React.useState(progressActive);
+
+  React.useEffect(() => {
+    if (progressActive) setProgressOpen(true);
+  }, [progressActive]);
+
+  return (
+    <aside
+      className={cn(
+        "fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-border/50 bg-surface shadow-[var(--shadow-elevation-2)] transition-[width] duration-300 ease-out md:flex light:border-border/40 light:shadow-none",
+        open ? "w-[200px]" : "w-16"
+      )}
+    >
+      <Link
+        href="/dashboard"
+        aria-label="Axon dashboard"
+        className={cn(
+          "flex h-14 shrink-0 items-center border-b border-border/50 light:border-border/40",
+          open ? "px-3" : "justify-center px-0"
+        )}
+      >
+        <AxonLogo
+          withWordmark={open}
+          iconClassName="h-7 w-7"
+          wordmarkClassName="text-sm text-foreground light:text-black"
+        />
+      </Link>
+
+      <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-2.5 py-4 scrollbar-none">
+        {NAV_PRIMARY.map((item) => {
+          const isActive = pathname === item.href;
+          const Icon = item.icon;
+          const iconColor = isActive ? "text-accent" : navIdle;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              title={open ? undefined : item.label}
+              aria-current={isActive ? "page" : undefined}
+              data-xp-target={item.href === "/dashboard" ? "dashboard" : undefined}
+              className={cn(
+                "flex h-10 items-center gap-3 rounded-lg text-sm font-medium transition-all duration-200",
+                open ? "px-3" : "justify-center px-0",
+                isActive
+                  ? "bg-accent-muted/60 text-foreground light:bg-accent-muted light:text-accent"
+                  : cn(navIdle, "hover:bg-card-hover hover:text-foreground light:hover:text-black"),
+                item.href === "/dashboard" && "data-[xp-pulse=true]:scale-110 data-[xp-pulse=true]:bg-accent-muted/80"
+              )}
+            >
+              <Icon className={cn("h-[18px] w-[18px] shrink-0", iconColor)} />
+              {open && <span className="truncate whitespace-nowrap">{item.label}</span>}
+            </Link>
+          );
+        })}
+
+        <div className="mt-1">
+          {open ? (
+            <>
+              <button
+                type="button"
+                onClick={() => setProgressOpen((v) => !v)}
+                className={cn(
+                  "flex h-10 w-full items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors duration-200",
+                  progressActive
+                    ? "bg-accent-muted/50 text-foreground light:bg-accent-muted/50 light:text-accent"
+                    : cn(navIdle, "hover:bg-card-hover hover:text-foreground light:hover:text-black")
+                )}
+                aria-expanded={progressOpen}
+              >
+                <NAV_PROGRESS.icon
+                  className={cn(
+                    "h-[18px] w-[18px] shrink-0",
+                    progressActive ? "text-accent" : navIdle
+                  )}
+                />
+                <span className="min-w-0 flex-1 truncate text-left">{NAV_PROGRESS.label}</span>
+                <ChevronDown
+                  className={cn(
+                    "h-3.5 w-3.5 shrink-0 transition-transform",
+                    progressOpen && "rotate-180",
+                    progressActive ? "text-accent" : navIdle
+                  )}
+                />
+              </button>
+              {progressOpen && (
+                <div className="ml-3 mt-0.5 flex flex-col gap-0.5 border-l border-border/50 pl-2">
+                  {NAV_PROGRESS.children.map((child) => {
+                    const isActive = pathname === child.href;
+                    const Icon = child.icon;
+                    const iconColor =
+                      child.href === "/rank"
+                        ? "text-warning"
+                        : isActive
+                          ? "text-accent"
+                          : navIdle;
+                    return (
+                      <Link
+                        key={child.href}
+                        href={child.href}
+                        aria-current={isActive ? "page" : undefined}
+                        className={cn(
+                          "flex h-9 items-center gap-2.5 rounded-lg px-2.5 text-sm font-medium transition-colors",
+                          isActive
+                            ? "bg-accent-muted/60 text-foreground light:bg-accent-muted light:text-accent"
+                            : cn(navIdle, "hover:bg-card-hover hover:text-foreground light:hover:text-black")
+                        )}
+                      >
+                        <Icon className={cn("h-4 w-4 shrink-0", iconColor)} />
+                        <span className="truncate">{child.label}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          ) : (
+            <Link
+              href={NAV_PROGRESS.href}
+              title="Progress"
+              aria-current={progressActive ? "page" : undefined}
+              className={cn(
+                "flex h-10 items-center justify-center rounded-lg text-sm font-medium transition-colors duration-200",
+                progressActive
+                  ? "bg-accent-muted/60 text-foreground light:bg-accent-muted light:text-accent"
+                  : cn(navIdle, "hover:bg-card-hover hover:text-foreground light:hover:text-black")
+              )}
+            >
+              <NAV_PROGRESS.icon
+                className={cn(
+                  "h-[18px] w-[18px] shrink-0",
+                  progressActive ? "text-accent" : navIdle
+                )}
+              />
+            </Link>
+          )}
+        </div>
+      </nav>
+
+      <div className="shrink-0 border-t border-border/50 p-2.5">
+        <Link
+          href="/settings"
+          title={open ? undefined : "Settings"}
+          aria-label="Settings"
+          aria-current={pathname === "/settings" ? "page" : undefined}
+          className={cn(
+            "mb-1 flex h-10 w-full items-center gap-3 rounded-lg text-sm font-medium transition-colors duration-200",
+            open ? "px-3" : "justify-center px-0",
+            pathname === "/settings"
+              ? "bg-accent-muted/60 text-foreground light:bg-accent-muted light:text-accent"
+              : cn(navIdle, "hover:bg-card-hover hover:text-foreground light:hover:text-black")
+          )}
+        >
+          <Settings
+            className={cn(
+              "h-[18px] w-[18px] shrink-0",
+              pathname === "/settings" ? "text-accent" : navIdleMuted
+            )}
+          />
+          {open && <span className="whitespace-nowrap">Settings</span>}
+        </Link>
+        <button
+          type="button"
+          onClick={() => onOpenChange(!open)}
+          title={open ? "Collapse sidebar" : "Expand sidebar"}
+          aria-label={open ? "Collapse sidebar" : "Expand sidebar"}
+          aria-expanded={open}
+          className={cn(
+            "flex h-10 w-full items-center gap-3 rounded-lg text-sm font-medium transition-colors duration-200 hover:bg-card-hover",
+            open ? "px-3" : "justify-center px-0",
+            navIdle,
+            "light:hover:text-black"
+          )}
+        >
+          {open ? (
+            <>
+              <PanelLeftClose className={cn("h-[18px] w-[18px] shrink-0", navIdleMuted)} />
+              <span className="whitespace-nowrap">Collapse</span>
+            </>
+          ) : (
+            <PanelLeftOpen className={cn("h-[18px] w-[18px] shrink-0", navIdleMuted)} />
+          )}
+        </button>
+      </div>
+    </aside>
+  );
+}

@@ -37,12 +37,12 @@ export function FinalCTA() {
             autoAnimate={false}
             onClick={() => router.push("/login?mode=signup")}
           >
-            Create account
+            Get started
           </SpecularButton>
         </div>
         {/* Keep crawlable link for no-JS / a11y fallback */}
         <Link href="/login?mode=signup" className="sr-only">
-          Create account
+          Get started
         </Link>
       </ScrollReveal>
     </section>

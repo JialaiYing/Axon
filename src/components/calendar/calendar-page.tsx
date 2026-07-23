@@ -200,7 +200,7 @@ export function CalendarPage() {
             initial={prefersReducedMotion ? undefined : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: prefersReducedMotion ? 0 : DURATION.section, ease: EASE }}
-            className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_280px]"
+            className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_260px]"
           >
             <div className="min-w-0">
               <AnimatePresence mode="wait">
@@ -260,12 +260,12 @@ export function CalendarPage() {
               <button
                 type="button"
                 onClick={() => setMobileRailOpen((open) => !open)}
-                className="flex items-center justify-between rounded-lg border border-border bg-card px-3.5 py-2.5 text-left lg:hidden"
+                className="flex items-center justify-between rounded-md border border-border/50 px-3 py-2 text-left light:border-border light:bg-card lg:hidden"
                 aria-expanded={mobileRailOpen}
               >
-                <span className="text-sm font-medium text-foreground">
+                <span className="text-[13px] font-medium text-foreground">
                   Agenda
-                  <span className="ml-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+                  <span className="ml-1.5 font-mono text-[11px] font-medium text-muted-foreground">
                     · {unscheduledCount} unscheduled
                   </span>
                 </span>
@@ -278,7 +278,7 @@ export function CalendarPage() {
               </button>
               <div
                 className={cn(
-                  "flex flex-col gap-4",
+                  "flex flex-col gap-3",
                   mobileRailOpen ? "flex" : "hidden lg:flex"
                 )}
               >

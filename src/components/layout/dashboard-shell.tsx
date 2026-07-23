@@ -47,7 +47,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         <div
           className={cn(
             "relative z-10 flex h-full w-full flex-col transition-[padding-left] duration-300 ease-out",
-            !hideSidebar && (sidebarOpen ? "md:pl-[200px]" : "md:pl-16")
+            !hideSidebar && (sidebarOpen ? "md:pl-[200px]" : "md:pl-14")
           )}
         >
           <Header />

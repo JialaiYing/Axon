@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { CalendarClock, Clock3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,8 @@ function nextHalfHour(from: Date): Date {
   return d;
 }
 
+const POPOVER_WIDTH = 288; // w-72
+
 export function SchedulePopover({
   objective,
   onSchedule,
@@ -45,7 +48,10 @@ export function SchedulePopover({
   className,
 }: SchedulePopoverProps) {
   const [open, setOpen] = React.useState(false);
+  const [mounted, setMounted] = React.useState(false);
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const panelRef = React.useRef<HTMLFormElement>(null);
+  const [coords, setCoords] = React.useState<{ top: number; left: number } | null>(null);
   const isScheduled = Boolean(objective.scheduledStart);
 
   const initialAnchor = React.useMemo(() => {
@@ -62,30 +68,62 @@ export function SchedulePopover({
   const [duration, setDuration] = React.useState(defaultDuration);
   const [error, setError] = React.useState<string | null>(null);
 
-  React.useEffect(() => {
+  React.useEffect(() => setMounted(true), []);
+
+  const updatePosition = React.useCallback(() => {
+    const triggerEl = containerRef.current;
+    if (!triggerEl) return;
+    const rect = triggerEl.getBoundingClientRect();
+    const gap = 8;
+    const left =
+      align === "end"
+        ? Math.min(rect.right - POPOVER_WIDTH, window.innerWidth - POPOVER_WIDTH - 8)
+        : Math.max(8, Math.min(rect.left, window.innerWidth - POPOVER_WIDTH - 8));
+    // Prefer below the trigger; flip above if it would overflow the viewport.
+    const estimatedHeight = 320;
+    const spaceBelow = window.innerHeight - rect.bottom - gap;
+    const top =
+      spaceBelow < estimatedHeight && rect.top > estimatedHeight
+        ? Math.max(8, rect.top - estimatedHeight - gap)
+        : rect.bottom + gap;
+    setCoords({ top, left: Math.max(8, left) });
+  }, [align]);
+
+  React.useLayoutEffect(() => {
     if (!open) return;
     setDate(toDateInputValue(initialAnchor));
     setTime(toTimeInputValue(initialAnchor));
     setDuration(defaultDuration);
     setError(null);
+    updatePosition();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   React.useEffect(() => {
     if (!open) return;
     function onOutside(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      if (containerRef.current?.contains(target)) return;
+      if (panelRef.current?.contains(target)) return;
+      setOpen(false);
     }
     function onEscape(e: KeyboardEvent) {
       if (e.key === "Escape") setOpen(false);
     }
+    function onReposition() {
+      updatePosition();
+    }
     document.addEventListener("mousedown", onOutside);
     document.addEventListener("keydown", onEscape);
+    window.addEventListener("resize", onReposition);
+    window.addEventListener("scroll", onReposition, true);
     return () => {
       document.removeEventListener("mousedown", onOutside);
       document.removeEventListener("keydown", onEscape);
+      window.removeEventListener("resize", onReposition);
+      window.removeEventListener("scroll", onReposition, true);
     };
-  }, [open]);
+  }, [open, updatePosition]);
 
   function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -103,22 +141,21 @@ export function SchedulePopover({
     setOpen(false);
   }
 
-  return (
-    <div ref={containerRef} className={cn("relative inline-flex", className)}>
-      {trigger({ open, toggle: () => setOpen((prev) => !prev) })}
-
+  const panel =
+    mounted &&
+    createPortal(
       <AnimatePresence>
-        {open && (
+        {open && coords && (
           <motion.form
+            key="schedule-popover"
+            ref={panelRef}
             onSubmit={handleSave}
             initial={{ opacity: 0, y: -6, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.97 }}
             transition={{ duration: 0.16, ease: [0.21, 0.47, 0.32, 0.98] }}
-            className={cn(
-              "absolute top-full z-50 mt-2 w-72 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-overlay)]",
-              align === "end" ? "right-0" : "left-0"
-            )}
+            style={{ position: "fixed", top: coords.top, left: coords.left, width: POPOVER_WIDTH }}
+            className="z-[80] rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-overlay)]"
           >
             <p className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-foreground">
               <CalendarClock className="h-3.5 w-3.5 text-accent" />
@@ -200,7 +237,14 @@ export function SchedulePopover({
             </div>
           </motion.form>
         )}
-      </AnimatePresence>
+      </AnimatePresence>,
+      document.body
+    );
+
+  return (
+    <div ref={containerRef} className={cn("relative inline-flex", className)}>
+      {trigger({ open, toggle: () => setOpen((prev) => !prev) })}
+      {panel}
     </div>
   );
 }

@@ -32,11 +32,11 @@ export function TimerControls({
   if (showRestart) {
     return (
       <div className="flex items-center gap-2">
-        <Button size="sm" onClick={onRestart}>
+        <Button size="sm" onClick={onRestart} className="shadow-none">
           <RotateCcw className="h-3.5 w-3.5" />
           Restart
         </Button>
-        <Button size="sm" variant="outline" onClick={onStop}>
+        <Button size="sm" variant="outline" onClick={onStop} className="shadow-none">
           <Square className="h-3.5 w-3.5" />
           Stop
         </Button>
@@ -47,17 +47,17 @@ export function TimerControls({
   return (
     <div className="flex items-center gap-2">
       {status === "running" ? (
-        <Button size="sm" variant="secondary" onClick={onPause}>
+        <Button size="sm" variant="secondary" onClick={onPause} className="shadow-none">
           <Pause className="h-3.5 w-3.5" />
           Pause
         </Button>
       ) : (
-        <Button size="sm" onClick={onResume}>
+        <Button size="sm" onClick={onResume} className="shadow-none">
           <Play className="h-3.5 w-3.5" />
           Resume
         </Button>
       )}
-      <Button size="sm" variant="outline" onClick={onStop}>
+      <Button size="sm" variant="outline" onClick={onStop} className="shadow-none">
         <Square className="h-3.5 w-3.5" />
         Stop
       </Button>

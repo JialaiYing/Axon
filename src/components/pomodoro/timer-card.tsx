@@ -1,10 +1,9 @@
 "use client";
 
 import { Target, Coffee, Maximize2 } from "lucide-react";
-import { Panel } from "@/components/ui/panel";
-import { Badge } from "@/components/ui/badge";
 import { TimerDisplay } from "@/components/pomodoro/timer-display";
 import { TimerControls } from "@/components/pomodoro/timer-controls";
+import { cn } from "@/lib/utils";
 import type { PomodoroTimerInstance } from "@/types";
 
 interface TimerCardProps {
@@ -33,25 +32,30 @@ export function TimerCard({
   const showPausedBadge = timer.status === "paused" && !atFullDuration;
 
   return (
-    <Panel variant="glass" className="relative flex flex-col items-center gap-4 p-6">
+    <div className="relative flex min-w-0 flex-col items-center gap-3 overflow-hidden rounded-md border border-border/50 bg-card p-4 shadow-none light:border-border">
       <div className="flex w-full items-center justify-between gap-2">
-        <Badge variant={timer.source === "objective" ? "accent" : "default"} className="gap-1">
+        <span
+          className={cn(
+            "inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium",
+            "bg-foreground/[0.06] text-muted-foreground light:bg-black/[0.05]"
+          )}
+        >
           {timer.source === "objective" ? (
             <Target className="h-3 w-3" />
           ) : (
             <Coffee className="h-3 w-3" />
           )}
           {timer.source === "objective" ? "Objective" : "Personal"}
-        </Badge>
+        </span>
 
         <div className="flex items-center gap-1.5">
           {timer.hasCompletedRun && atFullDuration && (
-            <span className="rounded-pill bg-success-muted px-2 py-0.5 text-[10px] font-medium text-success">
+            <span className="rounded-md bg-success-muted px-2 py-0.5 text-[10px] font-medium text-success">
               Ready
             </span>
           )}
           {showPausedBadge && (
-            <span className="rounded-pill bg-surface px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+            <span className="rounded-md bg-foreground/[0.06] px-2 py-0.5 text-[10px] font-medium text-muted-foreground light:bg-black/[0.05]">
               Paused
             </span>
           )}
@@ -61,7 +65,7 @@ export function TimerCard({
               aria-label="Open focus mode"
               title="Focus mode"
               onClick={onFullscreen}
-              className="flex h-7 w-7 items-center justify-center rounded-md text-muted transition-all duration-200 hover:bg-surface hover:text-foreground active:scale-90"
+              className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-foreground/[0.06] hover:text-foreground active:scale-90 light:hover:bg-black/[0.04]"
             >
               <Maximize2 className="h-3.5 w-3.5" />
             </button>
@@ -70,7 +74,7 @@ export function TimerCard({
       </div>
 
       <p
-        className="w-full truncate px-1 text-center text-sm font-semibold tracking-tight text-foreground"
+        className="w-full truncate px-1 text-center text-[13px] font-medium tracking-tight text-foreground"
         title={timer.label}
       >
         {timer.label}
@@ -89,6 +93,6 @@ export function TimerCard({
         onStop={onStop}
         onRestart={onRestart}
       />
-    </Panel>
+    </div>
   );
 }

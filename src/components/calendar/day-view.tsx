@@ -41,9 +41,9 @@ export function DayView({ currentDate, ...actions }: DayViewProps) {
             </span>
             <span
               className={cn(
-                "flex h-7 min-w-7 items-center justify-center rounded-full px-1.5 font-mono text-sm font-semibold tabular-nums",
+                "flex h-6 min-w-6 items-center justify-center rounded-full px-1.5 font-mono text-[13px] font-semibold tabular-nums",
                 isSameDay(day, now)
-                  ? "bg-accent text-accent-foreground"
+                  ? "bg-foreground text-background light:bg-black light:text-white"
                   : "text-foreground"
               )}
             >

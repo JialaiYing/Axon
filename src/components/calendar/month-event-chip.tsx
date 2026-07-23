@@ -98,16 +98,16 @@ export function MonthEventChip({
         onMouseEnter={() => onHover(objective.id)}
         onMouseLeave={() => onHover(null)}
         className={cn(
-          "flex w-full cursor-grab items-center gap-1 rounded-md border border-l-[3px] px-1.5 py-0.5 text-left text-[10px] font-medium leading-tight transition-colors duration-150 active:cursor-grabbing",
+          "flex w-full cursor-grab items-center gap-1 rounded-sm border-0 border-l-[2px] bg-transparent px-1 py-0.5 text-left text-[10px] font-medium leading-tight transition-colors duration-150 active:cursor-grabbing",
           isDone
-            ? "border-success/40 bg-success-muted text-foreground"
+            ? "border-success/50 bg-success-muted/60 text-foreground"
             : isPast
-              ? "border-warning/40 bg-warning-muted text-foreground"
-              : "border-border-strong bg-card-hover text-foreground hover:bg-foreground/[0.08]",
+              ? "border-warning/50 bg-warning-muted/60 text-foreground"
+              : "border-border text-foreground hover:bg-foreground/[0.05] light:hover:bg-black/[0.04]",
           isDragging && "opacity-50",
-          isHovered && !isDone && !isPast && "bg-foreground/[0.08]",
-          isLive && "border-accent/50 bg-accent-muted",
-          expanded && "ring-1 ring-border-strong"
+          isHovered && !isDone && !isPast && "bg-foreground/[0.05] light:bg-black/[0.04]",
+          isLive && "border-accent/50 bg-accent-muted/60",
+          expanded && "bg-foreground/[0.06] light:bg-black/[0.05]"
         )}
         style={{
           transform: transform ? CSS.Translate.toString(transform) : undefined,

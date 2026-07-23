@@ -17,7 +17,7 @@ import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { motion, useReducedMotion } from "framer-motion";
 import { Kanban, RotateCcw, SearchX } from "lucide-react";
 import { AppPage } from "@/components/layout/app-page";
-import { EASE, STAGGER } from "@/lib/motion";
+import { EASE } from "@/lib/motion";
 import { KanbanColumn } from "@/components/kanban/kanban-column";
 import { KanbanCard } from "@/components/kanban/kanban-card";
 import { KanbanToolbar } from "@/components/kanban/kanban-toolbar";
@@ -25,7 +25,6 @@ import { ObjectiveDialog } from "@/components/kanban/objective-dialog";
 import { RecycleBinDialog } from "@/components/kanban/recycle-bin-dialog";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Button } from "@/components/ui/button";
 import { KanbanBoardSkeleton } from "@/components/ui/skeleton";
 import { ConfettiBurst } from "@/components/ui/confetti";
 import { KANBAN_COLUMNS } from "@/constants/kanban";
@@ -185,17 +184,21 @@ export function KanbanBoard() {
     <AppPage
       feature="kanban"
       title="Kanban"
-      description="Plan, track, and move your objectives through your study workflow."
+      description="Move objectives from queued to done."
       actions={
-        <Button variant="outline" onClick={() => setRecycleBinOpen(true)}>
-          <RotateCcw className="h-4 w-4" />
+        <button
+          type="button"
+          onClick={() => setRecycleBinOpen(true)}
+          className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-md px-2 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-foreground/[0.04] hover:text-foreground light:hover:bg-black/[0.04]"
+        >
+          <RotateCcw className="h-3.5 w-3.5" />
           Recycle bin
           {recycledObjectives.length > 0 && (
-            <span className="ml-0.5 rounded-pill bg-surface px-1.5 py-0.5 font-mono text-[10px] font-semibold text-muted-foreground">
+            <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
               {recycledObjectives.length}
             </span>
           )}
-        </Button>
+        </button>
       }
       toolbar={
         <KanbanToolbar
@@ -211,17 +214,17 @@ export function KanbanBoard() {
         <KanbanBoardSkeleton />
       ) : isBoardEmpty ? (
         <EmptyState
-          icon={<Kanban className="h-5.5 w-5.5 text-muted" />}
-          title="Create your first objective"
-          description="Queued → In progress → Done. Add a study objective, then drag it across the board as you work."
-          actionLabel="Create first objective"
+          icon={<Kanban className="h-5 w-5 text-muted-foreground" />}
+          title="No objectives yet"
+          description="Add a study objective, then drag it across Queued → In progress → Done."
+          actionLabel="New objective"
           onAction={() => setDialogState({ mode: "create", status: "todo" })}
         />
       ) : isFilterEmpty ? (
         <EmptyState
-          icon={<SearchX className="h-5.5 w-5.5 text-muted" />}
-          title="No objectives match these filters"
-          description="Try a different search term or clear the priority filter to see your board again."
+          icon={<SearchX className="h-5 w-5 text-muted-foreground" />}
+          title="No matches"
+          description="Try a different search or clear the priority filter."
           actionLabel="Clear filters"
           onAction={() => {
             setSearch("");
@@ -237,20 +240,13 @@ export function KanbanBoard() {
           onDragEnd={handleDragEnd}
         >
           <motion.div
-            initial={prefersReducedMotion ? undefined : "hidden"}
-            animate="visible"
-            variants={{ hidden: {}, visible: { transition: { staggerChildren: STAGGER.base } } }}
-            className="grid w-full grid-flow-col auto-cols-[minmax(280px,1fr)] gap-5 overflow-x-auto pb-4 lg:grid-flow-row lg:grid-cols-3"
+            initial={prefersReducedMotion ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: prefersReducedMotion ? 0 : 0.2, ease: EASE }}
+            className="grid w-full grid-flow-col auto-cols-[minmax(260px,1fr)] gap-4 overflow-x-auto pb-3 lg:grid-flow-row lg:grid-cols-3 lg:gap-5"
           >
             {KANBAN_COLUMNS.map((column) => (
-              <motion.div
-                key={column.id}
-                className="min-w-0"
-                variants={{
-                  hidden: { opacity: 0, y: 12, scale: 0.98 },
-                  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.5, ease: EASE } },
-                }}
-              >
+              <div key={column.id} className="min-w-0">
                 <KanbanColumn
                   column={column}
                   objectives={grouped[column.id]}
@@ -261,13 +257,13 @@ export function KanbanBoard() {
                   onSchedule={(objective, input) => scheduleObjective(objective.id, input)}
                   onUnschedule={(objective) => unscheduleObjective(objective.id)}
                 />
-              </motion.div>
+              </div>
             ))}
           </motion.div>
 
           <DragOverlay>
             {activeObjective ? (
-              <div className="w-[300px] md:w-[320px]">
+              <div className="w-[280px] md:w-[300px]">
                 <KanbanCard
                   objective={activeObjective}
                   onEdit={() => {}}

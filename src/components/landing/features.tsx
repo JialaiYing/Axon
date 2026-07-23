@@ -11,6 +11,7 @@ import {
   Trophy,
 } from "lucide-react";
 import { ScrollReveal, ScrollRevealGroup, ScrollRevealItem } from "@/components/ui/scroll-reveal";
+import { cn } from "@/lib/utils";
 
 const FEATURES = [
   {
@@ -79,7 +80,13 @@ export function Features() {
             <ScrollRevealItem key={feature.title} className="h-full">
               <div className="flex h-full min-h-[11rem] flex-col rounded-2xl border border-white/[0.08] bg-white/[0.02] p-5 transition-colors duration-200 hover:border-white/[0.14] hover:bg-white/[0.04]">
                 <span className="mb-3 flex h-9 w-9 items-center justify-center rounded-[var(--radius-sm)] border border-white/12 bg-white/[0.04]">
-                  <feature.icon className="h-4 w-4 text-white/70" aria-hidden />
+                  <feature.icon
+                    className={cn(
+                      "h-4 w-4",
+                      feature.title === "Gamification" ? "text-warning" : "text-white/70"
+                    )}
+                    aria-hidden
+                  />
                 </span>
                 <span className="text-sm font-semibold text-white">{feature.title}</span>
                 <span className="mt-2 text-sm font-normal leading-relaxed text-white/55">

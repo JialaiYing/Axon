@@ -69,10 +69,10 @@ export function PersonalTimerForm({
               type="button"
               onClick={() => applyMinutes(preset.minutes)}
               className={cn(
-                "w-full cursor-pointer rounded-md border px-3 py-2 text-xs font-medium transition-all duration-200",
+                "w-full cursor-pointer rounded-md border px-3 py-2 text-[12px] font-medium transition-colors duration-150",
                 safeMinutes === preset.minutes
-                  ? "border-accent/60 bg-accent-muted/40 text-accent"
-                  : "border-border bg-surface text-muted hover:border-border-strong hover:text-foreground"
+                  ? "border-border bg-foreground/[0.08] text-foreground light:bg-black/[0.06]"
+                  : "border-border/50 text-muted-foreground hover:bg-foreground/[0.03] hover:text-foreground light:border-border light:hover:bg-black/[0.03]"
               )}
             >
               {preset.label}
@@ -108,7 +108,7 @@ export function PersonalTimerForm({
 
         <div
           aria-label={`${safeMinutes} minutes`}
-          className="mt-4 flex w-full items-center justify-center rounded-xl border border-border bg-card/60 px-4 py-4 text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+          className="mt-3 flex w-full items-center justify-center rounded-md border border-border/50 bg-transparent px-4 py-3.5 text-foreground shadow-none light:border-border"
         >
           <Counter
             value={safeMinutes}
@@ -129,9 +129,9 @@ export function PersonalTimerForm({
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-3 rounded-md border border-border bg-surface px-3 py-2.5">
+      <div className="flex items-center justify-between gap-3 rounded-md border border-border/50 px-3 py-2.5 light:border-border">
         <div>
-          <p className="text-xs font-medium text-foreground">Add to Kanban board?</p>
+          <p className="text-[12px] font-medium text-foreground">Add to Kanban board?</p>
           <p className="text-[11px] text-muted-foreground">
             Creates a queued objective card you can track alongside this timer.
           </p>

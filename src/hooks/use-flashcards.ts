@@ -14,50 +14,14 @@ function isRecycled(item: { recycledAt?: string }) {
   return Boolean(item.recycledAt);
 }
 
-/** Jewel tones for fast grid differentiation — same family as analytics subject hues.
- *  Folder color's job is glanceable identity; desaturated stone/slate defeats that. */
-export const FOLDER_COLORS = [
-  "#5b8def", // steel blue — accent
-  "#8b7ec8", // periwinkle — secondary
-  "#5fa88f", // teal
-  "#c99a5b", // amber
-  "#b381ad", // mauve
-  "#6f9fc4", // slate blue
-  "#7fb069", // sage green
-];
+/** Single shared folder accent — kept for storage/sync shape; UI no longer picks colors. */
+export const DEFAULT_FOLDER_COLOR = "#7a8494";
 
-/** Map legacy loud / muted / token colors onto the jewel palette. */
-const FOLDER_COLOR_ALIASES: Record<string, string> = {
-  "#5227FF": FOLDER_COLORS[4]!,
-  "#5227ff": FOLDER_COLORS[4]!,
-  "#FF9FFC": FOLDER_COLORS[3]!,
-  "#ff9ffc": FOLDER_COLORS[3]!,
-  "#a855f7": FOLDER_COLORS[0]!,
-  "#3b82f6": FOLDER_COLORS[0]!,
-  "#5b8def": FOLDER_COLORS[0]!,
-  "#22c55e": FOLDER_COLORS[2]!,
-  "#f59e0b": FOLDER_COLORS[3]!,
-  "#ef4444": FOLDER_COLORS[0]!,
-  "var(--color-accent)": FOLDER_COLORS[0]!,
-  "var(--color-secondary)": FOLDER_COLORS[1]!,
-  "var(--color-success)": FOLDER_COLORS[2]!,
-  "var(--color-warning)": FOLDER_COLORS[3]!,
-  "var(--color-danger)": FOLDER_COLORS[0]!,
-  "var(--color-muted)": FOLDER_COLORS[4]!,
-  "var(--color-border-strong)": FOLDER_COLORS[5]!,
-  // Prior desaturated stone/slate swatches → jewel remap
-  "#8b8680": FOLDER_COLORS[0]!,
-  "#7a8494": FOLDER_COLORS[1]!,
-  "#6e7a6e": FOLDER_COLORS[2]!,
-  "#8a7e6e": FOLDER_COLORS[3]!,
-  "#6b7280": FOLDER_COLORS[4]!,
-  "#78716c": FOLDER_COLORS[5]!,
-  "#64748b": FOLDER_COLORS[6]!,
-};
+/** @deprecated Color picker removed; always resolves to DEFAULT_FOLDER_COLOR. */
+export const FOLDER_COLORS = [DEFAULT_FOLDER_COLOR] as const;
 
-export function resolveFolderColor(color: string | undefined): string {
-  if (!color) return FOLDER_COLORS[0]!;
-  return FOLDER_COLOR_ALIASES[color] ?? FOLDER_COLOR_ALIASES[color.toLowerCase()] ?? color;
+export function resolveFolderColor(_color?: string): string {
+  return DEFAULT_FOLDER_COLOR;
 }
 
 function createId() {
@@ -78,9 +42,7 @@ function normalizeFolder(value: FlashcardFolder): FlashcardFolder | null {
     ...value,
     title: typeof value.title === "string" && value.title.trim() ? value.title : "Untitled folder",
     imageDataUrl: typeof value.imageDataUrl === "string" ? value.imageDataUrl : undefined,
-    color: resolveFolderColor(
-      typeof value.color === "string" ? value.color : FOLDER_COLORS[0]
-    ),
+    color: DEFAULT_FOLDER_COLOR,
     createdAt: validIso(value.createdAt) ?? new Date().toISOString(),
     lastOpenedAt: validIso(value.lastOpenedAt),
     // Omit = visible. Only an explicit `false` hides the folder from the dome.
@@ -191,14 +153,12 @@ export function useFlashcards() {
   );
 
   const addFolder = React.useCallback(
-    (input: { title: string; imageDataUrl?: string; color?: string }) => {
+    (input: { title: string; imageDataUrl?: string }) => {
       const folder: FlashcardFolder = {
         id: createId(),
         title: input.title,
         imageDataUrl: input.imageDataUrl,
-        color: resolveFolderColor(
-          input.color ?? FOLDER_COLORS[Math.floor(Math.random() * FOLDER_COLORS.length)]
-        ),
+        color: DEFAULT_FOLDER_COLOR,
         createdAt: new Date().toISOString(),
         showInDome: true,
         pinned: false,
@@ -225,7 +185,11 @@ export function useFlashcards() {
   const updateFolder = React.useCallback(
     (id: string, patch: Partial<Omit<FlashcardFolder, "id" | "createdAt">>) => {
       setFolders((prev) =>
-        prev.map((folder) => (folder.id === id ? { ...folder, ...patch } : folder))
+        prev.map((folder) =>
+          folder.id === id
+            ? { ...folder, ...patch, color: DEFAULT_FOLDER_COLOR }
+            : folder
+        )
       );
       if (typeof patch.imageDataUrl === "string" && patch.imageDataUrl.startsWith("data:")) {
         void import("@/lib/supabase/storage").then(({ maybeUploadFlashcardImage }) =>
@@ -641,7 +605,6 @@ export function useFlashcards() {
       kind: "folder" | "set";
       id: string;
       title: string;
-      color?: string;
       imageDataUrl?: string;
       subject?: string;
     }[] = [];
@@ -651,7 +614,6 @@ export function useFlashcards() {
           kind: "folder",
           id: folder.id,
           title: folder.title,
-          color: folder.color,
           imageDataUrl: folder.imageDataUrl,
         });
     }

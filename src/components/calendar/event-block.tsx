@@ -169,17 +169,17 @@ export function EventBlock({
           borderLeftColor: accent,
         }}
         className={cn(
-          "group flex h-full w-full cursor-grab flex-col overflow-hidden rounded-md border border-l-[3px] px-2 py-1 text-left shadow-[var(--shadow-elevation-1)] transition-[background-color,border-color] duration-150 active:cursor-grabbing",
+          "group flex h-full w-full cursor-grab flex-col overflow-hidden rounded-md border border-l-[2px] px-1.5 py-0.5 text-left transition-colors duration-150 active:cursor-grabbing",
           isDone
-            ? "border-success/40 bg-success-muted text-foreground"
+            ? "border-success/40 bg-success-muted/80 text-foreground"
             : isPast
-              ? "border-warning/40 bg-warning-muted text-foreground"
-              : "border-border-strong bg-card-hover text-foreground",
+              ? "border-warning/40 bg-warning-muted/80 text-foreground"
+              : "border-border/60 bg-foreground/[0.04] text-foreground light:bg-black/[0.04]",
           isDragging && "opacity-50",
-          isResizing && "ring-1 ring-border-strong",
-          isHovered && !isDone && !isPast && "border-border-strong bg-foreground/[0.08]",
-          isLive && "border-accent/50 bg-accent-muted",
-          expanded && "ring-1 ring-border-strong"
+          isResizing && "ring-1 ring-border",
+          isHovered && !isDone && !isPast && "bg-foreground/[0.07] light:bg-black/[0.06]",
+          isLive && "border-accent/50 bg-accent-muted/80",
+          expanded && "ring-1 ring-border"
         )}
       >
         <div className="flex min-h-0 flex-1 flex-col gap-0.5">

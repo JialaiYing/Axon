@@ -14,8 +14,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FolderCoverTile } from "@/components/flashcards/folder-cover-tile";
-import { FOLDER_COLORS } from "@/hooks/use-flashcards";
-import { cn } from "@/lib/utils";
 import type { FlashcardFolder } from "@/types";
 
 const MAX_IMAGE_BYTES = 1.5 * 1024 * 1024;
@@ -23,7 +21,6 @@ const MAX_IMAGE_BYTES = 1.5 * 1024 * 1024;
 export type FolderDialogInput = {
   title: string;
   imageDataUrl?: string;
-  color: string;
 };
 
 interface FolderDialogProps {
@@ -44,7 +41,6 @@ export function FolderDialog({
 }: FolderDialogProps) {
   const isEdit = Boolean(folder);
   const [title, setTitle] = React.useState("");
-  const [color, setColor] = React.useState(FOLDER_COLORS[0]!);
   const [imageDataUrl, setImageDataUrl] = React.useState<string | undefined>(undefined);
   const [imageError, setImageError] = React.useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -53,12 +49,10 @@ export function FolderDialog({
     if (!open) return;
     if (folder) {
       setTitle(folder.title);
-      setColor(folder.color || FOLDER_COLORS[0]!);
       setImageDataUrl(folder.imageDataUrl);
       setImageError(null);
     } else {
       setTitle("");
-      setColor(FOLDER_COLORS[0]!);
       setImageDataUrl(undefined);
       setImageError(null);
     }
@@ -87,7 +81,6 @@ export function FolderDialog({
     const input: FolderDialogInput = {
       title: title.trim(),
       imageDataUrl,
-      color,
     };
     if (isEdit && folder && onSave) {
       onSave(folder.id, input);
@@ -104,16 +97,15 @@ export function FolderDialog({
           <DialogTitle>{isEdit ? "Edit folder" : "New folder"}</DialogTitle>
           <DialogDescription>
             {isEdit
-              ? "Update the cover, color, or name. Changes show in the library grid and list."
+              ? "Update the name or cover image. Changes show in the library grid and list."
               : "Folders group your flashcard sets and appear in the library gallery."}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="flex justify-center rounded-xl border border-border bg-card px-4 py-6">
+          <div className="flex justify-center rounded-md border border-border/50 bg-transparent px-4 py-6 light:border-border">
             <FolderCoverTile
               title={title || "Untitled"}
-              color={color}
               imageSrc={imageDataUrl}
               setCount={isEdit ? undefined : 0}
               size="lg"
@@ -130,25 +122,6 @@ export function FolderDialog({
               autoFocus
               maxLength={60}
             />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Color</Label>
-            <div className="flex flex-wrap items-center gap-2">
-              {FOLDER_COLORS.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  aria-label={`Folder color ${c}`}
-                  onClick={() => setColor(c)}
-                  className={cn(
-                    "h-7 w-7 cursor-pointer rounded-md border-2 transition-transform duration-150 hover:scale-105",
-                    color === c ? "border-foreground" : "border-transparent"
-                  )}
-                  style={{ backgroundColor: c }}
-                />
-              ))}
-            </div>
           </div>
 
           <div className="space-y-2">

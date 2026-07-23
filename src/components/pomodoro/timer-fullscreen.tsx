@@ -4,7 +4,6 @@ import * as React from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { Minimize2, Target, Coffee, ShieldAlert } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -181,7 +180,7 @@ export function TimerFullscreenOverlay({
               aria-label="Exit focus mode"
               title="Exit focus mode"
               onClick={requestExit}
-              className="absolute right-6 top-6 flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-muted shadow-sm transition-all duration-200 hover:scale-105 hover:bg-card hover:text-foreground active:scale-95"
+              className="absolute right-6 top-6 flex h-9 w-9 items-center justify-center rounded-md border border-border/60 bg-transparent text-muted-foreground shadow-none transition-colors duration-150 hover:bg-foreground/[0.06] hover:text-foreground active:scale-95 light:border-border light:hover:bg-black/[0.04]"
             >
               <Minimize2 className="h-4 w-4" />
             </button>
@@ -191,20 +190,20 @@ export function TimerFullscreenOverlay({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 14, scale: 0.97 }}
               transition={{ duration: 0.3, ease: [0.21, 0.47, 0.32, 0.98] }}
-              className="flex flex-col items-center gap-6 px-6"
+              className="flex flex-col items-center gap-5 px-6"
             >
-              <h2 className="max-w-2xl px-4 text-center font-display text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+              <h2 className="max-w-2xl px-4 text-center font-sans text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
                 {timer.label}
               </h2>
 
-              <Badge variant={timer.source === "objective" ? "accent" : "default"} className="gap-1">
+              <span className="inline-flex items-center gap-1 rounded-md bg-foreground/[0.06] px-2.5 py-1 text-[12px] font-medium text-muted-foreground light:bg-black/[0.05]">
                 {timer.source === "objective" ? (
                   <Target className="h-3 w-3" />
                 ) : (
                   <Coffee className="h-3 w-3" />
                 )}
                 Focus Mode
-              </Badge>
+              </span>
 
               <TimerDisplay
                 remainingSeconds={remainingSeconds}
@@ -215,7 +214,7 @@ export function TimerFullscreenOverlay({
               <TimerControls status={timer.status} onPause={onPause} onResume={onResume} onStop={onStop} />
 
               {showBlocklistReminder && (
-                <div className="mt-2 flex max-w-md items-start gap-2 rounded-lg border border-border/60 bg-surface/50 px-3 py-2.5 text-left">
+                <div className="mt-1 flex max-w-md items-start gap-2 rounded-md border border-border/50 px-3 py-2.5 text-left light:border-border">
                   <ShieldAlert className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" />
                   <p className="text-[11px] leading-relaxed text-muted-foreground">
                     Leaving this tab pauses your session. Browsers can&apos;t hard-block other sites
@@ -230,7 +229,7 @@ export function TimerFullscreenOverlay({
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0 }}
-                    className="rounded-pill border border-warning/30 bg-warning-muted/40 px-3 py-1 text-xs font-medium text-warning"
+                    className="rounded-md border border-warning/30 bg-warning-muted/40 px-3 py-1 text-[12px] font-medium text-warning"
                   >
                     Session paused — come back to keep focusing.
                   </motion.p>
@@ -251,10 +250,10 @@ export function TimerFullscreenOverlay({
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-col gap-2 sm:flex-row">
-            <Button variant="outline" onClick={() => setConfirmOpen(false)} className="sm:mr-auto">
+            <Button variant="outline" onClick={() => setConfirmOpen(false)} className="shadow-none sm:mr-auto">
               Keep focusing
             </Button>
-            <Button variant="secondary" onClick={confirmExit}>
+            <Button variant="secondary" onClick={confirmExit} className="shadow-none">
               Leave anyway
             </Button>
           </DialogFooter>
@@ -276,10 +275,10 @@ export function TimerFullscreenOverlay({
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-col gap-2 sm:flex-row">
-            <Button variant="outline" onClick={() => setReturnOpen(false)} className="sm:mr-auto">
+            <Button variant="outline" onClick={() => setReturnOpen(false)} className="shadow-none sm:mr-auto">
               Stay paused
             </Button>
-            <Button onClick={resumeAfterReturn}>Resume focus</Button>
+            <Button onClick={resumeAfterReturn} className="shadow-none">Resume focus</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -18,6 +18,29 @@ export const RANK_NAMES = [
   "Polymath",
 ] as const;
 
+/**
+ * Trophy metal per rank (0-indexed) — iron → emerald.
+ * Uses design tokens only; locked ranks dim via opacity in UI.
+ */
+export const RANK_TROPHY_CLASS = [
+  "text-muted-foreground", // Novice — iron
+  "text-muted", // Apprentice — pewter
+  "text-warning/55", // Scholar — copper
+  "text-warning/80", // Adept — bronze
+  "text-foreground/70", // Fellow — silver
+  "text-accent/85", // Mentor — steel
+  "text-warning", // Sage — gold
+  "text-accent", // Luminary — sapphire
+  "text-secondary", // Magister — amethyst
+  "text-success", // Polymath — emerald
+] as const;
+
+/** Tailwind color class for a rank’s trophy (1-indexed rankIndex from RankInfo). */
+export function rankTrophyClass(rankIndex: number): string {
+  const i = Math.min(RANK_TROPHY_CLASS.length, Math.max(1, Math.round(rankIndex))) - 1;
+  return RANK_TROPHY_CLASS[i] ?? RANK_TROPHY_CLASS[0];
+}
+
 const TIER_LABELS = ["I", "II", "III"] as const;
 
 export interface RankInfo {

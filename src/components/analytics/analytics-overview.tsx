@@ -6,7 +6,6 @@ import {
   BookOpen,
   CheckCircle2,
   Clock,
-  Flame,
   Layers,
   Minus,
   Sparkles,
@@ -30,9 +29,9 @@ import {
   YAxis,
 } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Panel } from "@/components/ui/panel";
 import { EmptyState } from "@/components/ui/empty-state";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
+import { StreakFlame } from "@/components/ui/streak-flame";
 import { FeatureIntro } from "@/components/onboarding/feature-intro";
 import { useObjectives } from "@/hooks/use-objectives";
 import { usePomodoroSessions } from "@/hooks/use-pomodoro-sessions";
@@ -276,7 +275,7 @@ const ChartTooltip = React.memo(function ChartTooltip({
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg border border-border bg-card px-3 py-2 text-xs shadow-[var(--shadow-overlay)]">
+    <div className="rounded-md border border-border/50 bg-card px-3 py-2 text-xs shadow-none light:border-border">
       <p className="font-medium text-foreground">{label ?? payload[0]?.name}</p>
       <p className="mt-0.5 font-mono tabular-nums text-muted-foreground">
         {payload[0]?.value ?? 0} {unit}
@@ -301,45 +300,43 @@ const StatCard = React.memo(function StatCard({
   trend?: Trend;
 }) {
   return (
-    <div className="flex h-full flex-col justify-between px-5 py-4">
+    <div className="flex h-full flex-col justify-between px-4 py-3.5">
       <div className="flex items-center justify-between">
-        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+        <p className="text-[11px] font-medium text-muted-foreground">
           {label}
         </p>
         <Icon className={cn("h-3.5 w-3.5", iconClassName ?? "text-muted-foreground")} />
       </div>
-      <div className="mt-4">
+      <div className="mt-3">
         <div className="flex items-baseline gap-2">
-          <p className="font-mono text-2xl font-semibold tabular-nums text-foreground">{value}</p>
+          <p className="font-mono text-xl font-semibold tabular-nums text-foreground">{value}</p>
           {trend && <TrendBadge {...trend} />}
         </div>
-        <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
+        <p className="mt-1 text-[12px] text-muted-foreground">{hint}</p>
       </div>
     </div>
   );
 });
 
-function ChartPanel({
+function ChartSection({
   title,
   subtitle,
   children,
   className,
-  variant = "standard",
 }: {
   title: string;
   subtitle?: string;
   children: React.ReactNode;
   className?: string;
-  variant?: "standard" | "glass";
 }) {
   return (
-    <Panel variant={variant} className={cn("flex flex-col p-6", className)}>
-      <div className="mb-4">
-        <h2 className="text-sm font-semibold text-foreground">{title}</h2>
-        {subtitle && <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>}
+    <section className={cn("flex flex-col", className)}>
+      <div className="mb-3">
+        <h2 className="text-[13px] font-semibold text-foreground">{title}</h2>
+        {subtitle && <p className="mt-0.5 text-[12px] text-muted-foreground">{subtitle}</p>}
       </div>
       {children}
-    </Panel>
+    </section>
   );
 }
 
@@ -349,12 +346,12 @@ const GRID_STROKE = "var(--color-border)";
 function LoadingState() {
   return (
     <div className="space-y-5">
-      <Skeleton className="h-12 rounded-xl" />
-      <Skeleton className="h-28 rounded-xl" />
-      <Skeleton className="h-72 rounded-xl" />
+      <Skeleton className="h-12 rounded-md" />
+      <Skeleton className="h-28 rounded-md" />
+      <Skeleton className="h-72 rounded-md" />
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Skeleton className="h-64 rounded-xl" />
-        <Skeleton className="h-64 rounded-xl" />
+        <Skeleton className="h-64 rounded-md" />
+        <Skeleton className="h-64 rounded-md" />
       </div>
     </div>
   );
@@ -452,17 +449,17 @@ export function AnalyticsOverview() {
   if (!hydrated) return <LoadingState />;
 
   const rangeToolbar = (
-    <div className="flex items-center gap-1 rounded-lg border border-border bg-surface p-1">
+    <div className="flex items-center gap-0.5 rounded-md border border-border/60 p-0.5 light:border-border">
       {RANGES.map((r) => (
         <button
           key={r.days}
           type="button"
           onClick={() => setRangeDays(r.days)}
           className={cn(
-            "cursor-pointer rounded-md px-3.5 py-1.5 text-xs font-medium transition-colors duration-200",
+            "cursor-pointer rounded-md px-2.5 py-1 text-[12px] font-medium transition-colors duration-150",
             rangeDays === r.days
-              ? "bg-card text-foreground shadow-[var(--shadow-elevation-1)]"
-              : "text-muted-foreground hover:text-foreground"
+              ? "bg-foreground/[0.08] text-foreground shadow-none light:bg-black/[0.06]"
+              : "text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground light:hover:bg-black/[0.04]"
           )}
         >
           {r.label}
@@ -485,23 +482,24 @@ export function AnalyticsOverview() {
         className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"
       >
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Analytics</h1>
-          <p className="mt-1.5 text-sm leading-relaxed text-muted">
+          <h1 className="text-xl font-semibold tracking-tight text-foreground md:text-2xl">Analytics</h1>
+          <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
             Focus trends and completion over the last {rangeDays} days.
           </p>
         </div>
         {rangeToolbar}
       </motion.div>
 
-      {/* Range-scoped stats — one divided band */}
-      <motion.div variants={item}>
-        <Panel variant="standard" className="grid grid-cols-2 divide-y divide-border lg:grid-cols-4 lg:divide-x lg:divide-y-0">
+      {/* Range-scoped stats — one divided band, no card chrome */}
+      <motion.div
+        variants={item}
+        className="grid grid-cols-2 divide-y divide-border/60 border-y border-border/50 lg:grid-cols-4 lg:divide-x lg:divide-y-0 light:divide-border light:border-border"
+      >
           <StatCard
             icon={Timer}
             label="Focus time"
             value={formatHours(rangeFocusMinutes)}
             hint={`Last ${rangeDays} days · vs previous week`}
-            iconClassName="text-accent"
             trend={focusWeekTrend}
           />
           <StatCard
@@ -513,7 +511,6 @@ export function AnalyticsOverview() {
                 ? `~${Math.round(rangeFocusMinutes / rangeSessions.length)} min average`
                 : "No sessions yet"
             }
-            iconClassName="text-success"
           />
           <StatCard
             icon={CheckCircle2}
@@ -527,13 +524,11 @@ export function AnalyticsOverview() {
             value={`${completionRate}%`}
             hint={`${objectivesDone} of ${objectivesTouched || 0} touched`}
           />
-        </Panel>
       </motion.div>
 
-      {/* Hero chart */}
+      {/* Hero chart — on the page, not in a card */}
       <motion.div variants={item}>
-        <ChartPanel
-          variant="glass"
+        <ChartSection
           title="Focus time trend"
           subtitle={`${formatHours(rangeFocusMinutes)} across the last ${rangeDays} days`}
         >
@@ -550,8 +545,8 @@ export function AnalyticsOverview() {
                 <AreaChart data={trend} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
                   <defs>
                     <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="var(--color-accent)" stopOpacity={0.22} />
-                      <stop offset="100%" stopColor="var(--color-accent)" stopOpacity={0.02} />
+                      <stop offset="0%" stopColor="var(--color-foreground)" stopOpacity={0.1} />
+                      <stop offset="100%" stopColor="var(--color-foreground)" stopOpacity={0.02} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid stroke={GRID_STROKE} vertical={false} />
@@ -571,8 +566,8 @@ export function AnalyticsOverview() {
                   <Area
                     type="monotone"
                     dataKey="minutes"
-                    stroke="var(--color-accent)"
-                    strokeWidth={1.5}
+                    stroke="var(--color-foreground)"
+                    strokeWidth={1.25}
                     fill="url(#trendFill)"
                     isAnimationActive={!prefersReducedMotion}
                   />
@@ -580,15 +575,15 @@ export function AnalyticsOverview() {
               </ResponsiveContainer>
             </div>
           )}
-        </ChartPanel>
+        </ChartSection>
       </motion.div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      {/* Priority + streak — flat like the rest of the page */}
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-10">
         <motion.div variants={item}>
-          <ChartPanel
+          <ChartSection
             title="Completion by priority"
             subtitle={`${objectivesDone} finished · ${completionRate}% of touched`}
-            className="h-full"
           >
             {donut.every((d) => d.value === 0) ? (
               <EmptyState
@@ -643,14 +638,16 @@ export function AnalyticsOverview() {
                 </ul>
               </>
             )}
-          </ChartPanel>
+          </ChartSection>
         </motion.div>
 
-        <motion.div variants={item}>
-          <ChartPanel
+        <motion.div
+          variants={item}
+          className="lg:border-l lg:border-border/50 lg:pl-10 light:lg:border-border"
+        >
+          <ChartSection
             title="Streak calendar"
             subtitle={`${stats.currentStreak}-day streak · last 12 weeks`}
-            className="h-full"
           >
             <div className="grid grid-flow-col grid-rows-7 gap-1 overflow-x-auto pb-1">
               {heatmap.map((day) => {
@@ -674,7 +671,7 @@ export function AnalyticsOverview() {
                 {activeDays} active day{activeDays === 1 ? "" : "s"} in range
               </span>
             </div>
-          </ChartPanel>
+          </ChartSection>
         </motion.div>
       </div>
 
@@ -682,7 +679,7 @@ export function AnalyticsOverview() {
         <button
           type="button"
           onClick={() => setShowMore((v) => !v)}
-          className="cursor-pointer rounded-lg border border-border bg-surface px-4 py-2 text-xs font-medium text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground"
+          className="cursor-pointer rounded-md px-3 py-1.5 text-[12px] font-medium text-muted-foreground transition-colors duration-150 hover:bg-foreground/[0.04] hover:text-foreground light:hover:bg-black/[0.04]"
         >
           {showMore ? "Hide extra insights" : "More insights"}
         </button>
@@ -690,9 +687,9 @@ export function AnalyticsOverview() {
 
       {showMore && (
         <>
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-10">
             <motion.div variants={item}>
-              <ChartPanel title="Peak hours" subtitle="When you focus, by time of day" className="h-full">
+              <ChartSection title="Peak hours" subtitle="When you focus, by time of day">
                 <div className="h-52 w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={hours} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
@@ -704,10 +701,10 @@ export function AnalyticsOverview() {
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
-              </ChartPanel>
+              </ChartSection>
             </motion.div>
             <motion.div variants={item}>
-              <ChartPanel title="Weekly rhythm" subtitle="Focus minutes by day of week" className="h-full">
+              <ChartSection title="Weekly rhythm" subtitle="Focus minutes by day of week">
                 <div className="h-52 w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={weekdays} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
@@ -715,17 +712,17 @@ export function AnalyticsOverview() {
                       <XAxis dataKey="label" tick={AXIS_TICK} axisLine={false} tickLine={false} />
                       <YAxis tick={AXIS_TICK} axisLine={false} tickLine={false} width={46} />
                       <Tooltip content={<ChartTooltip />} cursor={{ fill: "var(--color-card-hover)" }} />
-                      <Bar dataKey="minutes" fill="var(--color-accent)" radius={[3, 3, 0, 0]} isAnimationActive={!prefersReducedMotion} />
+                      <Bar dataKey="minutes" fill="var(--color-foreground)" fillOpacity={0.55} radius={[3, 3, 0, 0]} isAnimationActive={!prefersReducedMotion} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
-              </ChartPanel>
+              </ChartSection>
             </motion.div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-10">
             <motion.div variants={item}>
-              <ChartPanel title="Focus by subject" subtitle="Where your study time goes" className="h-full">
+              <ChartSection title="Focus by subject" subtitle="Where your study time goes">
                 {subjects.length === 0 ? (
                   <EmptyState
                     icon={<BookOpen className="h-5 w-5 text-muted" />}
@@ -743,12 +740,12 @@ export function AnalyticsOverview() {
                             <span className="truncate text-foreground">{s.subject}</span>
                             <span className="font-mono tabular-nums text-muted-foreground">{formatHours(s.minutes)}</span>
                           </div>
-                          <div className="h-2 overflow-hidden rounded-pill bg-surface">
+                          <div className="h-1.5 overflow-hidden rounded-md bg-foreground/[0.06] light:bg-black/[0.05]">
                             <motion.div
                               initial={prefersReducedMotion ? false : { width: 0 }}
                               animate={{ width: `${(s.minutes / max) * 100}%` }}
                               transition={{ duration: 0.7, ease: EASE, delay: i * 0.06 }}
-                              className="h-full rounded-pill"
+                              className="h-full rounded-md"
                               style={{ backgroundColor: SUBJECT_COLORS[i % SUBJECT_COLORS.length] }}
                             />
                           </div>
@@ -757,11 +754,11 @@ export function AnalyticsOverview() {
                     })}
                   </ul>
                 )}
-              </ChartPanel>
+              </ChartSection>
             </motion.div>
             <motion.div variants={item}>
-              <ChartPanel title="Flashcard performance" subtitle="All-time recall across your sets" className="h-full">
-                <div className="grid flex-1 grid-cols-2 gap-x-6 gap-y-4 divide-y-0">
+              <ChartSection title="Flashcard performance" subtitle="All-time recall across your sets">
+                <div className="grid flex-1 grid-cols-2 gap-x-6 gap-y-4">
                   {[
                     { icon: Target, label: "Accuracy", value: `${cardStats.accuracy}%`, hint: `${cardStats.attempts} total reviews` },
                     { icon: Sparkles, label: "Mastered", value: String(cardStats.mastered), hint: "80%+ with 3+ reviews" },
@@ -771,38 +768,47 @@ export function AnalyticsOverview() {
                     <div key={entry.label} className="py-1">
                       <div className="flex items-center gap-2">
                         <entry.icon className="h-3.5 w-3.5 text-muted-foreground" />
-                        <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">{entry.label}</p>
+                        <p className="text-[11px] font-medium text-muted-foreground">{entry.label}</p>
                       </div>
                       <p className="mt-2 font-mono text-xl font-semibold tabular-nums text-foreground">{entry.value}</p>
                       <p className="mt-0.5 text-[11px] text-muted-foreground">{entry.hint}</p>
                     </div>
                   ))}
                 </div>
-              </ChartPanel>
+              </ChartSection>
             </motion.div>
           </div>
 
-          <motion.div variants={item}>
-            <Panel variant="standard" className="p-6">
-              <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">All time</p>
-              <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
-                {[
-                  { icon: Sparkles, label: "Total XP", value: stats.xp, suffix: " XP" },
-                  { icon: Flame, label: "Longest streak", value: stats.longestStreak, suffix: stats.longestStreak === 1 ? " day" : " days" },
-                  { icon: Timer, label: "Intervals", value: stats.intervalsCompleted, suffix: "" },
-                  {
-                    icon: CheckCircle2,
-                    label: "Objectives done",
-                    value: objectives.filter((o) => o.status === "done" || o.completedAt).length,
-                    suffix: "",
-                  },
-                ].map((entry) => (
-                  <div key={entry.label} className="flex items-center gap-3">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-surface text-muted-foreground">
-                      <entry.icon className="h-4 w-4" />
+          <motion.div
+            variants={item}
+            className="border-t border-border/50 pt-5 light:border-border"
+          >
+              <p className="text-[11px] font-medium text-muted-foreground">All time</p>
+              <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-4">
+                {(
+                  [
+                    { icon: <Sparkles className="h-4 w-4" />, label: "Total XP", value: stats.xp, suffix: " XP" },
+                    {
+                      icon: <StreakFlame days={stats.longestStreak} size="md" animated={false} />,
+                      label: "Longest streak",
+                      value: stats.longestStreak,
+                      suffix: stats.longestStreak === 1 ? " day" : " days",
+                    },
+                    { icon: <Timer className="h-4 w-4" />, label: "Intervals", value: stats.intervalsCompleted, suffix: "" },
+                    {
+                      icon: <CheckCircle2 className="h-4 w-4" />,
+                      label: "Objectives done",
+                      value: objectives.filter((o) => o.status === "done" || o.completedAt).length,
+                      suffix: "",
+                    },
+                  ] as const
+                ).map((entry) => (
+                  <div key={entry.label} className="flex items-center gap-2.5">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center text-muted-foreground">
+                      {entry.icon}
                     </span>
                     <div>
-                      <p className="font-mono text-base font-semibold tabular-nums text-foreground">
+                      <p className="font-mono text-[13px] font-semibold tabular-nums text-foreground">
                         <AnimatedCounter value={entry.value} suffix={entry.suffix} />
                       </p>
                       <p className="text-[11px] text-muted-foreground">{entry.label}</p>
@@ -810,7 +816,6 @@ export function AnalyticsOverview() {
                   </div>
                 ))}
               </div>
-            </Panel>
           </motion.div>
         </>
       )}

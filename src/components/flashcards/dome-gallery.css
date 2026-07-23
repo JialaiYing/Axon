@@ -111,6 +111,7 @@
   height: 6px;
   border-radius: 2px;
   flex-shrink: 0;
+  background: var(--color-muted-foreground);
 }
 
 .sphere-face__label-text {

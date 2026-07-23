@@ -74,10 +74,10 @@ function DayCell({
         }
       }}
       className={cn(
-        "group flex min-h-[7.5rem] cursor-pointer flex-col gap-1 border-b border-r border-border p-1.5 transition-colors duration-200",
-        !isCurrentMonth && "bg-surface/30",
-        isOver && "bg-accent-muted/20 ring-1 ring-inset ring-accent/40",
-        "hover:bg-card-hover/40"
+        "group flex min-h-[5.75rem] cursor-pointer flex-col gap-0.5 border-b border-r border-border/50 p-1 transition-colors duration-150 light:border-border/80",
+        !isCurrentMonth && "bg-foreground/[0.02] light:bg-black/[0.02]",
+        isOver && "bg-foreground/[0.04] ring-1 ring-inset ring-border light:bg-black/[0.04]",
+        "hover:bg-foreground/[0.03] light:hover:bg-black/[0.03]"
       )}
     >
       <div className="flex items-center">
@@ -85,7 +85,7 @@ function DayCell({
           className={cn(
             "flex h-5 w-5 items-center justify-center rounded-full font-mono text-[11px] font-medium",
             isToday
-              ? "bg-accent text-accent-foreground"
+              ? "bg-foreground text-background light:bg-black light:text-white"
               : isCurrentMonth
                 ? "text-foreground"
                 : "text-muted-foreground"
@@ -95,7 +95,7 @@ function DayCell({
         </span>
       </div>
 
-      <div className="flex flex-1 flex-col gap-1">
+      <div className="flex flex-1 flex-col gap-0.5">
         {visible.map((event) => (
           <MonthEventChip
             key={event.objective.id}
@@ -162,13 +162,13 @@ export function MonthView({ currentDate, events, ...actions }: MonthViewProps) {
       animate={{ opacity: 1, y: 0 }}
       exit={prefersReducedMotion ? undefined : { opacity: 0, y: -6 }}
       transition={{ duration: prefersReducedMotion ? 0 : 0.22, ease: [0.21, 0.47, 0.32, 0.98] }}
-      className="overflow-hidden rounded-xl border border-border bg-card shadow-[var(--shadow-elevation-1)]"
+      className="overflow-hidden rounded-md border border-border/50 bg-background light:border-border light:bg-card"
     >
-      <div className="grid grid-cols-7 border-b border-border bg-surface/60">
+      <div className="grid grid-cols-7 border-b border-border/50 light:border-border">
         {WEEKDAY_LABELS.map((label) => (
           <div
             key={label}
-            className="px-2 py-2 text-center text-[11px] font-semibold uppercase tracking-wide text-muted-foreground"
+            className="px-1.5 py-1.5 text-center text-[11px] font-medium text-muted-foreground"
           >
             {label}
           </div>

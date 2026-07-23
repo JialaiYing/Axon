@@ -46,17 +46,17 @@ export function SetOverviewDialog({
         </DialogHeader>
 
         <div className="grid grid-cols-2 gap-2">
-          <div className="rounded-lg border border-border bg-surface px-3 py-2.5">
+          <div className="rounded-md border border-border/50 px-3 py-2.5 light:border-border">
             <p className="font-mono text-lg font-semibold tabular-nums text-foreground">{mastery}%</p>
-            <p className="mt-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+            <p className="mt-0.5 text-[11px] text-muted-foreground">
               Mastery
             </p>
           </div>
-          <div className="rounded-lg border border-border bg-surface px-3 py-2.5">
+          <div className="rounded-md border border-border/50 px-3 py-2.5 light:border-border">
             <p className="font-mono text-lg font-semibold tabular-nums text-foreground">
               {set.cards.length}
             </p>
-            <p className="mt-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+            <p className="mt-0.5 text-[11px] text-muted-foreground">
               Cards
             </p>
           </div>
@@ -68,7 +68,7 @@ export function SetOverviewDialog({
 
         <div className="flex flex-col gap-2 pt-1">
           <Button
-            className="w-full cursor-pointer justify-start"
+            className="w-full cursor-pointer justify-start shadow-none"
             onClick={() => {
               onStudy(set);
               onOpenChange(false);

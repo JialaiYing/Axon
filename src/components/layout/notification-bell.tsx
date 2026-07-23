@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Bell, X, Timer as TimerIcon, BellOff, Flag, ImageIcon, CalendarClock } from "lucide-react";
 import { useNotifications } from "@/hooks/use-notifications";
 import { usePomodoroTimers } from "@/hooks/use-pomodoro-timers";
+import { headerIconButtonClass } from "@/components/layout/header-chrome";
 import type { TimerNotification } from "@/types";
 import { safeInternalPathOrNull } from "@/lib/security/urls";
 import { cn } from "@/lib/utils";
@@ -87,44 +88,43 @@ export function NotificationBell() {
         type="button"
         aria-label="Notifications"
         onClick={handleToggle}
-        className={cn(
-          "relative flex h-8 w-8 items-center justify-center rounded-md text-muted transition-all duration-200",
-          "hover:bg-card hover:text-foreground active:scale-90",
-          open && "bg-card text-foreground"
-        )}
+        className={headerIconButtonClass(open)}
       >
         <Bell className="h-4 w-4" />
         {unreadCount > 0 && (
-          <span className="absolute right-1 top-1 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-accent ring-2 ring-background">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-60" />
-          </span>
+          <span
+            aria-hidden
+            className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-accent"
+          />
         )}
       </button>
 
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: -6, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -6, scale: 0.97 }}
-            transition={{ duration: 0.16, ease: [0.21, 0.47, 0.32, 0.98] }}
-            className="absolute right-0 top-11 z-50 w-80 overflow-hidden rounded-xl border border-border bg-card/95 shadow-[var(--shadow-overlay)] backdrop-blur-xl"
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.14, ease: [0.21, 0.47, 0.32, 0.98] }}
+            className="absolute right-0 top-10 z-50 w-80 overflow-hidden rounded-md border border-border/50 bg-card shadow-[var(--shadow-elevation-2)] light:border-border"
           >
-            <div className="flex items-center justify-between border-b border-border px-4 py-3">
-              <p className="text-sm font-semibold text-foreground">Notifications</p>
+            <div className="flex items-center justify-between border-b border-border/50 px-3.5 py-2.5 light:border-border">
+              <p className="text-[13px] font-semibold text-foreground">Notifications</p>
               {notifications.length > 0 && (
-                <span className="text-[11px] text-muted-foreground">{notifications.length} archived</span>
+                <span className="text-[11px] text-muted-foreground">
+                  {notifications.length} archived
+                </span>
               )}
             </div>
 
             <div className="max-h-80 overflow-y-auto">
               {notifications.length === 0 ? (
                 <div className="flex flex-col items-center gap-2 px-4 py-10 text-center">
-                  <BellOff className="h-5 w-5 text-muted-foreground" />
-                  <p className="text-xs text-muted-foreground">You&apos;re all caught up.</p>
+                  <BellOff className="h-4 w-4 text-muted-foreground" />
+                  <p className="text-[12px] text-muted-foreground">You&apos;re all caught up.</p>
                 </div>
               ) : (
-                <ul className="divide-y divide-border">
+                <ul className="divide-y divide-border/50 light:divide-border">
                   {notifications.map((n) => (
                     <li key={n.id}>
                       <div
@@ -132,15 +132,21 @@ export function NotificationBell() {
                         tabIndex={0}
                         onClick={() => handleOpenNotification(n)}
                         onKeyDown={(e) => e.key === "Enter" && handleOpenNotification(n)}
-                        className="group flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-card-hover"
+                        className="group flex w-full items-start gap-2.5 px-3.5 py-2.5 text-left transition-colors hover:bg-foreground/[0.03] light:hover:bg-black/[0.03]"
                       >
-                        <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-accent-muted text-accent">
+                        <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-foreground/[0.06] text-muted-foreground light:bg-black/[0.05]">
                           <NotificationKindIcon kind={n.kind} />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-xs font-medium text-foreground">{n.title}</p>
-                          <p className="mt-0.5 line-clamp-2 text-[11px] text-muted-foreground">{n.message}</p>
-                          <p className="mt-1 text-[10px] text-muted-foreground">{timeAgo(n.createdAt)}</p>
+                          <p className="truncate text-[12px] font-medium text-foreground">
+                            {n.title}
+                          </p>
+                          <p className="mt-0.5 line-clamp-2 text-[11px] text-muted-foreground">
+                            {n.message}
+                          </p>
+                          <p className="mt-1 text-[10px] text-muted-foreground">
+                            {timeAgo(n.createdAt)}
+                          </p>
                         </div>
                         <button
                           type="button"
@@ -149,7 +155,10 @@ export function NotificationBell() {
                             e.stopPropagation();
                             handleCloseNotification(n);
                           }}
-                          className="flex h-6 w-6 shrink-0 items-center justify-center rounded text-muted opacity-0 transition-opacity hover:bg-surface hover:text-danger group-hover:opacity-100"
+                          className={cn(
+                            "flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-opacity",
+                            "hover:bg-danger-muted hover:text-danger group-hover:opacity-100"
+                          )}
                         >
                           <X className="h-3.5 w-3.5" />
                         </button>

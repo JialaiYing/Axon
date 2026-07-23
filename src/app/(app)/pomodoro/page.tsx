@@ -3,7 +3,6 @@
 import * as React from "react";
 import { Flame, Timer as TimerIcon, Play } from "lucide-react";
 import { AppPage } from "@/components/layout/app-page";
-import { Panel } from "@/components/ui/panel";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ConfettiBurst } from "@/components/ui/confetti";
@@ -383,32 +382,36 @@ export default function PomodoroPage() {
       description="Timed focus sessions — linked to your objectives, or entirely off the record. Run as many at once as you like."
     >
       <div className="mb-6 grid grid-cols-2 gap-3 sm:max-w-sm">
-        <Panel variant="interactive" className="p-4">
-          <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-muted-foreground">
+        <div className="rounded-md border border-border/50 px-3.5 py-3 light:border-border">
+          <p className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
             <TimerIcon className="h-3 w-3" /> Focused today
           </p>
-          <p className="mt-1 text-lg font-semibold text-foreground">{todayFocusMinutes}m</p>
-        </Panel>
-        <Panel variant="interactive" className="p-4">
-          <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-muted-foreground">
+          <p className="mt-1 font-mono text-[15px] font-semibold tabular-nums text-foreground">
+            {todayFocusMinutes}m
+          </p>
+        </div>
+        <div className="rounded-md border border-border/50 px-3.5 py-3 light:border-border">
+          <p className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
             <Flame className="h-3 w-3 text-warning" /> Sessions today
           </p>
-          <p className="mt-1 text-lg font-semibold text-foreground">{todaySessions.length}</p>
-        </Panel>
+          <p className="mt-1 font-mono text-[15px] font-semibold tabular-nums text-foreground">
+            {todaySessions.length}
+          </p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div>
           {timers.length === 0 ? (
-            <Panel variant="glass" className="flex flex-col items-center gap-2 p-10 text-center">
-              <p className="text-sm font-medium text-foreground">No timers running yet</p>
-              <p className="max-w-xs text-xs text-muted-foreground">
+            <div className="flex flex-col items-center gap-1.5 rounded-md border border-dashed border-border/60 px-6 py-10 text-center light:border-border">
+              <p className="text-[13px] font-medium text-foreground">No timers running yet</p>
+              <p className="max-w-xs text-[12px] text-muted-foreground">
                 Configure a focus session on the right, then start it — you can stack up as many
                 as you like.
               </p>
-            </Panel>
+            </div>
           ) : (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {timers.map((timer) => (
                 <TimerCard
                   key={timer.id}
@@ -425,13 +428,19 @@ export default function PomodoroPage() {
           )}
         </div>
 
-        <Panel variant="interactive" className="p-5">
+        <div className="rounded-md border border-border/50 p-4 light:border-border light:bg-card">
           <Tabs value={source} onValueChange={(v) => setSource(v as TimerSource)}>
-            <TabsList className="mb-4 w-full">
-              <TabsTrigger value="objective" className="flex-1">
+            <TabsList className="mb-3 h-8 w-full gap-0.5 rounded-md border-border/60 bg-transparent p-0.5 shadow-none light:border-border">
+              <TabsTrigger
+                value="objective"
+                className="h-7 flex-1 rounded-md px-2.5 text-[12px] shadow-none data-[state=active]:bg-foreground/[0.08] data-[state=active]:text-foreground data-[state=active]:shadow-none light:data-[state=active]:bg-black/[0.06]"
+              >
                 Objective focus
               </TabsTrigger>
-              <TabsTrigger value="personal" className="flex-1">
+              <TabsTrigger
+                value="personal"
+                className="h-7 flex-1 rounded-md px-2.5 text-[12px] shadow-none data-[state=active]:bg-foreground/[0.08] data-[state=active]:text-foreground data-[state=active]:shadow-none light:data-[state=active]:bg-black/[0.06]"
+              >
                 Personal timer
               </TabsTrigger>
             </TabsList>
@@ -464,11 +473,11 @@ export default function PomodoroPage() {
             </TabsContent>
           </Tabs>
 
-          <Button className="mt-4 w-full" onClick={handleStartNewTimer} disabled={!canStart}>
+          <Button className="mt-4 w-full shadow-none" onClick={handleStartNewTimer} disabled={!canStart}>
             <Play className="h-4 w-4" />
             Start new timer
           </Button>
-        </Panel>
+        </div>
       </div>
 
       <ConfettiBurst triggerKey={celebrateKey} />

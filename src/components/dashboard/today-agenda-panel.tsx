@@ -12,7 +12,6 @@ import {
   Target,
   Timer,
 } from "lucide-react";
-import { Panel } from "@/components/ui/panel";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import {
   dayElapsedFraction,
@@ -33,9 +32,9 @@ interface TodayAgendaPanelProps {
 }
 
 /**
- * Glance-and-go "Today" panel for the Dashboard — overdue work, due/scheduled
- * today, in-progress board cards, and (when nothing is time-bound) open
- * Kanban todos so the hero never claims a "clear day" while the board is full.
+ * Glance-and-go "Today" section for the Dashboard.
+ * Linear-inspired pass (2026-07-23): flat border, no glass elevation.
+ * Backup: today-agenda-panel.pre-linear.bak — say "revert" to restore.
  */
 export function TodayAgendaPanel({
   objectives,
@@ -67,23 +66,21 @@ export function TodayAgendaPanel({
   const hasGoals = Boolean(dailyGoal || weeklyGoal);
 
   return (
-    <Panel variant="glass" className="p-5 sm:p-6">
-      <div className="mb-5">
-        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
-          Today
-        </p>
-        <h2 className="mt-0.5 text-lg font-semibold tracking-tight text-foreground">
+    <section className="rounded-md border border-border/50 p-4 light:border-border">
+      <div className="mb-3">
+        <p className="text-[11px] font-medium text-muted-foreground">Today</p>
+        <h2 className="mt-0.5 text-[15px] font-semibold tracking-tight text-foreground">
           Your agenda
         </h2>
       </div>
 
       <div
         className={cn(
-          "grid grid-cols-1 gap-6",
-          hasGoals && "lg:grid-cols-[1.5fr_minmax(0,0.85fr)] lg:gap-8"
+          "grid grid-cols-1 gap-4",
+          hasGoals && "lg:grid-cols-[1.5fr_minmax(0,0.85fr)] lg:gap-6"
         )}
       >
-        <div className="space-y-4">
+        <div className="space-y-3">
           {overdue.length > 0 && (
             <AgendaSection icon={AlertTriangle} label="Overdue" count={overdue.length} tone="danger">
               {overdue.map((o) => (
@@ -176,7 +173,7 @@ export function TodayAgendaPanel({
           )}
 
           {isEmpty && (
-            <p className="flex items-center gap-2 border-y border-dashed border-border/60 py-4 text-xs text-muted-foreground">
+            <p className="flex items-center gap-2 border-y border-dashed border-border/50 py-3 text-xs text-muted-foreground light:border-border">
               <Sun className="h-3.5 w-3.5 shrink-0" />
               Clear day — add an objective on the board or schedule a focus block.
             </p>
@@ -184,9 +181,9 @@ export function TodayAgendaPanel({
         </div>
 
         {hasGoals && (
-          <div className="space-y-3 border-t border-border pt-5 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0">
-            <p className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.14em] text-foreground">
-              <Target className="h-3.5 w-3.5 text-muted-foreground" />
+          <div className="space-y-2.5 border-t border-border/50 pt-4 light:border-border lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+            <p className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
+              <Target className="h-3.5 w-3.5" />
               Goal progress
             </p>
             {dailyGoal && dailyStatus && <GoalMini goal={dailyGoal} status={dailyStatus} />}
@@ -200,7 +197,7 @@ export function TodayAgendaPanel({
           </div>
         )}
       </div>
-    </Panel>
+    </section>
   );
 }
 
@@ -228,8 +225,8 @@ function AgendaSection({
         />
         <p
           className={cn(
-            "text-[11px] font-semibold uppercase tracking-[0.14em]",
-            tone === "danger" ? "text-danger" : "text-foreground"
+            "text-[11px] font-medium",
+            tone === "danger" ? "text-danger" : "text-muted-foreground"
           )}
         >
           {label}
@@ -262,33 +259,33 @@ function AgendaLink({
     <Link
       href={href}
       className={cn(
-        "flex items-start gap-2.5 px-2 py-2.5 transition-colors duration-200 sm:px-3",
+        "flex items-center gap-2.5 px-1.5 py-1.5 transition-colors duration-150 sm:px-2",
         done
-          ? "bg-success-muted/15 hover:bg-success-muted/25"
+          ? "bg-success-muted/10 hover:bg-success-muted/20"
           : tone === "danger"
-            ? "bg-danger-muted/10 hover:bg-danger-muted/20"
-            : "hover:bg-card-hover"
+            ? "bg-danger-muted/10 hover:bg-danger-muted/15"
+            : "hover:bg-foreground/[0.03] light:hover:bg-black/[0.03]"
       )}
     >
       {done ? (
-        <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-success" />
+        <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-success" />
       ) : (
         <span
           aria-hidden
-          className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-muted-foreground"
+          className="h-1.5 w-1.5 shrink-0 rounded-full bg-muted-foreground"
           style={color ? { backgroundColor: color } : undefined}
         />
       )}
       <div className="min-w-0 flex-1">
         <p
           className={cn(
-            "truncate text-sm font-medium text-foreground",
+            "truncate text-[13px] font-medium text-foreground",
             done && "text-foreground/70 line-through"
           )}
         >
           {title}
         </p>
-        <p className="mt-1 text-[11px] text-muted-foreground">{meta}</p>
+        <p className="mt-0.5 text-[11px] text-muted-foreground">{meta}</p>
       </div>
     </Link>
   );
@@ -311,8 +308,8 @@ function GoalMini({
             className={cn(
               "text-[10px] font-medium uppercase tracking-[0.08em]",
               status === "done" && "text-success",
-              status === "on-track" && "text-muted-foreground",
-              status === "behind" && "text-warning"
+              status === "on-track" && "text-warning",
+              status === "behind" && "text-danger"
             )}
           >
             {PACE_LABEL[status]}

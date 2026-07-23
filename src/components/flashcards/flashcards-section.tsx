@@ -285,7 +285,7 @@ export function FlashcardsSection() {
           <Skeleton className="h-32 w-full" />
           <Skeleton className="h-40 w-full" />
         </div>
-        <Skeleton className="h-[calc(100dvh-16rem)] min-h-[480px] rounded-xl lg:col-span-3" />
+        <Skeleton className="h-[calc(100dvh-16rem)] min-h-[480px] rounded-md lg:col-span-3" />
       </div>
     );
   }
@@ -307,14 +307,14 @@ export function FlashcardsSection() {
       >
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
         {/* ── Home column (1/4) — flat, no scroll; sections divided by rules ─ */}
-        <div className="flex flex-col border-r border-transparent pr-1 lg:self-start lg:border-border/40 lg:pr-4">
+        <div className="flex flex-col border-r border-transparent pr-1 lg:self-start lg:border-border/40 light:lg:border-border lg:pr-4">
           <h2 className="px-1 pb-1 pt-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-foreground">
             Home
           </h2>
 
-          <div className="divide-y divide-border">
+          <div className="divide-y divide-border light:divide-border">
           <HomeSection title="At a glance" icon={Gauge}>
-            <ul className="divide-y divide-border/50">
+            <ul className="divide-y divide-border/50 light:divide-border">
               {glanceStats.map((stat) => (
                 <li
                   key={stat.label}
@@ -335,7 +335,7 @@ export function FlashcardsSection() {
                 Open a folder or set and it will show up here.
               </p>
             ) : (
-              <ul className="divide-y divide-border/50">
+              <ul className="divide-y divide-border/50 light:divide-border">
                 {recents.slice(0, 4).map((entry) => {
                   const folder =
                     entry.kind === "folder"
@@ -353,12 +353,11 @@ export function FlashcardsSection() {
                             if (set) openSetOverview(set);
                           }
                         }}
-                        className="group flex w-full cursor-pointer items-center gap-2.5 px-1 py-1.5 text-left transition-colors duration-150 hover:bg-card-hover"
+                        className="group flex w-full cursor-pointer items-center gap-2.5 px-1 py-1.5 text-left transition-colors duration-150 hover:bg-foreground/[0.03] light:hover:bg-black/[0.03]"
                       >
                         {entry.kind === "folder" && folder ? (
                           <FolderCoverTile
                             title={folder.title}
-                            color={folder.color}
                             imageSrc={folder.imageDataUrl}
                             size="sm"
                           />
@@ -389,7 +388,7 @@ export function FlashcardsSection() {
               <button
                 type="button"
                 onClick={() => setCreateFolderOpen(true)}
-                className="flex w-full cursor-pointer items-center gap-2.5 px-1 py-1.5 text-left text-xs font-medium text-foreground transition-colors duration-150 hover:bg-card-hover hover:text-foreground"
+                className="flex w-full cursor-pointer items-center gap-2.5 px-1 py-1.5 text-left text-xs font-medium text-foreground transition-colors duration-150 hover:bg-foreground/[0.03] hover:text-foreground light:hover:bg-black/[0.03]"
               >
                 <FolderPlus className="h-3.5 w-3.5 text-muted-foreground" />
                 New folder
@@ -400,7 +399,7 @@ export function FlashcardsSection() {
                   setCreateSetFolderId(undefined);
                   setCreateSetOpen(true);
                 }}
-                className="flex w-full cursor-pointer items-center gap-2.5 px-1 py-1.5 text-left text-xs font-medium text-foreground transition-colors duration-150 hover:bg-card-hover hover:text-foreground"
+                className="flex w-full cursor-pointer items-center gap-2.5 px-1 py-1.5 text-left text-xs font-medium text-foreground transition-colors duration-150 hover:bg-foreground/[0.03] hover:text-foreground light:hover:bg-black/[0.03]"
               >
                 <Layers className="h-3.5 w-3.5 text-muted-foreground" />
                 New flashcard set
@@ -413,7 +412,7 @@ export function FlashcardsSection() {
         {/* ── Library (3/4): grid (default) ↔ dome ↔ study ──────────── */}
         <div
           className={cn(
-            "relative h-[calc(100dvh-16rem)] min-h-[420px] rounded-xl border border-border bg-card shadow-[var(--shadow-elevation-1)] lg:col-span-3",
+            "relative h-[calc(100dvh-16rem)] min-h-[420px] rounded-md border border-border/50 bg-transparent shadow-none lg:col-span-3 light:border-border light:bg-card",
             mode.type === "study" ? "overflow-y-auto p-5 md:p-6" : "overflow-hidden"
           )}
         >
@@ -427,27 +426,27 @@ export function FlashcardsSection() {
                 exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.98 }}
                 transition={{ duration: 0.25, ease: EASE }}
               >
-                <div className="flex items-center justify-between gap-2 border-b border-border bg-surface/60 px-4 py-2.5">
-                  <h2 className="text-[11px] font-semibold uppercase tracking-[0.24em] text-foreground">
+                <div className="flex items-center justify-between gap-2 border-b border-border/50 px-4 py-2 light:border-border">
+                  <h2 className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
                     Library
                   </h2>
                   <div className="flex items-center gap-2">
                     <Button
                       type="button"
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
-                      className="h-7 cursor-pointer gap-1.5 px-2.5 text-[11px]"
+                      className="h-7 cursor-pointer gap-1.5 px-2 text-[12px] text-muted-foreground hover:text-foreground"
                       onClick={() => setRecycleBinOpen(true)}
                     >
                       <RotateCcw className="h-3.5 w-3.5" />
                       Recycle bin
                       {recycledCount > 0 ? (
-                        <span className="rounded-pill bg-surface px-1.5 py-0.5 font-mono text-[10px] font-semibold text-muted-foreground">
+                        <span className="rounded-md bg-foreground/[0.06] px-1.5 py-0.5 font-mono text-[10px] font-semibold text-muted-foreground light:bg-black/[0.06]">
                           {recycledCount}
                         </span>
                       ) : null}
                     </Button>
-                    <div className="inline-flex items-center gap-0.5 rounded-lg border border-border bg-surface p-0.5">
+                    <div className="inline-flex items-center gap-0.5 rounded-md border border-border/60 p-0.5 light:border-border">
                       <button
                         type="button"
                         onClick={() => {
@@ -455,10 +454,10 @@ export function FlashcardsSection() {
                           setMode({ type: "library", view: "grid" });
                         }}
                         className={cn(
-                          "rounded-md px-2.5 py-1 text-[10px] font-medium transition-colors",
+                          "rounded-md px-2.5 py-1 text-[12px] font-medium transition-colors duration-150",
                           mode.view === "grid"
-                            ? "bg-accent text-accent-foreground"
-                            : "text-muted-foreground hover:text-foreground"
+                            ? "bg-foreground/[0.08] text-foreground light:bg-black/[0.06]"
+                            : "text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground light:hover:bg-black/[0.04]"
                         )}
                       >
                         Grid
@@ -470,16 +469,16 @@ export function FlashcardsSection() {
                           setMode({ type: "library", view: "dome" });
                         }}
                         className={cn(
-                          "rounded-md px-2.5 py-1 text-[10px] font-medium transition-colors",
+                          "rounded-md px-2.5 py-1 text-[12px] font-medium transition-colors duration-150",
                           mode.view === "dome"
-                            ? "bg-accent text-accent-foreground"
-                            : "text-muted-foreground hover:text-foreground"
+                            ? "bg-foreground/[0.08] text-foreground light:bg-black/[0.06]"
+                            : "text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground light:hover:bg-black/[0.04]"
                         )}
                       >
                         Visual gallery
                       </button>
                     </div>
-                    <span className="font-mono text-[10px] tabular-nums text-muted-foreground">
+                    <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
                       {sets.length} set{sets.length === 1 ? "" : "s"}
                     </span>
                   </div>
@@ -622,7 +621,6 @@ export function FlashcardsSection() {
         onSave={(id, input) => {
           updateFolder(id, {
             title: input.title,
-            color: input.color,
             imageDataUrl: input.imageDataUrl,
           });
         }}
@@ -706,8 +704,8 @@ function LibraryCreateBar({
   onNewSet: (folderId?: string) => void;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 border-t border-border bg-surface/60 px-4 py-2.5">
-      <p className="min-w-0 truncate text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+    <div className="flex items-center justify-between gap-3 border-t border-border/50 px-4 py-2 light:border-border">
+      <p className="min-w-0 truncate text-[11px] text-muted-foreground">
         {hint ??
           (folder
             ? `Inside ${folder.title}`
@@ -717,7 +715,7 @@ function LibraryCreateBar({
         <DropdownMenuTrigger asChild>
           <Button
             size="sm"
-            className="h-8 shrink-0 cursor-pointer gap-1.5 rounded-pill px-3"
+            className="h-8 shrink-0 cursor-pointer gap-1.5 rounded-md px-3 shadow-none"
             aria-label={
               folder
                 ? `Create in ${folder.title}`

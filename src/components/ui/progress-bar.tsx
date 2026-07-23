@@ -37,8 +37,8 @@ export function ProgressBar({
       >
         <div
           className={cn(
-            "h-full rounded-pill bg-accent/80 transition-all duration-500 ease-out light:bg-accent/75",
-            barClassName
+            "h-full rounded-pill transition-all duration-500 ease-out",
+            barClassName ?? "bg-accent/80 light:bg-accent/75"
           )}
           style={{ width: `${clamped}%` }}
         />

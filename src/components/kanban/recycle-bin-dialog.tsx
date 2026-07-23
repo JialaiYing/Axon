@@ -97,15 +97,15 @@ export function RecycleBinDialog({
                 return (
                   <li
                     key={objective.id}
-                    className="overflow-hidden rounded-lg border border-border bg-surface transition-colors duration-200 hover:border-border-strong"
+                    className="overflow-hidden rounded-md border border-border/50 transition-colors duration-150 hover:bg-foreground/[0.03] light:border-border light:hover:bg-black/[0.03]"
                   >
                     <button
                       type="button"
                       onClick={() => setExpandedId(isExpanded ? null : objective.id)}
-                      className="flex w-full items-center justify-between gap-3 px-3.5 py-3 text-left transition-colors duration-150 hover:bg-card"
+                      className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left"
                     >
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-foreground">
+                        <p className="truncate text-[13px] font-medium text-foreground">
                           {objective.title}
                         </p>
                         <p className="mt-0.5 text-[11px] text-muted-foreground">

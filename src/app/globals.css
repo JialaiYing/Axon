@@ -313,6 +313,23 @@
     }
   }
 
+  /* Soft halo pulse for strong streak flames (14+ days). */
+  @keyframes streak-glow {
+    0%,
+    100% {
+      opacity: 0.55;
+      transform: scale(0.92);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.08);
+    }
+  }
+
+  .animate-streak-glow {
+    animation: streak-glow 1.8s ease-in-out infinite;
+  }
+
   .animate-ripple {
     animation: ripple 600ms ease-out forwards;
   }

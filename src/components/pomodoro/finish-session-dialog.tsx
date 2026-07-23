@@ -32,8 +32,8 @@ export function FinishSessionDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-md bg-accent-muted">
-            <PartyPopper className="h-4.5 w-4.5 text-accent" />
+          <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-md border border-border/50 text-muted-foreground light:border-border">
+            <PartyPopper className="h-4 w-4" />
           </div>
           <DialogTitle>Time&apos;s up!</DialogTitle>
           <DialogDescription>
@@ -42,14 +42,14 @@ export function FinishSessionDialog({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="flex-col gap-2 sm:flex-row">
-          <Button variant="outline" onClick={onNotYet} className="sm:mr-auto">
+          <Button variant="outline" onClick={onNotYet} className="shadow-none sm:mr-auto">
             Not yet, back to board
           </Button>
-          <Button variant="secondary" onClick={() => onKeepWorking(10)}>
+          <Button variant="secondary" onClick={() => onKeepWorking(10)} className="shadow-none">
             <Clock3 className="h-3.5 w-3.5" />
             Keep working (+10m)
           </Button>
-          <Button onClick={onFinished}>Yes, I&apos;m finished</Button>
+          <Button onClick={onFinished} className="shadow-none">Yes, I&apos;m finished</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

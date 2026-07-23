@@ -120,13 +120,13 @@ export function StudyView({ set, onBack, onEdit, onStartTest, onCompletePass }: 
           <Button
             variant="outline"
             size="sm"
-            className="cursor-pointer"
+            className="cursor-pointer shadow-none"
             disabled={cards.length === 0}
             onClick={onStartTest}
           >
             <ListChecks className="h-3.5 w-3.5" /> Test
           </Button>
-          <Button variant="outline" size="sm" className="cursor-pointer" onClick={onEdit}>
+          <Button variant="outline" size="sm" className="cursor-pointer shadow-none" onClick={onEdit}>
             <Pencil className="h-3.5 w-3.5" /> Edit
           </Button>
         </div>
@@ -189,12 +189,12 @@ export function StudyView({ set, onBack, onEdit, onStartTest, onCompletePass }: 
                         `relative` would otherwise fight Tailwind absolute. */}
                     <div
                       style={{ position: "absolute", inset: 0, backfaceVisibility: "hidden" }}
-                      className="shadow-[var(--shadow-elevation-2),inset_0_1px_0_rgba(255,255,255,0.05)] light:shadow-[var(--shadow-elevation-2)] flex items-center justify-center rounded-xl border border-border bg-card p-8"
+                      className="flex items-center justify-center rounded-md border border-border/60 bg-card p-8 shadow-none light:border-border"
                     >
                       <p className="max-h-full overflow-y-auto text-balance text-center text-xl font-medium leading-relaxed text-foreground md:text-3xl">
                         {card.front}
                       </p>
-                      <span className="absolute bottom-4 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60">
+                      <span className="absolute bottom-4 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.14em] text-muted-foreground/60">
                         Click to flip
                       </span>
                     </div>
@@ -206,12 +206,12 @@ export function StudyView({ set, onBack, onEdit, onStartTest, onCompletePass }: 
                         backfaceVisibility: "hidden",
                         transform: "rotateY(180deg)",
                       }}
-                      className="shadow-[var(--shadow-elevation-2),inset_0_1px_0_rgba(255,255,255,0.05)] light:shadow-[var(--shadow-elevation-2)] flex items-center justify-center rounded-xl border border-accent/30 bg-card p-8"
+                      className="flex items-center justify-center rounded-md border border-border/60 bg-card p-8 shadow-none light:border-border"
                     >
                       <p className="max-h-full overflow-y-auto text-balance text-center text-lg leading-relaxed text-foreground/90 md:text-2xl">
                         {card.back}
                       </p>
-                      <span className="absolute bottom-4 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.2em] text-accent/70">
+                      <span className="absolute bottom-4 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                         Answer
                       </span>
                     </div>
@@ -226,7 +226,7 @@ export function StudyView({ set, onBack, onEdit, onStartTest, onCompletePass }: 
             <Button
               variant="outline"
               size="icon"
-              className="cursor-pointer rounded-full"
+              className="cursor-pointer rounded-md"
               disabled={index === 0}
               onClick={() => goTo(index - 1, -1)}
               aria-label="Previous card"
@@ -239,7 +239,7 @@ export function StudyView({ set, onBack, onEdit, onStartTest, onCompletePass }: 
             <Button
               variant="outline"
               size="icon"
-              className="cursor-pointer rounded-full"
+              className="cursor-pointer rounded-md"
               disabled={index === cards.length - 1}
               onClick={() => goTo(index + 1, 1)}
               aria-label="Next card"
@@ -253,13 +253,13 @@ export function StudyView({ set, onBack, onEdit, onStartTest, onCompletePass }: 
 
           {/* All cards below, Quizlet-style */}
           <ScrollReveal className="mx-auto mt-12 w-full max-w-3xl shrink-0 pb-8" y={28}>
-            <h3 className="mb-4 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            <h3 className="mb-3 text-[11px] font-medium text-muted-foreground">
               All cards ({cards.length})
             </h3>
             <AnimatedList
               items={cards}
               getItemKey={(c) => c.id}
-              listClassName="max-h-[26rem] space-y-2.5"
+              listClassName="max-h-[26rem] space-y-1.5"
               gradientFromClassName="from-background"
               onItemSelect={(_c, i) => {
                 goTo(i, i > index ? 1 : -1);
@@ -268,12 +268,12 @@ export function StudyView({ set, onBack, onEdit, onStartTest, onCompletePass }: 
               renderItem={(c, i, hovered) => (
                 <div
                   className={cn(
-                    "grid w-full cursor-pointer grid-cols-1 gap-3 rounded-xl border p-4 text-left transition-all duration-200 sm:grid-cols-2",
+                    "grid w-full cursor-pointer grid-cols-1 gap-3 rounded-md border p-3 text-left transition-colors duration-150 sm:grid-cols-2",
                     i === index
-                      ? "border-accent/40 bg-accent-muted/30"
+                      ? "border-border bg-foreground/[0.06] light:bg-black/[0.05]"
                       : hovered
-                        ? "border-foreground/15 bg-foreground/[0.05]"
-                        : "border-border bg-foreground/[0.02]"
+                        ? "border-border/60 bg-foreground/[0.03] light:bg-black/[0.03]"
+                        : "border-border/50 bg-transparent light:border-border"
                   )}
                 >
                   <p className="text-sm font-medium text-foreground sm:border-r sm:border-border sm:pr-3">

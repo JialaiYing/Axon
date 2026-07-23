@@ -193,21 +193,20 @@ export function FlashcardsGridLibrary({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-      <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-2">
+      <div className="flex items-center justify-between gap-2 border-b border-border/50 px-4 py-1.5 light:border-border">
         <div className="flex min-w-0 items-center gap-2">
           {folder ? (
             <>
               <RootDropZone onBack={onBack} active={Boolean(activeSetId)} />
               <FolderCoverTile
                 title={folder.title}
-                color={folder.color}
                 imageSrc={folder.imageDataUrl}
                 size="sm"
               />
-              <p className="truncate text-sm font-medium text-foreground">{folder.title}</p>
+              <p className="truncate text-[13px] font-medium text-foreground">{folder.title}</p>
             </>
           ) : (
-            <p className="text-xs font-medium text-muted-foreground">All items</p>
+            <p className="text-[12px] font-medium text-muted-foreground">All items</p>
           )}
         </div>
         <div className="flex shrink-0 items-center gap-1">
@@ -215,7 +214,7 @@ export function FlashcardsGridLibrary({
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className="inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-md border border-border bg-surface px-2 text-[11px] font-medium text-foreground transition-colors hover:bg-card-hover hover:text-foreground"
+                className="inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-md border border-border/60 px-2 text-[12px] font-medium text-muted-foreground transition-colors hover:bg-foreground/[0.04] hover:text-foreground light:border-border light:hover:bg-black/[0.04]"
                 aria-label="Change library view"
               >
                 <LayoutIcon className="h-3.5 w-3.5" />
@@ -253,7 +252,7 @@ export function FlashcardsGridLibrary({
               type="button"
               aria-label={`Move folder ${folder.title} to recycle bin`}
               onClick={onDeleteFolder}
-              className="cursor-pointer rounded-md px-2 py-1.5 text-[11px] text-muted-foreground transition-colors hover:bg-card-hover hover:text-danger"
+              className="cursor-pointer rounded-md px-2 py-1.5 text-[12px] text-muted-foreground transition-colors hover:bg-foreground/[0.04] hover:text-danger light:hover:bg-black/[0.04]"
             >
               Delete
             </button>
@@ -269,13 +268,13 @@ export function FlashcardsGridLibrary({
       >
         <div className="min-h-0 flex-1 overflow-y-auto p-4">
           {empty ? (
-            <div className="flex h-full min-h-[280px] flex-col items-center justify-center gap-3 text-center">
-              <Layers className="h-8 w-8 text-muted-foreground" />
+            <div className="flex h-full min-h-[280px] flex-col items-center justify-center gap-2 text-center">
+              <Layers className="h-7 w-7 text-muted-foreground" />
               <div>
-                <p className="text-sm font-medium text-foreground">
+                <p className="text-[13px] font-medium text-foreground">
                   {folder ? "No sets in this folder" : "No folders or sets yet"}
                 </p>
-                <p className="mt-1 max-w-xs text-xs text-muted-foreground">
+                <p className="mt-1 max-w-xs text-[12px] text-muted-foreground">
                   {folder
                     ? "Use Create below to add a set, or drag one here from another folder."
                     : "Use Create below to add a folder or an unfiled set."}
@@ -326,8 +325,8 @@ export function FlashcardsGridLibrary({
                   )}
             </ul>
           ) : (
-            <div className="overflow-hidden rounded-xl border border-border">
-              <div className="grid grid-cols-[minmax(0,1fr)_7rem_6rem] gap-2 border-b border-border bg-surface px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            <div className="overflow-hidden rounded-md border border-border/50 light:border-border">
+              <div className="grid grid-cols-[minmax(0,1fr)_7rem_6rem] gap-2 border-b border-border/50 px-3 py-1.5 text-[11px] font-medium text-muted-foreground light:border-border">
                 <span>Name</span>
                 <span>Type</span>
                 <span className="text-right">Details</span>
@@ -380,8 +379,8 @@ export function FlashcardsGridLibrary({
 
         <DragOverlay dropAnimation={null}>
           {activeSet ? (
-            <div className="w-52 rounded-xl border border-accent/40 bg-card px-3 py-2.5 shadow-[var(--shadow-elevation-3)]">
-              <p className="truncate text-sm font-semibold text-foreground">{activeSet.title}</p>
+            <div className="w-52 rounded-md border border-border bg-card px-3 py-2 shadow-[var(--shadow-elevation-1)]">
+              <p className="truncate text-[13px] font-medium text-foreground">{activeSet.title}</p>
               <p className="mt-0.5 text-[11px] text-muted-foreground">
                 {activeSet.subject || "General"} · {activeSet.cards.length} card
                 {activeSet.cards.length === 1 ? "" : "s"}
@@ -404,8 +403,8 @@ function RootDropZone({ onBack, active }: { onBack: () => void; active: boolean 
       className={cn(
         "inline-flex cursor-pointer items-center gap-1 rounded-md px-1.5 py-1 text-xs transition-colors",
         isOver && active
-          ? "bg-accent/15 text-accent"
-          : "text-muted-foreground hover:bg-card-hover hover:text-foreground"
+          ? "bg-foreground/[0.08] text-foreground light:bg-black/[0.06]"
+          : "text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground light:hover:bg-black/[0.04]"
       )}
     >
       <ArrowLeft className="h-3.5 w-3.5" />
@@ -504,7 +503,7 @@ const itemActionsClass =
   "flex shrink-0 items-center opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100";
 
 const itemActionsOverlayClass =
-  "absolute right-1 top-1 z-10 flex items-center gap-0.5 rounded-md bg-card p-0.5 opacity-0 shadow-[var(--shadow-elevation-1)] transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100";
+  "absolute right-1 top-1 z-10 flex items-center gap-0.5 rounded-md border border-border/50 bg-card p-0.5 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100 light:border-border";
 
 function FolderItem({
   folder,
@@ -536,19 +535,18 @@ function FolderItem({
       <div
         ref={setNodeRef}
         className={cn(
-          "group grid grid-cols-[minmax(0,1fr)_7rem_6rem] items-center gap-2 border-b border-border px-2 py-1.5 last:border-b-0",
-          isOver && "bg-accent-muted/30"
+          "group grid grid-cols-[minmax(0,1fr)_7rem_6rem] items-center gap-2 border-b border-border/50 px-2 py-1.5 last:border-b-0 light:border-border",
+          isOver && "bg-foreground/[0.04] light:bg-black/[0.04]"
         )}
       >
         <div className="flex min-w-0 items-center gap-1">
           <button
             type="button"
             onClick={onOpen}
-            className="flex min-w-0 flex-1 cursor-pointer items-center gap-2.5 rounded-lg px-1.5 py-1.5 text-left transition-colors hover:bg-card-hover"
+            className="flex min-w-0 flex-1 cursor-pointer items-center gap-2.5 rounded-md px-1.5 py-1.5 text-left transition-colors hover:bg-foreground/[0.03] light:hover:bg-black/[0.03]"
           >
             <FolderCoverTile
               title={folder.title}
-              color={folder.color}
               imageSrc={folder.imageDataUrl}
               size="sm"
             />
@@ -590,8 +588,8 @@ function FolderItem({
     <div
       ref={setNodeRef}
       className={cn(
-        "group relative rounded-lg transition-colors",
-        isOver && "ring-1 ring-inset ring-accent/40"
+        "group relative rounded-md transition-colors",
+        isOver && "ring-1 ring-inset ring-border"
       )}
     >
       <div className={itemActionsOverlayClass}>
@@ -621,13 +619,12 @@ function FolderItem({
         type="button"
         onClick={onOpen}
         className={cn(
-          "flex h-full w-full cursor-pointer flex-col items-center rounded-lg border border-border bg-card px-2 pb-3 pt-5 text-center transition-colors hover:border-border-strong hover:bg-card-hover",
-          isOver && "border-accent/40 bg-accent-muted/20"
+          "flex h-full w-full cursor-pointer flex-col rounded-md border border-border/50 bg-card p-3 text-left transition-colors hover:bg-foreground/[0.03] light:border-border light:hover:bg-black/[0.03]",
+          isOver && "border-border bg-foreground/[0.04] light:bg-black/[0.04]"
         )}
       >
         <FolderCoverTile
           title={folder.title}
-          color={folder.color}
           imageSrc={folder.imageDataUrl}
           setCount={setCount}
           size="md"
@@ -664,7 +661,7 @@ function SetItem({
       <div
         ref={setNodeRef}
         style={style}
-        className="group grid grid-cols-[minmax(0,1fr)_7rem_6rem] items-center gap-2 border-b border-border px-2 py-1.5 last:border-b-0"
+        className="group grid grid-cols-[minmax(0,1fr)_7rem_6rem] items-center gap-2 border-b border-border/50 px-2 py-1.5 last:border-b-0 light:border-border"
       >
         <div className="flex min-w-0 items-center gap-1">
           <button
@@ -672,7 +669,7 @@ function SetItem({
             {...attributes}
             {...listeners}
             onClick={onOpen}
-            className="flex min-w-0 flex-1 cursor-grab items-center gap-2.5 rounded-lg px-1.5 py-1.5 text-left transition-colors hover:bg-card-hover active:cursor-grabbing"
+            className="flex min-w-0 flex-1 cursor-grab items-center gap-2.5 rounded-md px-1.5 py-1.5 text-left transition-colors hover:bg-foreground/[0.03] active:cursor-grabbing light:hover:bg-black/[0.03]"
           >
             <Layers className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
             <span className="truncate text-sm font-medium text-foreground">{set.title}</span>
@@ -701,14 +698,14 @@ function SetItem({
         {...attributes}
         {...listeners}
         onClick={onOpen}
-        className="flex h-full w-full cursor-grab flex-col rounded-lg border border-border bg-card p-3 text-left transition-colors hover:border-border-strong hover:bg-card-hover active:cursor-grabbing"
+        className="flex h-full w-full cursor-grab flex-col rounded-md border border-border/50 bg-card p-3 text-left transition-colors hover:bg-foreground/[0.03] active:cursor-grabbing light:border-border light:hover:bg-black/[0.03]"
       >
-        <p className="truncate pr-10 text-sm font-medium text-foreground">{set.title}</p>
+        <p className="truncate pr-10 text-[13px] font-medium text-foreground">{set.title}</p>
         <p className="mt-1 text-[11px] text-muted-foreground">
           {set.subject || "General"} · {set.cards.length} card
           {set.cards.length === 1 ? "" : "s"}
         </p>
-        <span className="mt-2 inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground">
+        <span className="mt-2 inline-flex items-center gap-1 text-[11px] text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
           Open <ArrowRight className="h-3 w-3" />
         </span>
       </button>

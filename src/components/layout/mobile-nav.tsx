@@ -21,7 +21,7 @@ export function MobileNav() {
     <DialogPrimitive.Root open={open} onOpenChange={setOpen}>
       <DialogPrimitive.Trigger asChild>
         <button
-          className="flex h-9 w-9 items-center justify-center rounded-md text-foreground transition-colors hover:bg-card md:hidden"
+          className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-foreground/[0.04] hover:text-foreground md:hidden light:hover:bg-black/[0.04]"
           aria-label="Open navigation"
         >
           <Menu className="h-5 w-5" />
@@ -75,7 +75,16 @@ export function MobileNav() {
                       : "text-muted hover:bg-card-hover hover:text-foreground"
                   )}
                 >
-                  <Icon className={cn("h-4 w-4", isActive ? "text-accent" : "text-foreground/55")} />
+                  <Icon
+                    className={cn(
+                      "h-4 w-4",
+                      item.href === "/rank"
+                        ? "text-warning"
+                        : isActive
+                          ? "text-accent"
+                          : "text-foreground/55"
+                    )}
+                  />
                   {item.label}
                 </Link>
               );

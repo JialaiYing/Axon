@@ -87,9 +87,12 @@ export interface Objective {
 export interface FlashcardFolder {
   id: string;
   title: string;
-  /** Optional user-uploaded thumbnail (data URL) shown on the folder icon. */
+  /** Optional user-uploaded thumbnail shown on the folder mark. */
   imageDataUrl?: string;
-  /** Accent color for the folder icon. */
+  /**
+   * Legacy accent field kept for storage/sync shape.
+   * UI no longer exposes per-folder colors; always normalized to a shared default.
+   */
   color: string;
   createdAt: string;
   /** Bumped whenever the folder is opened. */

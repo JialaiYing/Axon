@@ -77,15 +77,15 @@ function DayColumn({
       ref={setNodeRef}
       onClick={handleColumnClick}
       className={cn(
-        "relative flex-1 border-r border-border transition-colors duration-150",
-        isOver && "bg-accent-muted/10"
+        "relative flex-1 border-r border-border/50 transition-colors duration-150 light:border-border/80",
+        isOver && "bg-foreground/[0.03] light:bg-black/[0.03]"
       )}
       style={{ height: 24 * HOUR_HEIGHT_PX }}
     >
       {HOURS.map((hour) => (
         <div
           key={hour}
-          className="absolute inset-x-0 border-t border-border/70"
+          className="absolute inset-x-0 border-t border-border/50 light:border-border/70"
           style={{ top: hour * HOUR_HEIGHT_PX }}
         />
       ))}
@@ -139,12 +139,12 @@ export function TimeGrid({ days, events, renderDayHeader, ...actions }: TimeGrid
   const nowTop = minutesSinceMidnight(now) * PX_PER_MINUTE;
 
   return (
-    <div className="flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-[var(--shadow-soft)]">
+    <div className="flex flex-col overflow-hidden rounded-md border border-border/50 bg-background light:border-border light:bg-card">
       {renderDayHeader && (
-        <div className="flex border-b border-border bg-surface/60">
+        <div className="flex border-b border-border/50 light:border-border">
           <div style={{ width: GUTTER_WIDTH }} className="shrink-0" />
           {days.map((day) => (
-            <div key={day.toISOString()} className="flex-1 border-r border-border py-2 text-center last:border-r-0">
+            <div key={day.toISOString()} className="flex-1 border-r border-border/50 py-1.5 text-center last:border-r-0 light:border-border/80">
               {renderDayHeader(day)}
             </div>
           ))}

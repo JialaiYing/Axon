@@ -27,15 +27,15 @@ export function ObjectivePicker({
   onToggleShowHidden,
 }: ObjectivePickerProps) {
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-1.5">
       {objectives.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+        <div className="rounded-md border border-dashed border-border/60 p-5 text-center text-[12px] text-muted-foreground light:border-border">
           {showHidden
             ? "No hidden objectives."
             : "No queued or in-progress objectives. Add one from the Kanban board to time it here."}
         </div>
       ) : (
-        <ul className="flex max-h-[360px] flex-col gap-2 overflow-y-auto pr-1">
+        <ul className="flex max-h-[360px] flex-col gap-1 overflow-y-auto pr-1">
           {objectives.map((objective) => {
             const isSelected = objective.id === selectedId;
             const remaining = remainingMinutes(objective);
@@ -46,10 +46,10 @@ export function ObjectivePicker({
                   onClick={() => onSelect(objective)}
                   disabled={showHidden}
                   className={cn(
-                    "flex w-full items-start gap-3 rounded-lg border p-3 text-left transition-all duration-200",
+                    "flex w-full items-start gap-3 rounded-md border p-2.5 text-left transition-colors duration-150",
                     isSelected
-                      ? "border-accent/60 bg-accent-muted/40 shadow-[0_0_0_1px_color-mix(in_srgb,var(--color-accent)_25%,transparent)]"
-                      : "border-border bg-surface hover:border-border-strong hover:bg-card",
+                      ? "border-border bg-foreground/[0.08] light:border-border light:bg-black/[0.06]"
+                      : "border-border/50 bg-transparent hover:bg-foreground/[0.03] light:border-border light:hover:bg-black/[0.03]",
                     showHidden && "opacity-70"
                   )}
                 >
@@ -57,15 +57,19 @@ export function ObjectivePicker({
                     <div
                       className={cn(
                         "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition-colors",
-                        isSelected ? "border-accent bg-accent" : "border-border-strong"
+                        isSelected
+                          ? "border-foreground bg-foreground text-background"
+                          : "border-border-strong"
                       )}
                     >
-                      {isSelected && <CheckCircle2 className="h-4 w-4 text-accent-foreground" />}
+                      {isSelected && <CheckCircle2 className="h-3.5 w-3.5" />}
                     </div>
                   )}
 
                   <div className="min-w-0 flex-1 pr-6">
-                    <p className="truncate text-sm font-medium text-foreground">{objective.title}</p>
+                    <p className="truncate text-[13px] font-medium text-foreground">
+                      {objective.title}
+                    </p>
                     <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                       <Badge variant={priorityBadgeVariant(objective.priority)} className="capitalize">
                         {objective.priority}
@@ -73,10 +77,10 @@ export function ObjectivePicker({
                       <Badge variant="outline">{objective.subject}</Badge>
                       <span
                         className={cn(
-                          "rounded-pill px-2 py-0.5 text-[10px] font-medium",
+                          "rounded-md px-2 py-0.5 text-[10px] font-medium",
                           objective.status === "in-progress"
-                            ? "bg-accent-muted text-accent"
-                            : "bg-surface text-muted-foreground"
+                            ? "bg-foreground/[0.06] text-foreground light:bg-black/[0.05]"
+                            : "bg-foreground/[0.04] text-muted-foreground light:bg-black/[0.03]"
                         )}
                       >
                         {objective.status === "in-progress" ? "In progress" : "Queued"}
@@ -96,15 +100,21 @@ export function ObjectivePicker({
                 {onHide && (
                   <button
                     type="button"
-                    aria-label={showHidden ? `Unhide ${objective.title}` : `Hide ${objective.title} from this list`}
+                    aria-label={
+                      showHidden
+                        ? `Unhide ${objective.title}`
+                        : `Hide ${objective.title} from this list`
+                    }
                     title={showHidden ? "Unhide" : "Hide from this list"}
                     onClick={(e) => {
                       e.stopPropagation();
                       onHide(objective);
                     }}
                     className={cn(
-                      "absolute right-2.5 top-2.5 flex h-6 w-6 items-center justify-center rounded-md text-muted transition-all duration-150 hover:bg-danger-muted hover:text-danger active:scale-90",
-                      showHidden ? "opacity-100 hover:text-accent hover:bg-accent-muted" : "opacity-0 group-hover:opacity-100"
+                      "absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-danger-muted hover:text-danger active:scale-90",
+                      showHidden
+                        ? "opacity-100 hover:bg-foreground/[0.06] hover:text-foreground light:hover:bg-black/[0.04]"
+                        : "opacity-0 group-hover:opacity-100"
                     )}
                   >
                     {showHidden ? <Eye className="h-3.5 w-3.5" /> : <Minus className="h-3.5 w-3.5" />}

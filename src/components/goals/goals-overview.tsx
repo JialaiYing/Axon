@@ -5,7 +5,6 @@ import Link from "next/link";
 import {
   ArrowRight,
   CheckCircle2,
-  Flame,
   ListTodo,
   Pencil,
   Plus,
@@ -20,9 +19,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Panel } from "@/components/ui/panel";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StreakFlame } from "@/components/ui/streak-flame";
 import { DAILY_FOCUS_GOAL_ID, useGoals } from "@/hooks/use-goals";
 import {
   dayElapsedFraction,
@@ -36,10 +35,10 @@ import {
 import type { Goal, GoalHistoryEntry } from "@/types";
 import { cn } from "@/lib/utils";
 
-function paceBadgeVariant(status: GoalPaceStatus): "success" | "warning" | "default" {
+function paceBadgeVariant(status: GoalPaceStatus): "success" | "warning" | "danger" {
   if (status === "done") return "success";
-  if (status === "behind") return "warning";
-  return "default";
+  if (status === "on-track") return "warning";
+  return "danger";
 }
 
 /** Icon/label tone for "x of y goals on track" — red / amber / green by ratio. */
@@ -59,13 +58,13 @@ function missedPctClass(pct: number) {
 function LoadingState() {
   return (
     <div className="space-y-5">
-      <Skeleton className="h-28 rounded-xl" />
+      <Skeleton className="h-20 rounded-md" />
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Skeleton className="h-56 rounded-xl" />
-        <Skeleton className="h-56 rounded-xl" />
+        <Skeleton className="h-48 rounded-md" />
+        <Skeleton className="h-48 rounded-md" />
       </div>
-      <Skeleton className="h-64 rounded-xl" />
-      <Skeleton className="h-36 rounded-xl" />
+      <Skeleton className="h-56 rounded-md" />
+      <Skeleton className="h-28 rounded-md" />
     </div>
   );
 }
@@ -100,36 +99,40 @@ function ActiveGoalCard({
   }, [editing, goal.target]);
 
   return (
-    <Panel variant="standard" className="flex h-full flex-col p-5">
+    <div className="flex h-full flex-col py-4 lg:px-1">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+          <p className="text-[11px] font-medium text-muted-foreground">
             {goal.type === "daily" ? "Daily" : "Weekly"}
           </p>
-          <h2 className="mt-1 text-base font-semibold text-foreground">{goal.title}</h2>
+          <h2 className="mt-1 text-[15px] font-semibold text-foreground">{goal.title}</h2>
         </div>
         <Badge variant={paceBadgeVariant(status)}>{PACE_LABEL[status]}</Badge>
       </div>
 
-      <div className="mt-5">
+      <div className="mt-4">
         <div className="flex items-end justify-between gap-3">
-          <p className="font-mono text-3xl font-semibold tabular-nums text-foreground">
+          <p className="font-mono text-2xl font-semibold tabular-nums text-foreground md:text-3xl">
             {goal.progress}
-            <span className="text-lg font-medium text-muted-foreground">
+            <span className="text-base font-medium text-muted-foreground md:text-lg">
               /{goal.target}
               {goal.unit ? ` ${goal.unit}` : ""}
             </span>
           </p>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-[12px] text-muted-foreground">
             {remaining === 0 ? "Complete" : `${remaining} ${goal.unit || ""} left`.trim()}
           </p>
         </div>
-        <ProgressBar value={percent} className="mt-3" />
-        <p className="mt-2 text-xs text-muted-foreground">Resets {resetLabel}</p>
+        <ProgressBar
+          value={percent}
+          className="mt-3"
+          barClassName={status === "done" ? "bg-success" : undefined}
+        />
+        <p className="mt-2 text-[12px] text-muted-foreground">Resets {resetLabel}</p>
       </div>
 
       {editing ? (
-        <div className="mt-5 space-y-3 rounded-lg border border-border/50 bg-card/30 p-3">
+        <div className="mt-4 space-y-3 rounded-md border border-border/50 p-3 light:border-border">
           <div className="space-y-1.5">
             <Label htmlFor={`target-${goal.id}`}>Target</Label>
             <Input
@@ -139,12 +142,13 @@ function ActiveGoalCard({
               step={1}
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              className="max-w-[140px]"
+              className="max-w-[140px] shadow-none"
             />
           </div>
           <div className="flex flex-wrap gap-2">
             <Button
               size="sm"
+              className="shadow-none"
               onClick={() => {
                 const next = Number(draft);
                 if (!Number.isFinite(next) || next < 1) return;
@@ -160,20 +164,20 @@ function ActiveGoalCard({
           </div>
         </div>
       ) : (
-        <div className="mt-auto flex flex-wrap gap-2 pt-5">
-          <Button asChild size="sm">
+        <div className="mt-auto flex flex-wrap gap-2 pt-4">
+          <Button asChild size="sm" className="shadow-none">
             <Link href={actionHref}>
               {actionLabel}
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </Button>
-          <Button size="sm" variant="outline" onClick={onStartEdit}>
+          <Button size="sm" variant="outline" className="shadow-none" onClick={onStartEdit}>
             <Pencil className="h-3.5 w-3.5" />
             Edit target
           </Button>
         </div>
       )}
-    </Panel>
+    </div>
   );
 }
 
@@ -188,27 +192,27 @@ function HistoryGrid({
 }) {
   return (
     <div>
-      <h3 className="mb-3 text-sm font-semibold text-foreground">{title}</h3>
+      <h3 className="mb-3 text-[13px] font-semibold text-foreground">{title}</h3>
       {entries.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{emptyHint}</p>
+        <p className="text-[13px] text-muted-foreground">{emptyHint}</p>
       ) : (
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7">
+        <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7">
           {entries.map((entry) => {
             const pct = entry.target > 0 ? Math.round((entry.progress / entry.target) * 100) : 0;
             return (
               <div
                 key={entry.id}
                 className={cn(
-                  "rounded-lg border px-2.5 py-2.5",
+                  "rounded-md border px-2 py-2",
                   entry.hit
-                    ? "border-success/25 bg-success-muted/40"
-                    : "border-border/50 bg-card/30"
+                    ? "border-success/25 bg-success-muted/30"
+                    : "border-border/50 light:border-border"
                 )}
               >
-                <p className="truncate font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
+                <p className="truncate font-mono text-[10px] text-muted-foreground">
                   {formatPeriodLabel(entry.type, entry.periodKey)}
                 </p>
-                <p className="mt-1 font-mono text-xs font-medium tabular-nums text-foreground">
+                <p className="mt-1 font-mono text-[12px] font-medium tabular-nums text-foreground">
                   {entry.progress}/{entry.target}
                 </p>
                 <p
@@ -348,13 +352,14 @@ export function GoalsOverview() {
       description="Daily and weekly targets that update from your real focus and completed objectives."
       actions={
         <div className="flex flex-wrap gap-2">
-          <Button size="sm" onClick={() => setCreateOpen((v) => !v)}>
+          <Button size="sm" className="shadow-none" onClick={() => setCreateOpen((v) => !v)}>
             <Plus className="h-3.5 w-3.5" />
             Personal goal
           </Button>
           <Button
             size="sm"
             variant="outline"
+            className="shadow-none"
             onClick={() => setEditingId(dailyGoal?.id ?? weeklyGoal?.id ?? null)}
             disabled={!hydrated || (!dailyGoal && !weeklyGoal)}
           >
@@ -367,124 +372,122 @@ export function GoalsOverview() {
       {!hydrated ? (
         <LoadingState />
       ) : (
-        <div className="space-y-5">
+        <div className="space-y-6">
           {/* First-run: no activity yet (goals are seeded, so empty = no progress) */}
           {dailyGoal?.progress === 0 &&
             weeklyGoal?.progress === 0 &&
             dailyHistory.length === 0 &&
             weeklyHistory.length === 0 && (
-              <Panel variant="standard" className="flex flex-col items-center gap-3 p-8 text-center">
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-surface text-muted-foreground">
-                  <Timer className="h-5 w-5" />
-                </span>
+              <div className="flex flex-col items-center gap-3 rounded-md border border-dashed border-border/60 px-6 py-8 text-center light:border-border">
+                <Timer className="h-5 w-5 text-muted-foreground" />
                 <div>
-                  <p className="text-sm font-semibold text-foreground">No activity yet</p>
-                  <p className="mt-1.5 max-w-md text-xs leading-relaxed text-muted-foreground">
+                  <p className="text-[13px] font-semibold text-foreground">No activity yet</p>
+                  <p className="mt-1.5 max-w-md text-[12px] leading-relaxed text-muted-foreground">
                     Daily focus minutes come from Pomodoro sessions. Weekly objective counts come
                     from Kanban completions. Start either to see these goals move.
                   </p>
                 </div>
                 <div className="flex flex-wrap justify-center gap-2">
-                  <Button asChild size="sm">
+                  <Button asChild size="sm" className="shadow-none">
                     <Link href="/pomodoro">
                       <Timer className="h-3.5 w-3.5" />
                       Start focus
                     </Link>
                   </Button>
-                  <Button asChild size="sm" variant="outline">
+                  <Button asChild size="sm" variant="outline" className="shadow-none">
                     <Link href="/kanban">
                       <ListTodo className="h-3.5 w-3.5" />
                       Open board
                     </Link>
                   </Button>
                 </div>
-              </Panel>
+              </div>
             )}
 
-          {/* Overview header — sole elevated surface */}
-          <Panel variant="glass" className="p-5">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-start gap-3">
-                <span
+          {/* Overview strip */}
+          <div className="flex flex-col gap-3 border-y border-border/50 py-4 light:border-border sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <Target
+                className={cn(
+                  "mt-0.5 h-4 w-4 shrink-0",
+                  trackTone === "success" && "text-success",
+                  trackTone === "warning" && "text-warning",
+                  trackTone === "danger" && "text-danger"
+                )}
+              />
+              <div>
+                <p
                   className={cn(
-                    "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border",
-                    trackTone === "success" && "border-success/30 bg-success-muted text-success",
-                    trackTone === "warning" && "border-warning/30 bg-warning-muted text-warning",
-                    trackTone === "danger" && "border-danger/30 bg-danger-muted text-danger"
+                    "text-[13px] font-semibold",
+                    trackTone === "success" && "text-success",
+                    trackTone === "warning" && "text-warning",
+                    trackTone === "danger" && "text-danger"
                   )}
                 >
-                  <Target className="h-5 w-5" />
-                </span>
-                <div>
-                  <p
-                    className={cn(
-                      "text-sm font-semibold",
-                      trackTone === "success" && "text-success",
-                      trackTone === "warning" && "text-warning",
-                      trackTone === "danger" && "text-danger"
-                    )}
-                  >
-                    {onTrackCount} of {totalTracked} goals on track
-                  </p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Progress comes from Pomodoro focus time and Kanban completions — no check-ins.
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                <span>
-                  Daily hit{" "}
-                  <span className="font-mono tabular-nums text-foreground">{dailyHitRate}%</span>
-                </span>
-                <span className="hidden text-border sm:inline">·</span>
-                <span>
-                  Weekly hit{" "}
-                  <span className="font-mono tabular-nums text-foreground">{weeklyHitRate}%</span>
-                </span>
+                  {onTrackCount} of {totalTracked} goals on track
+                </p>
+                <p className="mt-0.5 text-[12px] text-muted-foreground">
+                  Progress comes from Pomodoro focus time and Kanban completions — no check-ins.
+                </p>
               </div>
             </div>
-          </Panel>
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-muted-foreground">
+              <span>
+                Daily hit{" "}
+                <span className="font-mono tabular-nums text-foreground">{dailyHitRate}%</span>
+              </span>
+              <span className="hidden text-border sm:inline">·</span>
+              <span>
+                Weekly hit{" "}
+                <span className="font-mono tabular-nums text-foreground">{weeklyHitRate}%</span>
+              </span>
+            </div>
+          </div>
 
-          {/* Active goals */}
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          {/* Active goals — one divided band */}
+          <div className="grid grid-cols-1 divide-y divide-border/60 border-y border-border/50 lg:grid-cols-2 lg:divide-x lg:divide-y-0 light:divide-border light:border-border">
             {dailyGoal && dailyStatus && (
-              <ActiveGoalCard
-                goal={dailyGoal}
-                status={dailyStatus}
-                resetLabel="at local midnight"
-                actionHref="/pomodoro"
-                actionLabel="Start focus"
-                editing={editingId === dailyGoal.id}
-                onStartEdit={() => setEditingId(dailyGoal.id)}
-                onCancelEdit={() => setEditingId(null)}
-                onSaveTarget={(target) => {
-                  updateTarget(dailyGoal.id, target);
-                  setEditingId(null);
-                }}
-              />
+              <div className="lg:pr-6">
+                <ActiveGoalCard
+                  goal={dailyGoal}
+                  status={dailyStatus}
+                  resetLabel="at local midnight"
+                  actionHref="/pomodoro"
+                  actionLabel="Start focus"
+                  editing={editingId === dailyGoal.id}
+                  onStartEdit={() => setEditingId(dailyGoal.id)}
+                  onCancelEdit={() => setEditingId(null)}
+                  onSaveTarget={(target) => {
+                    updateTarget(dailyGoal.id, target);
+                    setEditingId(null);
+                  }}
+                />
+              </div>
             )}
             {weeklyGoal && weeklyStatus && (
-              <ActiveGoalCard
-                goal={weeklyGoal}
-                status={weeklyStatus}
-                resetLabel="every Monday"
-                actionHref="/kanban"
-                actionLabel="Open board"
-                editing={editingId === weeklyGoal.id}
-                onStartEdit={() => setEditingId(weeklyGoal.id)}
-                onCancelEdit={() => setEditingId(null)}
-                onSaveTarget={(target) => {
-                  updateTarget(weeklyGoal.id, target);
-                  setEditingId(null);
-                }}
-              />
+              <div className="lg:pl-6">
+                <ActiveGoalCard
+                  goal={weeklyGoal}
+                  status={weeklyStatus}
+                  resetLabel="every Monday"
+                  actionHref="/kanban"
+                  actionLabel="Open board"
+                  editing={editingId === weeklyGoal.id}
+                  onStartEdit={() => setEditingId(weeklyGoal.id)}
+                  onCancelEdit={() => setEditingId(null)}
+                  onSaveTarget={(target) => {
+                    updateTarget(weeklyGoal.id, target);
+                    setEditingId(null);
+                  }}
+                />
+              </div>
             )}
           </div>
 
           {createOpen && (
-            <Panel variant="interactive" className="space-y-3 p-5">
-              <h2 className="text-sm font-semibold text-foreground">New personal goal</h2>
-              <p className="text-xs text-muted-foreground">
+            <div className="space-y-3 rounded-md border border-border/50 p-4 light:border-border light:bg-card">
+              <h2 className="text-[13px] font-semibold text-foreground">New personal goal</h2>
+              <p className="text-[12px] text-muted-foreground">
                 Open-ended daily or weekly goals outside of study tracking — habits, chores,
                 fitness, anything you want to hit.
               </p>
@@ -497,6 +500,7 @@ export function GoalsOverview() {
                     maxLength={120}
                     onChange={(e) => setDraftTitle(e.target.value)}
                     placeholder="e.g. Drink 8 glasses of water"
+                    className="shadow-none"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -505,7 +509,7 @@ export function GoalsOverview() {
                     id="personal-type"
                     value={draftType}
                     onChange={(e) => setDraftType(e.target.value as "daily" | "weekly")}
-                    className="flex h-10 w-full rounded-lg border border-border bg-surface px-3 text-sm text-foreground"
+                    className="flex h-10 w-full rounded-md border border-border/60 bg-transparent px-3 text-[13px] text-foreground light:border-border"
                   >
                     <option value="daily">Daily</option>
                     <option value="weekly">Weekly</option>
@@ -520,6 +524,7 @@ export function GoalsOverview() {
                     max={9999}
                     value={draftTarget}
                     onChange={(e) => setDraftTarget(e.target.value)}
+                    className="shadow-none"
                   />
                 </div>
                 <div className="space-y-1.5 sm:col-span-2">
@@ -530,12 +535,14 @@ export function GoalsOverview() {
                     maxLength={24}
                     onChange={(e) => setDraftUnit(e.target.value)}
                     placeholder="times, pages, km…"
+                    className="shadow-none"
                   />
                 </div>
               </div>
               <div className="flex flex-wrap gap-2">
                 <Button
                   size="sm"
+                  className="shadow-none"
                   onClick={() => {
                     const created = addPersonalGoal({
                       title: draftTitle,
@@ -557,45 +564,55 @@ export function GoalsOverview() {
                   Cancel
                 </Button>
               </div>
-            </Panel>
+            </div>
           )}
 
           {personalGoals.length > 0 && (
             <div className="space-y-3">
-              <h2 className="text-sm font-semibold text-foreground">Personal goals</h2>
-              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <h2 className="text-[13px] font-semibold text-foreground">Personal goals</h2>
+              <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
                 {personalGoals.map((goal) => {
                   const percent = goal.target > 0 ? (goal.progress / goal.target) * 100 : 0;
                   return (
-                    <Panel key={goal.id} variant="standard" className="p-5">
+                    <div
+                      key={goal.id}
+                      className="rounded-md border border-border/50 p-4 light:border-border"
+                    >
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                          <p className="text-[11px] font-medium text-muted-foreground">
                             {goal.type} · personal
                           </p>
-                          <p className="mt-2 text-base font-semibold text-foreground">{goal.title}</p>
+                          <p className="mt-1.5 text-[15px] font-semibold text-foreground">
+                            {goal.title}
+                          </p>
                         </div>
                         <button
                           type="button"
                           aria-label="Delete goal"
                           onClick={() => deleteGoal(goal.id)}
-                          className="rounded-md p-1.5 text-muted hover:bg-danger-muted hover:text-danger"
+                          className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-danger-muted hover:text-danger"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
                       </div>
-                      <p className="mt-3 font-mono text-2xl font-semibold tabular-nums text-foreground">
+                      <p className="mt-3 font-mono text-xl font-semibold tabular-nums text-foreground">
                         {goal.progress}
-                        <span className="text-lg text-muted-foreground">
+                        <span className="text-base text-muted-foreground">
                           /{goal.target}
                           {goal.unit ? ` ${goal.unit}` : ""}
                         </span>
                       </p>
-                      <ProgressBar value={percent} className="mt-3" />
+                      <ProgressBar
+                        value={percent}
+                        className="mt-3"
+                        barClassName={goal.completed || percent >= 100 ? "bg-success" : undefined}
+                      />
                       <div className="mt-3 flex flex-wrap gap-2">
                         <Button
                           size="sm"
                           variant="outline"
+                          className="shadow-none"
                           onClick={() => setManualProgress(goal.id, goal.progress + 1)}
                           disabled={goal.progress >= goal.target}
                         >
@@ -609,7 +626,7 @@ export function GoalsOverview() {
                           Reset
                         </Button>
                       </div>
-                    </Panel>
+                    </div>
                   );
                 })}
               </div>
@@ -617,17 +634,17 @@ export function GoalsOverview() {
           )}
 
           {/* History */}
-          <Panel variant="standard" className="space-y-6 p-5">
+          <section className="space-y-5 border-t border-border/50 pt-5 light:border-border">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h2 className="text-sm font-semibold text-foreground">Goal history</h2>
-                <p className="mt-0.5 text-xs text-muted-foreground">
+                <h2 className="text-[13px] font-semibold text-foreground">Goal history</h2>
+                <p className="mt-0.5 text-[12px] text-muted-foreground">
                   Closed periods after each daily and weekly reset.
                 </p>
               </div>
-              <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+              <div className="flex flex-wrap gap-3 text-[12px] text-muted-foreground">
                 <span className="inline-flex items-center gap-1.5">
-                  <Flame className="h-3.5 w-3.5 text-muted-foreground" />
+                  <StreakFlame days={dailyStreak.current} size="sm" />
                   Daily streak {dailyStreak.current}
                   <span className="text-muted-foreground/50">·</span>
                   best {dailyStreak.best}
@@ -651,28 +668,26 @@ export function GoalsOverview() {
               entries={weeklyHistory}
               emptyHint="Finish objectives this week to start weekly history."
             />
-          </Panel>
+          </section>
 
           {/* Insights */}
-          <Panel variant="standard" className="p-5">
+          <section className="border-t border-border/50 pt-5 light:border-border">
             <div className="flex items-start gap-3">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-surface text-muted-foreground">
-                <Sparkles className="h-4 w-4" />
-              </span>
+              <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
               <div className="min-w-0 flex-1">
-                <h2 className="text-sm font-semibold text-foreground">Insights</h2>
-                <p className="mt-1.5 text-sm text-muted-foreground">{insight.message}</p>
-                <p className="mt-3 rounded-lg border border-border bg-surface px-3 py-2.5 text-sm text-foreground">
+                <h2 className="text-[13px] font-semibold text-foreground">Insights</h2>
+                <p className="mt-1.5 text-[13px] text-muted-foreground">{insight.message}</p>
+                <p className="mt-3 rounded-md bg-foreground/[0.04] px-3 py-2.5 text-[13px] text-foreground light:bg-black/[0.04]">
                   {insight.suggestion}
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <Button asChild size="sm" variant="outline">
+                  <Button asChild size="sm" variant="outline" className="shadow-none">
                     <Link href="/pomodoro">
                       <Timer className="h-3.5 w-3.5" />
                       Focus
                     </Link>
                   </Button>
-                  <Button asChild size="sm" variant="outline">
+                  <Button asChild size="sm" variant="outline" className="shadow-none">
                     <Link href="/kanban">
                       <ListTodo className="h-3.5 w-3.5" />
                       Board
@@ -686,7 +701,7 @@ export function GoalsOverview() {
                 </div>
               </div>
             </div>
-          </Panel>
+          </section>
         </div>
       )}
     </AppPage>

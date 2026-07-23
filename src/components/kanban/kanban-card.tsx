@@ -1,5 +1,10 @@
 "use client";
 
+/**
+ * Linear-inspired Kanban card (§3).
+ * Backup: kanban-card.pre-linear.bak
+ */
+
 import * as React from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -79,29 +84,29 @@ export function KanbanCard({
       ref={setNodeRef}
       style={style}
       layout={!isOverlay}
-      initial={isOverlay ? false : { opacity: 0, y: 6 }}
-      animate={isOverlay ? undefined : { opacity: 1, y: 0 }}
+      initial={isOverlay ? false : { opacity: 0 }}
+      animate={isOverlay ? undefined : { opacity: 1 }}
       exit={isOverlay ? undefined : { opacity: 0 }}
-      transition={{ duration: 0.2, ease: [0.21, 0.47, 0.32, 0.98] }}
+      transition={{ duration: 0.15, ease: [0.21, 0.47, 0.32, 0.98] }}
       {...(isOverlay ? {} : attributes)}
       {...(isOverlay ? {} : listeners)}
       className={cn(
-        "group relative touch-none rounded-xl border border-border bg-card-hover p-3.5 shadow-[var(--shadow-elevation-1)] light:bg-card",
-        "transition-[background-color,border-color] duration-200 hover:border-border-strong hover:bg-foreground/[0.08] light:hover:bg-card-hover",
+        "group relative touch-none rounded-md border border-border/50 bg-card px-2.5 py-2 light:border-border",
+        "transition-colors duration-150 hover:bg-foreground/[0.04] light:hover:bg-black/[0.03]",
         !isOverlay && "cursor-grab active:cursor-grabbing",
         isDragging && !isOverlay && "opacity-40",
-        isOverlay && "shadow-[var(--shadow-elevation-3)] ring-1 ring-border-strong"
+        isOverlay && "border-border bg-card shadow-[var(--shadow-elevation-2)]"
       )}
     >
       {objective.color && (
         <span
           aria-hidden
-          className="absolute left-0 top-3 h-[calc(100%-24px)] w-0.5 rounded-full"
+          className="absolute left-0 top-2 h-[calc(100%-16px)] w-0.5 rounded-full"
           style={{ backgroundColor: objective.color }}
         />
       )}
 
-      <div className="flex items-start justify-between gap-2 pl-2">
+      <div className="flex items-start justify-between gap-2 pl-1.5">
         <button
           type="button"
           onClick={(e) => {
@@ -118,12 +123,12 @@ export function KanbanCard({
             )}
             title={objective.priority}
           />
-          <span className="text-sm font-medium leading-snug text-foreground transition-colors duration-150 hover:text-foreground/80">
+          <span className="text-[13px] font-medium leading-snug text-foreground">
             {objective.title}
           </span>
         </button>
 
-        <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+        <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
           {isDone && onSendToRecycleBin && (
             <button
               type="button"
@@ -133,7 +138,7 @@ export function KanbanCard({
                 e.stopPropagation();
                 onSendToRecycleBin(objective);
               }}
-              className="flex h-6 w-6 items-center justify-center rounded-md text-muted transition-colors duration-150 hover:bg-surface hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-border-strong"
+              className="flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-foreground/[0.06] hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-border-strong"
               title="Send to recycle bin"
             >
               <ArchiveX className="h-3 w-3" />
@@ -147,7 +152,7 @@ export function KanbanCard({
               e.stopPropagation();
               onEdit(objective);
             }}
-            className="flex h-6 w-6 items-center justify-center rounded-md text-muted transition-colors duration-150 hover:bg-surface hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-border-strong"
+            className="flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-foreground/[0.06] hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-border-strong"
           >
             <Pencil className="h-3 w-3" />
           </button>
@@ -159,7 +164,7 @@ export function KanbanCard({
               e.stopPropagation();
               onDelete(objective);
             }}
-            className="flex h-6 w-6 items-center justify-center rounded-md text-muted transition-colors duration-150 hover:bg-danger-muted hover:text-danger focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-border-strong"
+            className="flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-danger-muted hover:text-danger focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-border-strong"
           >
             <Trash2 className="h-3 w-3" />
           </button>
@@ -167,10 +172,12 @@ export function KanbanCard({
       </div>
 
       {objective.description && (
-        <p className="mt-1.5 line-clamp-2 pl-5 text-xs text-muted-foreground">{objective.description}</p>
+        <p className="mt-1 line-clamp-2 pl-4 text-[12px] text-muted-foreground">
+          {objective.description}
+        </p>
       )}
 
-      <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-0.5 pl-5 text-[11px] text-muted-foreground">
+      <div className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 pl-4 text-[11px] text-muted-foreground">
         <span className="capitalize">{objective.priority}</span>
         {objective.subject && (
           <>
@@ -187,7 +194,7 @@ export function KanbanCard({
       </div>
 
       {showProgress && (
-        <div className="mt-2.5 pl-5">
+        <div className="mt-2 pl-4">
           <ProgressBar
             value={objective.progress}
             size="sm"
@@ -197,7 +204,7 @@ export function KanbanCard({
       )}
 
       {(hasSubtasks || (objective.recurrence && objective.recurrence !== "none") || dueLabel || timeLabel) && (
-        <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 pl-5 text-[11px] text-muted-foreground">
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 pl-4 text-[11px] text-muted-foreground">
           {hasSubtasks && (
             <span className="flex items-center gap-1">
               <ListChecks className="h-3 w-3" />
@@ -228,7 +235,7 @@ export function KanbanCard({
       )}
 
       {!isOverlay && (onSchedule || onUnschedule) && (
-        <div className="mt-2.5 pl-5" onPointerDown={(e) => e.stopPropagation()}>
+        <div className="mt-1.5 pl-4" onPointerDown={(e) => e.stopPropagation()}>
           <SchedulePopover
             objective={objective}
             onSchedule={(input) => onSchedule?.(objective, input)}
@@ -271,7 +278,7 @@ export function KanbanCard({
       )}
 
       {isDone && recycleCountdown !== null && (
-        <p className="mt-2 pl-5 text-[10px] text-muted-foreground">
+        <p className="mt-1.5 pl-4 text-[10px] text-muted-foreground">
           {recycleCountdown === 0
             ? "Moves to recycle bin today"
             : `Auto-recycles in ${recycleCountdown}d`}
