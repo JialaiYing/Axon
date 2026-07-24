@@ -1,8 +1,8 @@
 "use client";
 
 /**
- * Linear Kanban column — light pass uses wash tokens for drop/hover.
- * Backup: kanban-column.pre-light-dashboard.bak
+ * Linear-inspired Kanban column (§2).
+ * Backup: kanban-column.pre-linear.bak
  */
 
 import { useDroppable } from "@dnd-kit/core";
@@ -56,7 +56,7 @@ export function KanbanColumn({
           type="button"
           aria-label={`Add objective to ${column.title}`}
           onClick={() => onAdd(column.id)}
-          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-wash hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-border-strong"
+          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-foreground/[0.06] hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-border-strong light:hover:bg-black/[0.04]"
         >
           <Plus className="h-3.5 w-3.5" />
         </button>
@@ -66,7 +66,7 @@ export function KanbanColumn({
         ref={setNodeRef}
         className={cn(
           "flex min-h-[180px] flex-1 flex-col gap-1 rounded-md border border-transparent p-0.5 transition-[border-color,background-color] duration-150",
-          isOver && "border-border/50 bg-wash light:border-border"
+          isOver && "border-border bg-foreground/[0.03] light:bg-black/[0.03]"
         )}
       >
         <SortableContext items={ids} strategy={verticalListSortingStrategy}>
@@ -89,7 +89,7 @@ export function KanbanColumn({
           <button
             type="button"
             onClick={() => onAdd(column.id)}
-            className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-dashed border-border/60 py-6 text-[12px] text-muted-foreground transition-colors duration-150 hover:border-border hover:bg-wash hover:text-foreground light:border-border"
+            className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-dashed border-border/60 py-6 text-[12px] text-muted-foreground transition-colors duration-150 hover:border-border hover:bg-foreground/[0.03] hover:text-foreground light:border-border light:hover:bg-black/[0.03]"
           >
             <Plus className="h-3.5 w-3.5" />
             Add objective

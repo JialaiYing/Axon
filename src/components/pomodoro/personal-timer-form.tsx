@@ -71,8 +71,8 @@ export function PersonalTimerForm({
               className={cn(
                 "w-full cursor-pointer rounded-md border px-3 py-2 text-[12px] font-medium transition-colors duration-150",
                 safeMinutes === preset.minutes
-                  ? "border-border bg-foreground/[0.08] text-foreground light:bg-black/[0.06]"
-                  : "border-border/50 text-muted-foreground hover:bg-foreground/[0.03] hover:text-foreground light:border-border light:hover:bg-black/[0.03]"
+                  ? "border-border bg-wash-strong text-foreground"
+                  : "border-border/50 text-muted-foreground hover:bg-wash hover:text-foreground light:border-border"
               )}
             >
               {preset.label}

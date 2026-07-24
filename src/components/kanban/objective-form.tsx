@@ -306,7 +306,7 @@ export function ObjectiveForm({
         <Textarea id="notes" rows={2} placeholder="Optional notes" {...register("notes")} />
       </div>
 
-      <Accordion type="single" collapsible className="rounded-lg border border-border px-3">
+      <Accordion type="single" collapsible className="rounded-md border border-border/50 px-3 light:border-border">
         <AccordionItem value="advanced" className="border-0">
           <AccordionTrigger className="py-3 text-xs text-muted-foreground hover:text-foreground">
             Advanced — repeat &amp; dependencies

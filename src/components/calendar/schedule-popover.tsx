@@ -155,7 +155,7 @@ export function SchedulePopover({
             exit={{ opacity: 0, y: -6, scale: 0.97 }}
             transition={{ duration: 0.16, ease: [0.21, 0.47, 0.32, 0.98] }}
             style={{ position: "fixed", top: coords.top, left: coords.left, width: POPOVER_WIDTH }}
-            className="z-[80] rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-overlay)]"
+            className="z-[80] rounded-md border border-border/50 bg-card p-4 shadow-[var(--shadow-elevation-2)] light:border-border"
           >
             <p className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-foreground">
               <CalendarClock className="h-3.5 w-3.5 text-accent" />

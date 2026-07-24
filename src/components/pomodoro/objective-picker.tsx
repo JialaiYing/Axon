@@ -48,8 +48,8 @@ export function ObjectivePicker({
                   className={cn(
                     "flex w-full items-start gap-3 rounded-md border p-2.5 text-left transition-colors duration-150",
                     isSelected
-                      ? "border-border bg-foreground/[0.08] light:border-border light:bg-black/[0.06]"
-                      : "border-border/50 bg-transparent hover:bg-foreground/[0.03] light:border-border light:hover:bg-black/[0.03]",
+                      ? "border-border bg-wash-strong light:border-border"
+                      : "border-border/50 bg-transparent hover:bg-wash light:border-border",
                     showHidden && "opacity-70"
                   )}
                 >
@@ -79,8 +79,8 @@ export function ObjectivePicker({
                         className={cn(
                           "rounded-md px-2 py-0.5 text-[10px] font-medium",
                           objective.status === "in-progress"
-                            ? "bg-foreground/[0.06] text-foreground light:bg-black/[0.05]"
-                            : "bg-foreground/[0.04] text-muted-foreground light:bg-black/[0.03]"
+                            ? "bg-wash text-foreground"
+                            : "bg-wash text-muted-foreground"
                         )}
                       >
                         {objective.status === "in-progress" ? "In progress" : "Queued"}
@@ -113,7 +113,7 @@ export function ObjectivePicker({
                     className={cn(
                       "absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-danger-muted hover:text-danger active:scale-90",
                       showHidden
-                        ? "opacity-100 hover:bg-foreground/[0.06] hover:text-foreground light:hover:bg-black/[0.04]"
+                        ? "opacity-100 hover:bg-wash hover:text-foreground"
                         : "opacity-0 group-hover:opacity-100"
                     )}
                   >

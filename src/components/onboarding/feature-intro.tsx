@@ -31,7 +31,7 @@ export function FeatureIntro({ feature }: FeatureIntroProps) {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -6 }}
           transition={{ duration: 0.2, ease: [0.21, 0.47, 0.32, 0.98] }}
-          className="mb-4 flex items-start gap-3 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-elevation-1)]"
+          className="mb-4 flex items-start gap-3 rounded-md border border-border/50 bg-card p-4 shadow-none light:border-border"
           role="status"
         >
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent-muted text-accent">

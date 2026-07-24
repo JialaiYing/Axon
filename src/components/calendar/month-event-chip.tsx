@@ -103,11 +103,11 @@ export function MonthEventChip({
             ? "border-success/50 bg-success-muted/60 text-foreground"
             : isPast
               ? "border-warning/50 bg-warning-muted/60 text-foreground"
-              : "border-border text-foreground hover:bg-foreground/[0.05] light:hover:bg-black/[0.04]",
+              : "border-border text-foreground hover:bg-wash",
           isDragging && "opacity-50",
-          isHovered && !isDone && !isPast && "bg-foreground/[0.05] light:bg-black/[0.04]",
+          isHovered && !isDone && !isPast && "bg-wash",
           isLive && "border-accent/50 bg-accent-muted/60",
-          expanded && "bg-foreground/[0.06] light:bg-black/[0.05]"
+          expanded && "bg-wash"
         )}
         style={{
           transform: transform ? CSS.Translate.toString(transform) : undefined,

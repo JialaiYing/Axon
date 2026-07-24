@@ -57,14 +57,14 @@ export function CalendarHeader({
             type="button"
             aria-label="Previous"
             onClick={onPrev}
-            className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-foreground/[0.04] hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-border-strong light:hover:bg-black/[0.04]"
+            className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-wash hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-border-strong"
           >
             <ChevronLeft className="h-3.5 w-3.5" />
           </button>
           <button
             type="button"
             onClick={onToday}
-            className="rounded-md px-2.5 py-1 text-[12px] font-medium text-muted-foreground transition-colors duration-150 hover:bg-foreground/[0.04] hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-border-strong light:hover:bg-black/[0.04]"
+            className="rounded-md px-2.5 py-1 text-[12px] font-medium text-muted-foreground transition-colors duration-150 hover:bg-wash hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-border-strong"
           >
             Today
           </button>
@@ -72,7 +72,7 @@ export function CalendarHeader({
             type="button"
             aria-label="Next"
             onClick={onNext}
-            className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-foreground/[0.04] hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-border-strong light:hover:bg-black/[0.04]"
+            className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-wash hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-border-strong"
           >
             <ChevronRight className="h-3.5 w-3.5" />
           </button>
@@ -84,19 +84,19 @@ export function CalendarHeader({
           <TabsList className="h-8 gap-0.5 rounded-md border border-border/60 bg-transparent p-0.5 shadow-none light:border-border">
             <TabsTrigger
               value="month"
-              className="h-7 rounded-md px-2.5 text-[12px] shadow-none data-[state=active]:bg-foreground/[0.08] data-[state=active]:text-foreground data-[state=active]:shadow-none light:data-[state=active]:bg-black/[0.06]"
+              className="h-7 rounded-md px-2.5 text-[12px] shadow-none data-[state=active]:bg-wash-strong data-[state=active]:text-foreground data-[state=active]:shadow-none"
             >
               Month
             </TabsTrigger>
             <TabsTrigger
               value="week"
-              className="h-7 rounded-md px-2.5 text-[12px] shadow-none data-[state=active]:bg-foreground/[0.08] data-[state=active]:text-foreground data-[state=active]:shadow-none light:data-[state=active]:bg-black/[0.06]"
+              className="h-7 rounded-md px-2.5 text-[12px] shadow-none data-[state=active]:bg-wash-strong data-[state=active]:text-foreground data-[state=active]:shadow-none"
             >
               Week
             </TabsTrigger>
             <TabsTrigger
               value="day"
-              className="h-7 rounded-md px-2.5 text-[12px] shadow-none data-[state=active]:bg-foreground/[0.08] data-[state=active]:text-foreground data-[state=active]:shadow-none light:data-[state=active]:bg-black/[0.06]"
+              className="h-7 rounded-md px-2.5 text-[12px] shadow-none data-[state=active]:bg-wash-strong data-[state=active]:text-foreground data-[state=active]:shadow-none"
             >
               Day
             </TabsTrigger>

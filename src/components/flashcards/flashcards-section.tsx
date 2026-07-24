@@ -353,7 +353,7 @@ export function FlashcardsSection() {
                             if (set) openSetOverview(set);
                           }
                         }}
-                        className="group flex w-full cursor-pointer items-center gap-2.5 px-1 py-1.5 text-left transition-colors duration-150 hover:bg-foreground/[0.03] light:hover:bg-black/[0.03]"
+                        className="group flex w-full cursor-pointer items-center gap-2.5 px-1 py-1.5 text-left transition-colors duration-150 hover:bg-wash"
                       >
                         {entry.kind === "folder" && folder ? (
                           <FolderCoverTile
@@ -388,7 +388,7 @@ export function FlashcardsSection() {
               <button
                 type="button"
                 onClick={() => setCreateFolderOpen(true)}
-                className="flex w-full cursor-pointer items-center gap-2.5 px-1 py-1.5 text-left text-xs font-medium text-foreground transition-colors duration-150 hover:bg-foreground/[0.03] hover:text-foreground light:hover:bg-black/[0.03]"
+                className="flex w-full cursor-pointer items-center gap-2.5 px-1 py-1.5 text-left text-xs font-medium text-foreground transition-colors duration-150 hover:bg-wash hover:text-foreground"
               >
                 <FolderPlus className="h-3.5 w-3.5 text-muted-foreground" />
                 New folder
@@ -399,7 +399,7 @@ export function FlashcardsSection() {
                   setCreateSetFolderId(undefined);
                   setCreateSetOpen(true);
                 }}
-                className="flex w-full cursor-pointer items-center gap-2.5 px-1 py-1.5 text-left text-xs font-medium text-foreground transition-colors duration-150 hover:bg-foreground/[0.03] hover:text-foreground light:hover:bg-black/[0.03]"
+                className="flex w-full cursor-pointer items-center gap-2.5 px-1 py-1.5 text-left text-xs font-medium text-foreground transition-colors duration-150 hover:bg-wash hover:text-foreground"
               >
                 <Layers className="h-3.5 w-3.5 text-muted-foreground" />
                 New flashcard set
@@ -441,7 +441,7 @@ export function FlashcardsSection() {
                       <RotateCcw className="h-3.5 w-3.5" />
                       Recycle bin
                       {recycledCount > 0 ? (
-                        <span className="rounded-md bg-foreground/[0.06] px-1.5 py-0.5 font-mono text-[10px] font-semibold text-muted-foreground light:bg-black/[0.06]">
+                        <span className="rounded-md bg-wash px-1.5 py-0.5 font-mono text-[10px] font-semibold text-muted-foreground">
                           {recycledCount}
                         </span>
                       ) : null}
@@ -456,8 +456,8 @@ export function FlashcardsSection() {
                         className={cn(
                           "rounded-md px-2.5 py-1 text-[12px] font-medium transition-colors duration-150",
                           mode.view === "grid"
-                            ? "bg-foreground/[0.08] text-foreground light:bg-black/[0.06]"
-                            : "text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground light:hover:bg-black/[0.04]"
+                            ? "bg-wash-strong text-foreground"
+                            : "text-muted-foreground hover:bg-wash hover:text-foreground"
                         )}
                       >
                         Grid
@@ -471,8 +471,8 @@ export function FlashcardsSection() {
                         className={cn(
                           "rounded-md px-2.5 py-1 text-[12px] font-medium transition-colors duration-150",
                           mode.view === "dome"
-                            ? "bg-foreground/[0.08] text-foreground light:bg-black/[0.06]"
-                            : "text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground light:hover:bg-black/[0.04]"
+                            ? "bg-wash-strong text-foreground"
+                            : "text-muted-foreground hover:bg-wash hover:text-foreground"
                         )}
                       >
                         Visual gallery

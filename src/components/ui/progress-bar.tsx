@@ -31,14 +31,15 @@ export function ProgressBar({
     <div className={cn("flex items-center gap-2.5", className)}>
       <div
         className={cn(
-          "relative w-full overflow-hidden rounded-pill bg-white/[0.06] shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)] light:bg-border/60 light:shadow-none",
+          "relative w-full overflow-hidden rounded-pill bg-wash",
+          "shadow-[inset_0_1px_2px_rgba(0,0,0,0.2)] light:shadow-none",
           sizeMap[size]
         )}
       >
         <div
           className={cn(
             "h-full rounded-pill transition-all duration-500 ease-out",
-            barClassName ?? "bg-accent/80 light:bg-accent/75"
+            barClassName ?? "bg-accent"
           )}
           style={{ width: `${clamped}%` }}
         />

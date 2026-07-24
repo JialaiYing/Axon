@@ -576,7 +576,7 @@ export function GoalsOverview() {
                   return (
                     <div
                       key={goal.id}
-                      className="rounded-md border border-border/50 p-4 light:border-border"
+                      className="rounded-md border border-border/50 p-4 light:border-border light:bg-card"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div>
@@ -677,7 +677,7 @@ export function GoalsOverview() {
               <div className="min-w-0 flex-1">
                 <h2 className="text-[13px] font-semibold text-foreground">Insights</h2>
                 <p className="mt-1.5 text-[13px] text-muted-foreground">{insight.message}</p>
-                <p className="mt-3 rounded-md bg-foreground/[0.04] px-3 py-2.5 text-[13px] text-foreground light:bg-black/[0.04]">
+                <p className="mt-3 rounded-md bg-wash px-3 py-2.5 text-[13px] text-foreground">
                   {insight.suggestion}
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">

@@ -104,17 +104,17 @@
         accent + accent-muted
         wash / wash-strong (theme-safe soft fills)
     */
-    --color-background: #f5f5f5;
-    --color-surface: #ebebeb;
+    --color-background: #f4f4f4;
+    --color-surface: #e8e8e8;
     --color-card: #ffffff;
     --color-card-hover: #f0f0f0;
-    --color-border: #e2e2e2;
-    --color-border-strong: #cfcfcf;
-    --color-foreground: #171717;
-    /* Secondary is more prominent than tertiary (darker on light), matching
-       dark where muted is brighter than muted-foreground. */
-    --color-muted: #737373;
-    --color-muted-foreground: #8a8a8a;
+    --color-border: #d4d4d4;
+    --color-border-strong: #b8b8b8;
+    /* Near-black primary — light mode was over-greying and reading bleached.
+       Secondary (muted) is denser; tertiary (muted-foreground) stays quieter. */
+    --color-foreground: #0a0a0a;
+    --color-muted: #525252;
+    --color-muted-foreground: #6b6b6b;
     --color-accent: #3d74d4;
     --color-accent-foreground: #f0f4fc;
     --color-accent-muted: #e8eef8;
@@ -127,8 +127,8 @@
     --color-warning-muted: #fef3c7;
     --color-danger: #dc2626;
     --color-danger-muted: #fee2e2;
-    --color-wash: rgba(0, 0, 0, 0.05);
-    --color-wash-strong: rgba(0, 0, 0, 0.08);
+    --color-wash: rgba(0, 0, 0, 0.06);
+    --color-wash-strong: rgba(0, 0, 0, 0.1);
     --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.05), 0 8px 24px -8px rgba(0, 0, 0, 0.1);
     --shadow-elevation-1: 0 1px 3px rgba(0, 0, 0, 0.06);
     --shadow-elevation-2: 0 4px 10px -2px rgba(0, 0, 0, 0.08);
@@ -198,6 +198,42 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+  }
+
+  /* Theme toggle — View Transitions root crossfade (Chromium / Safari 18+). */
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.28s;
+    animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation-duration: 0.001ms !important;
+    }
+  }
+
+  /* Fallback when View Transitions aren't available — only while
+     data-theme-transition is set (~280ms), so hovers stay snappy. */
+  html[data-theme-transition],
+  html[data-theme-transition] body,
+  html[data-theme-transition] body * {
+    transition:
+      background-color 0.28s cubic-bezier(0.2, 0, 0, 1),
+      color 0.28s cubic-bezier(0.2, 0, 0, 1),
+      border-color 0.28s cubic-bezier(0.2, 0, 0, 1),
+      box-shadow 0.28s cubic-bezier(0.2, 0, 0, 1),
+      fill 0.28s cubic-bezier(0.2, 0, 0, 1),
+      stroke 0.28s cubic-bezier(0.2, 0, 0, 1) !important;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html[data-theme-transition],
+    html[data-theme-transition] body,
+    html[data-theme-transition] body * {
+      transition: none !important;
+    }
   }
 
   ::selection {

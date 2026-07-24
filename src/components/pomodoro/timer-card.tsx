@@ -37,7 +37,7 @@ export function TimerCard({
         <span
           className={cn(
             "inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium",
-            "bg-foreground/[0.06] text-muted-foreground light:bg-black/[0.05]"
+            "bg-wash text-muted-foreground"
           )}
         >
           {timer.source === "objective" ? (
@@ -55,7 +55,7 @@ export function TimerCard({
             </span>
           )}
           {showPausedBadge && (
-            <span className="rounded-md bg-foreground/[0.06] px-2 py-0.5 text-[10px] font-medium text-muted-foreground light:bg-black/[0.05]">
+            <span className="rounded-md bg-wash px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
               Paused
             </span>
           )}
@@ -65,7 +65,7 @@ export function TimerCard({
               aria-label="Open focus mode"
               title="Focus mode"
               onClick={onFullscreen}
-              className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-foreground/[0.06] hover:text-foreground active:scale-90 light:hover:bg-black/[0.04]"
+              className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-wash hover:text-foreground active:scale-90"
             >
               <Maximize2 className="h-3.5 w-3.5" />
             </button>

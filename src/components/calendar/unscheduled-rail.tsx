@@ -45,7 +45,7 @@ function UnscheduledRow({
       ref={setNodeRef}
       style={{ transform: transform ? CSS.Translate.toString(transform) : undefined }}
       className={cn(
-        "flex items-center gap-2 px-1 py-1.5 transition-colors hover:bg-foreground/[0.03] light:hover:bg-black/[0.03]",
+        "flex items-center gap-2 px-1 py-1.5 transition-colors hover:bg-wash",
         isDragging && "opacity-40"
       )}
     >

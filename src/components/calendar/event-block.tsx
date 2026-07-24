@@ -174,10 +174,10 @@ export function EventBlock({
             ? "border-success/40 bg-success-muted/80 text-foreground"
             : isPast
               ? "border-warning/40 bg-warning-muted/80 text-foreground"
-              : "border-border/60 bg-foreground/[0.04] text-foreground light:bg-black/[0.04]",
+              : "border-border/60 bg-wash text-foreground",
           isDragging && "opacity-50",
           isResizing && "ring-1 ring-border",
-          isHovered && !isDone && !isPast && "bg-foreground/[0.07] light:bg-black/[0.06]",
+          isHovered && !isDone && !isPast && "bg-wash-strong",
           isLive && "border-accent/50 bg-accent-muted/80",
           expanded && "ring-1 ring-border"
         )}

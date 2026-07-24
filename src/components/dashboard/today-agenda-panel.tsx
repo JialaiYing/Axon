@@ -33,8 +33,8 @@ interface TodayAgendaPanelProps {
 
 /**
  * Glance-and-go "Today" section for the Dashboard.
- * Linear-inspired pass (2026-07-23): flat border, no glass elevation.
- * Backup: today-agenda-panel.pre-linear.bak — say "revert" to restore.
+ * Linear-inspired: flat bordered module; light uses card on cool page canvas.
+ * Backup: today-agenda-panel.pre-light-dashboard.bak
  */
 export function TodayAgendaPanel({
   objectives,
@@ -66,9 +66,9 @@ export function TodayAgendaPanel({
   const hasGoals = Boolean(dailyGoal || weeklyGoal);
 
   return (
-    <section className="rounded-md border border-border/50 p-4 light:border-border">
+    <section className="rounded-md border border-border/50 p-4 light:border-border light:bg-card">
       <div className="mb-3">
-        <p className="text-[11px] font-medium text-muted-foreground">Today</p>
+        <p className="text-[11px] font-medium text-muted">Today</p>
         <h2 className="mt-0.5 text-[15px] font-semibold tracking-tight text-foreground">
           Your agenda
         </h2>
@@ -173,7 +173,7 @@ export function TodayAgendaPanel({
           )}
 
           {isEmpty && (
-            <p className="flex items-center gap-2 border-y border-dashed border-border/50 py-3 text-xs text-muted-foreground light:border-border">
+            <p className="flex items-center gap-2 border-y border-dashed border-border/50 py-3 text-[12px] text-muted-foreground light:border-border">
               <Sun className="h-3.5 w-3.5 shrink-0" />
               Clear day — add an objective on the board or schedule a focus block.
             </p>
@@ -182,7 +182,7 @@ export function TodayAgendaPanel({
 
         {hasGoals && (
           <div className="space-y-2.5 border-t border-border/50 pt-4 light:border-border lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
-            <p className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
+            <p className="flex items-center gap-1.5 text-[11px] font-medium text-muted">
               <Target className="h-3.5 w-3.5" />
               Goal progress
             </p>
@@ -220,22 +220,22 @@ function AgendaSection({
         <Icon
           className={cn(
             "h-3.5 w-3.5",
-            tone === "danger" ? "text-danger" : "text-muted-foreground"
+            tone === "danger" ? "text-danger" : "text-muted"
           )}
         />
         <p
           className={cn(
             "text-[11px] font-medium",
-            tone === "danger" ? "text-danger" : "text-muted-foreground"
+            tone === "danger" ? "text-danger" : "text-muted"
           )}
         >
           {label}
         </p>
-        <span className="font-mono text-[10px] font-medium text-muted-foreground">· {count}</span>
+        <span className="font-mono text-[10px] font-medium text-muted">· {count}</span>
       </div>
       {/* Negative horizontal margin so the hover wash and dividers reach the
           panel content width. */}
-      <div className="-mx-2 divide-y divide-border sm:-mx-3">{children}</div>
+      <div className="-mx-2 divide-y divide-border/50 light:divide-border sm:-mx-3">{children}</div>
     </div>
   );
 }
@@ -264,7 +264,7 @@ function AgendaLink({
           ? "bg-success-muted/10 hover:bg-success-muted/20"
           : tone === "danger"
             ? "bg-danger-muted/10 hover:bg-danger-muted/15"
-            : "hover:bg-foreground/[0.03] light:hover:bg-black/[0.03]"
+            : "hover:bg-wash"
       )}
     >
       {done ? (
@@ -306,7 +306,7 @@ function GoalMini({
         <span className="flex shrink-0 items-center gap-2">
           <span
             className={cn(
-              "text-[10px] font-medium uppercase tracking-[0.08em]",
+              "text-[10px] font-medium",
               status === "done" && "text-success",
               status === "on-track" && "text-warning",
               status === "behind" && "text-danger"

@@ -63,8 +63,8 @@ function AgendaRow({
       className={cn(
         "flex w-full items-start gap-2.5 px-1 py-1.5 text-left transition-colors duration-150",
         hovered
-          ? "bg-foreground/[0.04] light:bg-black/[0.04]"
-          : "hover:bg-foreground/[0.03] light:hover:bg-black/[0.03]"
+          ? "bg-wash"
+          : "hover:bg-wash"
       )}
     >
       <span

@@ -50,7 +50,7 @@ export function AttachmentEditor({ attachments, onChange }: AttachmentEditorProp
       </Label>
 
       {attachments.length > 0 && (
-        <ul className="space-y-1.5 rounded-lg border border-border/50 bg-surface/30 p-2">
+        <ul className="space-y-1.5 rounded-md border border-border/50 bg-wash p-2 light:border-border">
           {attachments.map((item) => (
             <li key={item.id} className="flex items-center gap-2 text-sm">
               <a

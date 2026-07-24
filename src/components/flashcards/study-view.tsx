@@ -270,9 +270,9 @@ export function StudyView({ set, onBack, onEdit, onStartTest, onCompletePass }: 
                   className={cn(
                     "grid w-full cursor-pointer grid-cols-1 gap-3 rounded-md border p-3 text-left transition-colors duration-150 sm:grid-cols-2",
                     i === index
-                      ? "border-border bg-foreground/[0.06] light:bg-black/[0.05]"
+                      ? "border-border bg-wash"
                       : hovered
-                        ? "border-border/60 bg-foreground/[0.03] light:bg-black/[0.03]"
+                        ? "border-border/60 bg-wash"
                         : "border-border/50 bg-transparent light:border-border"
                   )}
                 >

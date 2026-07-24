@@ -62,7 +62,7 @@ export function EventDetailPopover({
       exit={{ opacity: 0, y: -6, scale: 0.97 }}
       transition={{ duration: 0.15, ease: [0.21, 0.47, 0.32, 0.98] }}
       className={cn(
-        "absolute top-full z-50 mt-1.5 w-72 overflow-hidden rounded-xl border border-border bg-card shadow-[var(--shadow-overlay)]",
+        "absolute top-full z-50 mt-1.5 w-72 overflow-hidden rounded-md border border-border/50 bg-card shadow-[var(--shadow-elevation-2)] light:border-border",
         align === "end" ? "right-0" : "left-0"
       )}
     >

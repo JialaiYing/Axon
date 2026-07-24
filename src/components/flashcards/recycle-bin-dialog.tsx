@@ -131,7 +131,7 @@ export function FlashcardsRecycleBinDialog({
                 return (
                   <li
                     key={key}
-                    className="overflow-hidden rounded-lg border border-border bg-surface transition-colors duration-200 hover:border-border-strong"
+                    className="overflow-hidden rounded-md border border-border/50 transition-colors duration-150 hover:bg-wash light:border-border"
                   >
                     <button
                       type="button"

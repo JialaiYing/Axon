@@ -58,7 +58,7 @@ export function SetViewDialog({
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleAdd} className="rounded-xl border border-border bg-surface/50 p-4">
+          <form onSubmit={handleAdd} className="rounded-xl border border-border bg-wash p-4">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label htmlFor="card-front">Front</Label>
@@ -105,8 +105,8 @@ export function SetViewDialog({
                   className={cn(
                     "group flex items-start justify-between gap-3 rounded-lg border p-3.5 transition-colors duration-150",
                     selected
-                      ? "border-foreground/20 bg-surface"
-                      : "border-border bg-surface/60"
+                      ? "border-border bg-wash"
+                      : "border-border bg-wash"
                   )}
                 >
                   <div className="min-w-0">

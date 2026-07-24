@@ -169,7 +169,7 @@ export function CreateSetDialog({
             </Select>
 
             {creatingFolder && (
-              <div className="flex items-center gap-2 rounded-lg border border-border bg-surface/50 p-2">
+              <div className="flex items-center gap-2 rounded-lg border border-border bg-wash p-2">
                 <Input
                   ref={newFolderInputRef}
                   value={newFolderName}

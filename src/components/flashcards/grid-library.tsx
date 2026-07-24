@@ -214,7 +214,7 @@ export function FlashcardsGridLibrary({
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className="inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-md border border-border/60 px-2 text-[12px] font-medium text-muted-foreground transition-colors hover:bg-foreground/[0.04] hover:text-foreground light:border-border light:hover:bg-black/[0.04]"
+                className="inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-md border border-border/60 px-2 text-[12px] font-medium text-muted-foreground transition-colors hover:bg-wash hover:text-foreground light:border-border"
                 aria-label="Change library view"
               >
                 <LayoutIcon className="h-3.5 w-3.5" />
@@ -252,7 +252,7 @@ export function FlashcardsGridLibrary({
               type="button"
               aria-label={`Move folder ${folder.title} to recycle bin`}
               onClick={onDeleteFolder}
-              className="cursor-pointer rounded-md px-2 py-1.5 text-[12px] text-muted-foreground transition-colors hover:bg-foreground/[0.04] hover:text-danger light:hover:bg-black/[0.04]"
+              className="cursor-pointer rounded-md px-2 py-1.5 text-[12px] text-muted-foreground transition-colors hover:bg-wash hover:text-danger"
             >
               Delete
             </button>
@@ -403,8 +403,8 @@ function RootDropZone({ onBack, active }: { onBack: () => void; active: boolean 
       className={cn(
         "inline-flex cursor-pointer items-center gap-1 rounded-md px-1.5 py-1 text-xs transition-colors",
         isOver && active
-          ? "bg-foreground/[0.08] text-foreground light:bg-black/[0.06]"
-          : "text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground light:hover:bg-black/[0.04]"
+          ? "bg-wash-strong text-foreground"
+          : "text-muted-foreground hover:bg-wash hover:text-foreground"
       )}
     >
       <ArrowLeft className="h-3.5 w-3.5" />
@@ -536,14 +536,14 @@ function FolderItem({
         ref={setNodeRef}
         className={cn(
           "group grid grid-cols-[minmax(0,1fr)_7rem_6rem] items-center gap-2 border-b border-border/50 px-2 py-1.5 last:border-b-0 light:border-border",
-          isOver && "bg-foreground/[0.04] light:bg-black/[0.04]"
+          isOver && "bg-wash"
         )}
       >
         <div className="flex min-w-0 items-center gap-1">
           <button
             type="button"
             onClick={onOpen}
-            className="flex min-w-0 flex-1 cursor-pointer items-center gap-2.5 rounded-md px-1.5 py-1.5 text-left transition-colors hover:bg-foreground/[0.03] light:hover:bg-black/[0.03]"
+            className="flex min-w-0 flex-1 cursor-pointer items-center gap-2.5 rounded-md px-1.5 py-1.5 text-left transition-colors hover:bg-wash"
           >
             <FolderCoverTile
               title={folder.title}
@@ -619,8 +619,8 @@ function FolderItem({
         type="button"
         onClick={onOpen}
         className={cn(
-          "flex h-full w-full cursor-pointer flex-col rounded-md border border-border/50 bg-card p-3 text-left transition-colors hover:bg-foreground/[0.03] light:border-border light:hover:bg-black/[0.03]",
-          isOver && "border-border bg-foreground/[0.04] light:bg-black/[0.04]"
+          "flex h-full w-full cursor-pointer flex-col rounded-md border border-border/50 bg-card p-3 text-left transition-colors hover:bg-wash light:border-border",
+          isOver && "border-border bg-wash"
         )}
       >
         <FolderCoverTile
@@ -669,7 +669,7 @@ function SetItem({
             {...attributes}
             {...listeners}
             onClick={onOpen}
-            className="flex min-w-0 flex-1 cursor-grab items-center gap-2.5 rounded-md px-1.5 py-1.5 text-left transition-colors hover:bg-foreground/[0.03] active:cursor-grabbing light:hover:bg-black/[0.03]"
+            className="flex min-w-0 flex-1 cursor-grab items-center gap-2.5 rounded-md px-1.5 py-1.5 text-left transition-colors hover:bg-wash active:cursor-grabbing"
           >
             <Layers className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
             <span className="truncate text-sm font-medium text-foreground">{set.title}</span>
@@ -698,7 +698,7 @@ function SetItem({
         {...attributes}
         {...listeners}
         onClick={onOpen}
-        className="flex h-full w-full cursor-grab flex-col rounded-md border border-border/50 bg-card p-3 text-left transition-colors hover:bg-foreground/[0.03] active:cursor-grabbing light:border-border light:hover:bg-black/[0.03]"
+        className="flex h-full w-full cursor-grab flex-col rounded-md border border-border/50 bg-card p-3 text-left transition-colors hover:bg-wash active:cursor-grabbing light:border-border"
       >
         <p className="truncate pr-10 text-[13px] font-medium text-foreground">{set.title}</p>
         <p className="mt-1 text-[11px] text-muted-foreground">

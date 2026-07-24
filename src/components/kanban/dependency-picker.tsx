@@ -50,7 +50,7 @@ export function DependencyPicker({
         <GitBranch className="h-3.5 w-3.5 text-muted" />
         Blocked by
       </Label>
-      <div className="max-h-32 space-y-1 overflow-y-auto rounded-lg border border-border/50 bg-surface/30 p-2">
+      <div className="max-h-32 space-y-1 overflow-y-auto rounded-md border border-border/50 bg-wash p-2 light:border-border">
         {options.map((objective) => {
           const checked = selectedIds.includes(objective.id);
           return (

@@ -5,41 +5,48 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { AxonLogo } from "@/components/brand/axon-logo";
+import { LandingMobileNav } from "@/components/landing/landing-mobile-nav";
+import {
+  LandingContainer,
+  landingFocusRingClassName,
+  landingNavCtaClassName,
+} from "@/components/landing/landing-primitives";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
-  { label: "Why Axon", href: "/#why-axon" },
-  { label: "Features", href: "/#features" },
-  { label: "How it works", href: "/#how-it-works" },
-  { label: "FAQ", href: "/faq" },
+  { label: "How it works", href: "/#how-it-works", sectionId: "how-it-works" },
+  { label: "Progress", href: "/#progress", sectionId: "progress" },
+  { label: "Principles", href: "/#trust", sectionId: "trust" },
+  { label: "FAQ", href: "/#faq", sectionId: "faq" },
 ];
 
 export function LandingNav() {
   const pathname = usePathname();
   const [scrolled, setScrolled] = React.useState(false);
-  const [activeHref, setActiveHref] = React.useState(
-    pathname === "/faq" ? "/faq" : "/#why-axon"
-  );
+  const [activeHref, setActiveHref] = React.useState("");
 
   React.useEffect(() => {
     if (pathname === "/faq") {
-      setActiveHref("/faq");
+      // Standalone FAQ page — no matching in-page anchor, just keep the
+      // header's solid chrome since there's no transparent hero to sit over.
       setScrolled(true);
       return;
     }
 
     function onScroll() {
       setScrolled(window.scrollY > 8);
-      const sections = ["why-axon", "features", "how-it-works"];
-      let current = "/#why-axon";
-      for (const id of sections) {
-        const el = document.getElementById(id);
-        if (!el) continue;
-        if (el.getBoundingClientRect().top <= 120) {
-          current = `/#${id}`;
-        }
-      }
-      setActiveHref(current);
+      if (pathname !== "/") return;
+
+      const sections = NAV_ITEMS.filter((item) => item.sectionId).map((item) => ({
+        href: item.href,
+        top: document.getElementById(item.sectionId!)?.getBoundingClientRect().top ?? Infinity,
+      }));
+
+      const active = [...sections]
+        .reverse()
+        .find((s) => s.top <= 140);
+
+      setActiveHref(active?.href ?? "");
     }
 
     onScroll();
@@ -56,29 +63,35 @@ export function LandingNav() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-30 border-b transition-[background-color,border-color,box-shadow] duration-300",
+        "sticky top-0 z-30 border-b transition-[background-color,border-color] duration-300",
         scrolled || pathname === "/faq"
-          ? "border-white/10 bg-black/70 shadow-[var(--shadow-elevation-2)] backdrop-blur-xl"
+          ? "border-border/80 bg-background/85 backdrop-blur-xl"
           : "border-transparent bg-transparent"
       )}
     >
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-6">
+      <LandingContainer className="flex h-14 items-center justify-between gap-3">
         <Link
           href="/"
           onClick={scrollToTop}
           aria-label="Axon home"
-          className="flex shrink-0 items-center rounded-sm transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+          className={cn(
+            "flex shrink-0 items-center rounded-md transition-opacity hover:opacity-80",
+            landingFocusRingClassName
+          )}
         >
           <AxonLogo
             withWordmark
             priority
-            iconClassName="h-8 w-8"
-            wordmarkClassName="text-base text-white"
+            iconClassName="h-7 w-7"
+            wordmarkClassName="text-[15px] font-medium tracking-tight text-foreground"
           />
         </Link>
 
         <div className="flex items-center gap-1 sm:gap-2">
-          <nav className="mr-1 flex items-center gap-0.5 sm:mr-2 sm:gap-1" aria-label="Primary">
+          <nav
+            className="mr-1 hidden items-center gap-0.5 md:mr-2 md:flex md:gap-0.5"
+            aria-label="Primary"
+          >
             {NAV_ITEMS.map((item) => {
               const isActive = activeHref === item.href;
               return (
@@ -87,10 +100,11 @@ export function LandingNav() {
                   href={item.href}
                   aria-current={isActive ? "page" : undefined}
                   className={cn(
-                    "rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-black",
+                    "rounded-md px-2.5 py-1.5 text-[13px] font-medium transition-colors",
+                    landingFocusRingClassName,
                     isActive
-                      ? "text-white"
-                      : "text-white/55 hover:text-white"
+                      ? "text-foreground"
+                      : "text-muted-foreground hover:text-foreground"
                   )}
                 >
                   {item.label}
@@ -99,24 +113,21 @@ export function LandingNav() {
             })}
           </nav>
 
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            asChild
-            className="rounded-lg border-white/20 bg-transparent text-xs font-medium text-white shadow-none hover:bg-white/5 hover:text-white hover:shadow-none"
+          <Link
+            href="/login"
+            className={cn(
+              "hidden rounded-md px-2.5 py-1.5 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground md:inline-block",
+              landingFocusRingClassName
+            )}
           >
-            <Link href="/login">Login</Link>
+            Sign in
+          </Link>
+          <Button size="sm" asChild ripple={false} className={landingNavCtaClassName}>
+            <Link href="/login?mode=signup">Get started</Link>
           </Button>
-          <Button
-            size="sm"
-            asChild
-            className="rounded-lg border-0 bg-white text-xs font-medium text-black shadow-none hover:bg-white/90 hover:shadow-none"
-          >
-            <Link href="/login?mode=signup">Sign up</Link>
-          </Button>
+          <LandingMobileNav items={NAV_ITEMS} activeHref={activeHref} />
         </div>
-      </div>
+      </LandingContainer>
     </header>
   );
 }

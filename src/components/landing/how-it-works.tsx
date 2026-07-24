@@ -2,36 +2,42 @@
 
 import * as React from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ChevronDown } from "lucide-react";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { HowItWorksVisual } from "@/components/landing/how-it-works-visuals";
+import {
+  LandingContainer,
+  LandingHeader,
+  LandingSection,
+  ProductChrome,
+} from "@/components/landing/landing-primitives";
 import { cn } from "@/lib/utils";
 import { DURATION, EASE } from "@/lib/motion";
 
+/** Capture → Schedule → Focus → Review */
 const STEPS = [
   {
     id: "capture",
-    title: "Capture your objectives",
+    title: "Capture objectives",
     description:
-      "Drop every assignment into the Kanban board, tagged by subject and priority.",
+      "Put assignments on a Kanban board. Priorities stay visible so nothing disappears into a notebook.",
+  },
+  {
+    id: "schedule",
+    title: "Schedule the week",
+    description:
+      "Drop work onto the calendar so the day has a real plan, not a vague hope to study later.",
   },
   {
     id: "focus",
-    title: "Study in focused intervals",
+    title: "Protect the session",
     description:
-      "Run Pomodoro sessions against those objectives so time maps to real progress.",
+      "Run a Pomodoro against an objective. The timer keeps the block honest when distractions show up.",
   },
   {
-    id: "reinforce",
-    title: "Reinforce with flashcards",
+    id: "review",
+    title: "Review what stuck",
     description:
-      "Turn material into review sets and track mastery per card, not just per session.",
-  },
-  {
-    id: "track",
-    title: "Track what's real",
-    description:
-      "Analytics and goals update from your actual activity — no self-reported check-ins.",
+      "Turn material into flashcards and track mastery from finished work, not guesswork.",
   },
 ];
 
@@ -40,9 +46,7 @@ export function HowItWorks() {
   const prefersReducedMotion = useReducedMotion();
   const buttonRefs = React.useRef<(HTMLButtonElement | null)[]>([]);
 
-  const selectStep = (index: number) => {
-    setActiveIndex(index);
-  };
+  const selectStep = (index: number) => setActiveIndex(index);
 
   const onRowKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
     if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
@@ -56,54 +60,41 @@ export function HowItWorks() {
   };
 
   return (
-    <section
-      id="how-it-works"
-      className="border-t border-white/[0.06] bg-black px-6 py-24 md:py-28"
-    >
-      <div className="mx-auto max-w-6xl">
-        <ScrollReveal className="mb-14 max-w-xl text-left md:mb-16">
-          <h2 className="font-display text-2xl font-semibold tracking-tight text-white md:text-3xl">
-            How it works
-          </h2>
-          <p className="mt-2 text-[11px] font-medium uppercase tracking-[0.16em] text-white/45">
-            The loop
-          </p>
-          <p className="mt-3.5 text-sm leading-relaxed text-white/60 md:text-base">
-            One loop, four steps: plan, focus, reinforce, review.
-          </p>
+    <LandingSection id="how-it-works" className="bg-surface">
+      <LandingContainer>
+        <ScrollReveal className="mb-10 md:mb-14">
+          <LandingHeader
+            eyebrow="The loop"
+            title="One system for the whole session."
+            description="Capture, schedule, focus, review. No rebuilding your setup every time you sit down."
+          />
         </ScrollReveal>
 
-        <div className="grid grid-cols-1 items-center gap-8 md:grid-cols-[1.2fr_0.8fr] md:gap-12 lg:gap-14">
-          <div
-            className="relative aspect-[4/3] w-full overflow-hidden rounded-[var(--radius-xl)] border border-white/10 bg-white/[0.02] shadow-[var(--shadow-elevation-4)]"
-            aria-live="polite"
-            aria-atomic="true"
+        <div className="grid grid-cols-1 items-stretch gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:gap-12">
+          <ProductChrome
+            title={STEPS[activeIndex]?.title ?? "Workspace"}
+            className="hidden aspect-[5/4] w-full sm:aspect-[4/3] lg:block"
+            bodyClassName="relative"
           >
-            <span className="sr-only">Showing: {STEPS[activeIndex]?.title}</span>
-            <div
-              className="absolute inset-x-0 top-0 z-[1] flex items-center gap-1.5 border-b border-white/10 bg-black/40 px-3 py-1.5 backdrop-blur-sm"
-              aria-hidden
-            >
-              <span className="h-1.5 w-1.5 rounded-full bg-white/20" />
-              <span className="h-1.5 w-1.5 rounded-full bg-white/20" />
-              <span className="h-1.5 w-1.5 rounded-full bg-white/20" />
+            <div className="absolute inset-0" aria-live="polite" aria-atomic="true">
+              <span className="sr-only">Showing: {STEPS[activeIndex]?.title}</span>
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={STEPS[activeIndex]?.id}
+                  initial={prefersReducedMotion ? false : { opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={prefersReducedMotion ? undefined : { opacity: 0, y: -4 }}
+                  transition={{ duration: DURATION.base, ease: EASE }}
+                  className="absolute inset-0"
+                  aria-hidden
+                >
+                  <HowItWorksVisual index={activeIndex} />
+                </motion.div>
+              </AnimatePresence>
             </div>
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={STEPS[activeIndex]?.id}
-                initial={prefersReducedMotion ? false : { opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={prefersReducedMotion ? undefined : { opacity: 0, y: -4 }}
-                transition={{ duration: DURATION.base, ease: EASE }}
-                className="absolute inset-0 pt-6"
-                aria-hidden
-              >
-                <HowItWorksVisual index={activeIndex} />
-              </motion.div>
-            </AnimatePresence>
-          </div>
+          </ProductChrome>
 
-          <div className="flex flex-col">
+          <div className="flex flex-col justify-center">
             {STEPS.map((step, index) => {
               const isOpen = activeIndex === index;
               const panelId = `how-it-works-panel-${step.id}`;
@@ -113,15 +104,15 @@ export function HowItWorks() {
                 <div
                   key={step.id}
                   className={cn(
-                    "relative border-b border-white/[0.08]",
-                    index === 0 && "border-t border-white/[0.08]"
+                    "relative border-b border-border/50",
+                    index === 0 && "border-t border-border/50"
                   )}
                 >
                   <span
                     aria-hidden
                     className={cn(
-                      "absolute inset-y-3 left-0 w-px rounded-full transition-opacity duration-200",
-                      isOpen ? "bg-white/70 opacity-100" : "opacity-0"
+                      "absolute inset-y-2.5 left-0 w-0.5 rounded-full transition-opacity duration-200",
+                      isOpen ? "bg-accent opacity-100" : "opacity-0"
                     )}
                   />
 
@@ -136,34 +127,23 @@ export function HowItWorks() {
                     onClick={() => selectStep(index)}
                     onKeyDown={(e) => onRowKeyDown(e, index)}
                     className={cn(
-                      "flex w-full items-center gap-3 rounded-md py-3.5 pl-3 pr-2 text-left transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-black",
+                      "flex w-full items-center gap-3 rounded-md py-3.5 pl-3 pr-2 text-left transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                       isOpen
-                        ? "bg-white/[0.04] text-white"
-                        : "text-white/50 hover:bg-white/[0.02] hover:text-white/75"
+                        ? "bg-wash text-foreground"
+                        : "text-muted-foreground hover:bg-wash/70 hover:text-foreground"
                     )}
                   >
+                    <span className="w-5 shrink-0 font-mono text-[11px] tabular-nums text-muted-foreground">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
                     <span
                       className={cn(
-                        "min-w-0 flex-1 font-display text-[15px] font-semibold tracking-tight md:text-base",
-                        isOpen ? "text-white" : "text-inherit"
+                        "min-w-0 flex-1 text-[15px] font-semibold tracking-tight",
+                        isOpen ? "text-foreground" : "text-inherit"
                       )}
                     >
                       {step.title}
                     </span>
-                    <motion.span
-                      aria-hidden
-                      animate={{ rotate: isOpen ? 180 : 0 }}
-                      transition={{
-                        duration: prefersReducedMotion ? 0 : DURATION.fast,
-                        ease: EASE,
-                      }}
-                      className={cn(
-                        "shrink-0 transition-colors duration-200",
-                        isOpen ? "text-white/55" : "text-white/25"
-                      )}
-                    >
-                      <ChevronDown className="h-4 w-4" />
-                    </motion.span>
                   </button>
 
                   <AnimatePresence initial={false}>
@@ -184,9 +164,20 @@ export function HowItWorks() {
                         transition={{ duration: DURATION.base, ease: EASE }}
                         className="overflow-hidden"
                       >
-                        <p className="pb-4 pl-3 pr-8 text-sm leading-relaxed text-white/55 md:text-[15px]">
-                          {step.description}
-                        </p>
+                        <div className="pb-4 pl-11 pr-4">
+                          <ProductChrome
+                            title={step.title}
+                            className="mb-4 aspect-[4/3] w-full lg:hidden"
+                            bodyClassName="relative"
+                          >
+                            <div className="absolute inset-0" aria-hidden>
+                              <HowItWorksVisual index={index} />
+                            </div>
+                          </ProductChrome>
+                          <p className="text-sm leading-relaxed text-muted-foreground">
+                            {step.description}
+                          </p>
+                        </div>
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -195,7 +186,7 @@ export function HowItWorks() {
             })}
           </div>
         </div>
-      </div>
-    </section>
+      </LandingContainer>
+    </LandingSection>
   );
 }

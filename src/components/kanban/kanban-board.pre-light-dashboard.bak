@@ -189,7 +189,7 @@ export function KanbanBoard() {
         <button
           type="button"
           onClick={() => setRecycleBinOpen(true)}
-          className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-md px-2 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-wash hover:text-foreground"
+          className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-md px-2 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-foreground/[0.04] hover:text-foreground light:hover:bg-black/[0.04]"
         >
           <RotateCcw className="h-3.5 w-3.5" />
           Recycle bin
@@ -243,10 +243,10 @@ export function KanbanBoard() {
             initial={prefersReducedMotion ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: prefersReducedMotion ? 0 : 0.2, ease: EASE }}
-            className="grid w-full grid-flow-col auto-cols-[minmax(260px,1fr)] gap-4 overflow-x-auto pb-3 lg:grid-flow-row lg:grid-cols-3 lg:gap-0 lg:divide-x lg:divide-border/50 light:lg:divide-border"
+            className="grid w-full grid-flow-col auto-cols-[minmax(260px,1fr)] gap-4 overflow-x-auto pb-3 lg:grid-flow-row lg:grid-cols-3 lg:gap-5"
           >
             {KANBAN_COLUMNS.map((column) => (
-              <div key={column.id} className="min-w-0 lg:px-5 lg:first:pl-0 lg:last:pr-0">
+              <div key={column.id} className="min-w-0">
                 <KanbanColumn
                   column={column}
                   objectives={grouped[column.id]}

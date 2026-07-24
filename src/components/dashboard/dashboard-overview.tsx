@@ -233,10 +233,10 @@ const StatCell = React.memo(function StatCell({
   return (
     <div className={cn("flex flex-col justify-between p-2.5 sm:p-3", className)}>
       <div className="flex items-center justify-between">
-        <p className="text-[11px] font-medium text-muted-foreground">
+        <p className="text-[11px] font-medium text-muted">
           {label}
         </p>
-        {iconNode ?? (Icon ? <Icon className={cn("h-3.5 w-3.5", iconClassName ?? "text-muted-foreground")} /> : null)}
+        {iconNode ?? (Icon ? <Icon className={cn("h-3.5 w-3.5", iconClassName ?? "text-muted")} /> : null)}
       </div>
       <div className="mt-2">
         <div className="flex items-baseline gap-2">
@@ -260,7 +260,7 @@ const PersonalGoalRow = React.memo(function PersonalGoalRow({ goal }: { goal: Go
         <span className="flex shrink-0 items-center gap-2">
           <span
             className={cn(
-              "text-[10px] font-medium uppercase tracking-[0.08em]",
+              "text-[10px] font-medium",
               goal.completed ? "text-success" : "text-muted-foreground"
             )}
           >
@@ -312,10 +312,10 @@ function PersonalGoalsSection({
   return (
     <section className="flex h-full min-h-0 flex-col">
       <div className="mb-3 flex items-center justify-between">
-        <p className="text-[11px] font-medium text-muted-foreground">
+        <p className="text-[11px] font-medium text-muted">
           Personal goals
         </p>
-        <Target className="h-3.5 w-3.5 text-muted-foreground" />
+        <Target className="h-3.5 w-3.5 text-muted" />
       </div>
       <div className="min-h-0 flex-1 space-y-3">
         {visiblePersonalGoals.length > 0 ? (
@@ -338,7 +338,7 @@ function PersonalGoalsSection({
           </p>
         )}
       </div>
-      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-border pt-3">
+      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-border/50 pt-3 light:border-border">
         {contextualCta && (
           <Link
             href={contextualCta.href}
@@ -380,7 +380,7 @@ function RankStrip({
   return (
     <section className="flex h-full min-h-0 flex-col">
       <div className="mb-3 flex items-center justify-between">
-        <p className="text-[11px] font-medium text-muted-foreground">
+        <p className="text-[11px] font-medium text-muted">
           Rank
         </p>
         <Trophy className="h-3.5 w-3.5 text-warning" />
@@ -397,7 +397,7 @@ function RankStrip({
           )}
         </div>
       </div>
-      <div className="mt-3 border-t border-border pt-3">
+      <div className="mt-3 border-t border-border/50 pt-3 light:border-border">
         <div className="mb-1.5 flex items-center justify-between text-[11px] text-muted-foreground">
           <span>{isMaxLevel ? "Max level" : "XP to next level"}</span>
           {!isMaxLevel && (
@@ -416,10 +416,10 @@ function RecentSection({ recent }: { recent: RecentEntry[] }) {
   return (
     <section className="flex h-full min-h-0 flex-col">
       <div className="mb-3 flex items-center justify-between">
-        <p className="text-[11px] font-medium text-muted-foreground">
+        <p className="text-[11px] font-medium text-muted">
           Recent
         </p>
-        <History className="h-3.5 w-3.5 text-muted-foreground" />
+        <History className="h-3.5 w-3.5 text-muted" />
       </div>
       <div className="min-h-0 flex-1">
         {recent.length === 0 ? (
@@ -428,14 +428,14 @@ function RecentSection({ recent }: { recent: RecentEntry[] }) {
             <p className="text-xs text-muted-foreground">Nothing to resume yet</p>
           </div>
         ) : (
-          <ul className="divide-y divide-border border-y border-border">
+          <ul className="divide-y divide-border/50 border-y border-border/50 light:divide-border light:border-border">
             {recent.map((entry) => {
               const Icon = entry.icon;
               return (
                 <li key={entry.key}>
                   <Link
                     href={entry.href}
-                    className="flex cursor-pointer items-center gap-2.5 py-2 transition-colors duration-200 hover:bg-card-hover"
+                    className="flex cursor-pointer items-center gap-2.5 py-2 transition-colors duration-150 hover:bg-wash"
                   >
                     <Icon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                     <p className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
@@ -451,10 +451,10 @@ function RecentSection({ recent }: { recent: RecentEntry[] }) {
           </ul>
         )}
       </div>
-      <div className="mt-3 border-t border-border pt-3">
+      <div className="mt-3 border-t border-border/50 pt-3 light:border-border">
         <Link
           href="/analytics"
-          className="inline-flex cursor-pointer items-center gap-1 text-[11px] text-muted-foreground transition-colors duration-200 hover:text-foreground"
+          className="inline-flex cursor-pointer items-center gap-1 text-[11px] text-muted-foreground transition-colors duration-150 hover:text-foreground"
         >
           View activity <ArrowRight className="h-3 w-3" />
         </Link>
@@ -474,7 +474,7 @@ const ChartTooltip = React.memo(function ChartTooltip({
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-md border border-border/50 bg-card px-3 py-2 text-xs shadow-none light:border-border">
+    <div className="rounded-md border border-border/50 bg-card px-3 py-2 text-[12px] shadow-none light:border-border">
       <p className="font-medium text-foreground">{label}</p>
       <p className="mt-0.5 text-muted-foreground">{payload[0]?.value ?? 0} min focused</p>
     </div>
@@ -490,18 +490,18 @@ function LoadingState() {
         <Skeleton className="h-3 w-40" />
         <Skeleton className="h-8 w-56" />
       </div>
-      <Skeleton className="h-56 rounded-xl" />
+      <Skeleton className="h-56 rounded-md" />
       <div className="space-y-2">
         <Skeleton className="h-3 w-16" />
-        <div className="space-y-0 divide-y divide-border border-y border-border">
+        <div className="space-y-0 divide-y divide-border/50 border-y border-border/50 light:divide-border light:border-border">
           <Skeleton className="h-10 rounded-none" />
           <Skeleton className="h-10 rounded-none" />
           <Skeleton className="h-10 rounded-none" />
         </div>
       </div>
-      <Skeleton className="h-28 rounded-xl" />
-      <Skeleton className="h-72 rounded-xl" />
-      <Skeleton className="h-40 rounded-xl" />
+      <Skeleton className="h-28 rounded-md" />
+      <Skeleton className="h-72 rounded-md" />
+      <Skeleton className="h-40 rounded-md" />
     </div>
   );
 }
@@ -573,7 +573,7 @@ export function DashboardOverview() {
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-[11px] font-medium text-muted-foreground">
+            <p className="text-[11px] font-medium text-muted">
               {new Date().toLocaleDateString(undefined, {
                 weekday: "long",
                 month: "long",
@@ -587,7 +587,7 @@ export function DashboardOverview() {
           <div className="flex items-center gap-3">
             <Link
               href="/kanban"
-              className="inline-flex cursor-pointer items-center gap-1 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+              className="inline-flex cursor-pointer items-center gap-1 text-[13px] font-medium text-foreground transition-colors hover:text-muted"
             >
               <Plus className="h-3.5 w-3.5" /> New objective
             </Link>
@@ -606,11 +606,11 @@ export function DashboardOverview() {
         />
 
         <div className="flex flex-col gap-0.5">
-          <p className="text-[11px] font-medium text-muted-foreground">Up next</p>
+          <p className="text-[11px] font-medium text-muted">Up next</p>
           {queue.length === 0 ? (
             <Link
               href="/kanban"
-              className="flex cursor-pointer items-center gap-2 border-y border-dashed border-border/50 py-3 text-xs text-muted-foreground transition-colors duration-150 hover:text-foreground light:border-border"
+              className="flex cursor-pointer items-center gap-2 border-y border-dashed border-border/50 py-3 text-[12px] text-muted-foreground transition-colors duration-150 hover:text-foreground light:border-border"
             >
               <Circle className="h-3.5 w-3.5 shrink-0" />
               <span className="min-w-0 flex-1">
@@ -624,11 +624,11 @@ export function DashboardOverview() {
               </span>
             </Link>
           ) : (
-            <ul className="-mx-1 divide-y divide-border/60 light:divide-border">
+            <ul className="-mx-1 divide-y divide-border/50 light:divide-border">
               {queue.map((objective) => (
                 <li
                   key={objective.id}
-                  className="flex items-center gap-2.5 px-1 py-1.5 transition-colors duration-150 hover:bg-foreground/[0.03] light:hover:bg-black/[0.03] sm:px-1.5"
+                  className="flex items-center gap-2.5 px-1 py-1.5 transition-colors duration-150 hover:bg-wash sm:px-1.5"
                 >
                   <span
                     aria-hidden
@@ -683,7 +683,7 @@ export function DashboardOverview() {
               value: todayFocusMinutes,
               suffix: " min",
               hint: `${todaySessions.length} session${todaySessions.length === 1 ? "" : "s"} today · vs yesterday`,
-              iconClassName: "text-muted-foreground",
+              iconClassName: "text-muted",
               trend: focusTrend,
             },
             {
@@ -691,7 +691,7 @@ export function DashboardOverview() {
               label: "Intervals",
               value: stats.intervalsCompleted,
               hint: "All-time completed",
-              iconClassName: "text-muted-foreground",
+              iconClassName: "text-muted",
             },
             {
               icon: Gauge,
@@ -699,7 +699,7 @@ export function DashboardOverview() {
               value: stats.productivityIndex,
               suffix: "%",
               hint: "Last 7 days",
-              iconClassName: "text-muted-foreground",
+              iconClassName: "text-muted",
             },
           ].map((cell, index) => (
             <StatCell key={cell.label} {...cell} className={statCellBorderClass(index)} />
@@ -711,7 +711,7 @@ export function DashboardOverview() {
             <div>
               <h2 className="text-[13px] font-semibold text-foreground">Focus this week</h2>
               <div className="mt-0.5 flex items-center gap-2">
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-[11px] text-muted">
                   {weekTotal} minutes across the last 7 days
                 </p>
                 {weekTrend && <TrendBadge {...weekTrend} />}
@@ -738,11 +738,15 @@ export function DashboardOverview() {
                   <AreaChart data={weekData} margin={{ top: 4, right: 4, left: -22, bottom: 0 }}>
                     <defs>
                       <linearGradient id="focusFill" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="var(--color-foreground)" stopOpacity={0.08} />
+                        <stop offset="0%" stopColor="var(--color-foreground)" stopOpacity={0.1} />
                         <stop offset="100%" stopColor="var(--color-foreground)" stopOpacity={0} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid stroke="var(--color-border)" strokeOpacity={0.6} vertical={false} />
+                    <CartesianGrid
+                      stroke="var(--color-border)"
+                      strokeOpacity={1}
+                      vertical={false}
+                    />
                     <XAxis
                       dataKey="label"
                       tick={{ fill: "var(--color-muted-foreground)", fontSize: 10 }}
@@ -757,13 +761,13 @@ export function DashboardOverview() {
                     />
                     <Tooltip
                       content={<ChartTooltip />}
-                      cursor={{ stroke: "var(--color-border)" }}
+                      cursor={{ stroke: "var(--color-border-strong)" }}
                     />
                     <Area
                       type="monotone"
                       dataKey="minutes"
                       stroke="var(--color-foreground)"
-                      strokeWidth={1.25}
+                      strokeWidth={1.5}
                       fill="url(#focusFill)"
                       isAnimationActive={!prefersReducedMotion}
                     />

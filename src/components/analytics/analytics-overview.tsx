@@ -458,8 +458,8 @@ export function AnalyticsOverview() {
           className={cn(
             "cursor-pointer rounded-md px-2.5 py-1 text-[12px] font-medium transition-colors duration-150",
             rangeDays === r.days
-              ? "bg-foreground/[0.08] text-foreground shadow-none light:bg-black/[0.06]"
-              : "text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground light:hover:bg-black/[0.04]"
+              ? "bg-wash-strong text-foreground shadow-none"
+              : "text-muted-foreground hover:bg-wash hover:text-foreground"
           )}
         >
           {r.label}
@@ -679,7 +679,7 @@ export function AnalyticsOverview() {
         <button
           type="button"
           onClick={() => setShowMore((v) => !v)}
-          className="cursor-pointer rounded-md px-3 py-1.5 text-[12px] font-medium text-muted-foreground transition-colors duration-150 hover:bg-foreground/[0.04] hover:text-foreground light:hover:bg-black/[0.04]"
+          className="cursor-pointer rounded-md px-3 py-1.5 text-[12px] font-medium text-muted-foreground transition-colors duration-150 hover:bg-wash hover:text-foreground"
         >
           {showMore ? "Hide extra insights" : "More insights"}
         </button>
@@ -740,7 +740,7 @@ export function AnalyticsOverview() {
                             <span className="truncate text-foreground">{s.subject}</span>
                             <span className="font-mono tabular-nums text-muted-foreground">{formatHours(s.minutes)}</span>
                           </div>
-                          <div className="h-1.5 overflow-hidden rounded-md bg-foreground/[0.06] light:bg-black/[0.05]">
+                          <div className="h-1.5 overflow-hidden rounded-md bg-wash">
                             <motion.div
                               initial={prefersReducedMotion ? false : { width: 0 }}
                               animate={{ width: `${(s.minutes / max) * 100}%` }}

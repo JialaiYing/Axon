@@ -43,7 +43,7 @@ export function DayView({ currentDate, ...actions }: DayViewProps) {
               className={cn(
                 "flex h-6 min-w-6 items-center justify-center rounded-full px-1.5 font-mono text-[13px] font-semibold tabular-nums",
                 isSameDay(day, now)
-                  ? "bg-foreground text-background light:bg-black light:text-white"
+                  ? "bg-foreground text-background"
                   : "text-foreground"
               )}
             >

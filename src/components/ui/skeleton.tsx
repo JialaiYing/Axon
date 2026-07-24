@@ -20,21 +20,20 @@ export function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivEl
 
 export function KanbanColumnSkeleton() {
   return (
-    <div className="flex h-full w-full min-w-0 flex-col gap-3.5 rounded-xl border border-border bg-surface/50 p-3">
-      <div className="flex items-center justify-between px-1 pt-0.5">
-        <Skeleton className="h-4 w-24" />
-        <Skeleton className="h-7 w-7 rounded-md" />
+    <div className="flex h-full w-full min-w-0 flex-col gap-2">
+      <div className="mb-1 flex items-center justify-between px-0.5">
+        <Skeleton className="h-3.5 w-20" />
+        <Skeleton className="h-6 w-6 rounded-md" />
       </div>
-      <div className="flex flex-col gap-2.5">
+      <div className="flex flex-col gap-1">
         {[0, 1, 2].map((i) => (
-          <div key={i} className="rounded-xl border border-border bg-card p-4">
-            <Skeleton className="h-4 w-3/4" />
+          <div
+            key={i}
+            className="rounded-md border border-border/50 bg-card p-2.5 light:border-border"
+          >
+            <Skeleton className="h-3.5 w-3/4" />
             <Skeleton className="mt-2 h-3 w-full" />
-            <div className="mt-3 flex gap-1.5">
-              <Skeleton className="h-5 w-14 rounded-pill" />
-              <Skeleton className="h-5 w-16 rounded-pill" />
-            </div>
-            <Skeleton className="mt-3 h-1.5 w-full rounded-pill" />
+            <Skeleton className="mt-2.5 h-1.5 w-full rounded-pill" />
           </div>
         ))}
       </div>
@@ -44,10 +43,12 @@ export function KanbanColumnSkeleton() {
 
 export function KanbanBoardSkeleton() {
   return (
-    <div className="grid w-full grid-flow-col auto-cols-[minmax(280px,1fr)] gap-5 overflow-x-auto pb-4 lg:grid-flow-row lg:grid-cols-3">
-      <KanbanColumnSkeleton />
-      <KanbanColumnSkeleton />
-      <KanbanColumnSkeleton />
+    <div className="grid w-full grid-flow-col auto-cols-[minmax(260px,1fr)] gap-4 overflow-x-auto pb-3 lg:grid-flow-row lg:grid-cols-3 lg:gap-0 lg:divide-x lg:divide-border/50 light:lg:divide-border">
+      {[0, 1, 2].map((i) => (
+        <div key={i} className="min-w-0 lg:px-5 lg:first:pl-0 lg:last:pr-0">
+          <KanbanColumnSkeleton />
+        </div>
+      ))}
     </div>
   );
 }

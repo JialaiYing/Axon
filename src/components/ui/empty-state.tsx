@@ -38,19 +38,21 @@ export function EmptyState({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: EASE }}
       className={cn(
-        "flex min-h-[320px] flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-border/60 bg-surface/20 p-10 text-center backdrop-blur-sm",
+        "flex min-h-[320px] flex-col items-center justify-center gap-4 rounded-md border border-dashed border-border/60 p-10 text-center light:border-border light:bg-card",
         className
       )}
     >
-      <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-border bg-foreground/6">
+      <div className="flex h-11 w-11 items-center justify-center rounded-md border border-border/50 bg-wash light:border-border">
         {icon}
       </div>
       <div className="max-w-sm">
-        <p className="text-sm font-medium text-foreground">{title}</p>
-        {description && <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{description}</p>}
+        <p className="text-[13px] font-medium text-foreground">{title}</p>
+        {description && (
+          <p className="mt-1.5 text-[12px] leading-relaxed text-muted-foreground">{description}</p>
+        )}
       </div>
       {actionLabel && onAction && (
-        <Button size="sm" onClick={onAction} className="mt-1">
+        <Button size="sm" onClick={onAction} className="mt-1 shadow-none">
           {actionLabel}
         </Button>
       )}

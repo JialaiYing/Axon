@@ -5,21 +5,29 @@ import { motion, useReducedMotion } from "framer-motion";
 import { DashboardPreview } from "@/components/landing/dashboard-preview";
 import { AxonLogo } from "@/components/brand/axon-logo";
 import { Button } from "@/components/ui/button";
+import {
+  LandingContainer,
+  LandingHeading,
+  LandingLead,
+  landingFocusRingClassName,
+  landingPrimaryCtaClassName,
+} from "@/components/landing/landing-primitives";
 import { DURATION, EASE, STAGGER, enterVariants } from "@/lib/motion";
+import { cn } from "@/lib/utils";
 
 export function Hero() {
   const prefersReducedMotion = useReducedMotion();
   const initial = prefersReducedMotion ? false : "hidden";
 
   return (
-    <section className="relative overflow-hidden bg-black px-6 pb-20 pt-28 md:pb-28 md:pt-36">
-      {/* Soft light wash — fades under the product shot without a hard plate */}
+    <section className="relative overflow-hidden bg-background pb-16 pt-20 md:pb-24 md:pt-24">
+      {/* Quiet atmospheric wash — value only, no accent glow theater */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[45%] bg-[linear-gradient(to_top,rgba(232,232,237,0.35)_0%,rgba(58,58,66,0.25)_40%,transparent_100%)]"
+        className="pointer-events-none absolute inset-x-0 top-0 h-[42%] bg-[radial-gradient(ellipse_70%_55%_at_50%_-12%,color-mix(in_srgb,var(--color-foreground)_6%,transparent),transparent_70%)]"
       />
 
-      <div className="relative z-10 mx-auto w-full max-w-6xl">
+      <LandingContainer className="relative z-10">
         <motion.div
           initial={initial}
           animate="visible"
@@ -29,80 +37,87 @@ export function Hero() {
               transition: { staggerChildren: STAGGER.base },
             },
           }}
-          className="max-w-3xl text-left"
+          className="max-w-2xl"
         >
-          {/* Compact brand mark — keeps the logo feature without displacing the headline */}
           <motion.div
-            variants={enterVariants(10)}
+            variants={enterVariants(8)}
             transition={{ duration: DURATION.section, ease: EASE }}
           >
             <AxonLogo
               withWordmark
               priority
-              iconClassName="h-13 w-13"
-              wordmarkClassName="text-base font-semibold tracking-tight text-white md:text-lg"
+              iconClassName="h-10 w-10 md:h-11 md:w-11"
+              wordmarkClassName="text-xl font-semibold tracking-tight text-foreground md:text-2xl"
               className="gap-2.5"
             />
           </motion.div>
 
-          <motion.h1
-            variants={enterVariants(12)}
+          <motion.div
+            variants={enterVariants(10)}
             transition={{ duration: DURATION.section, ease: EASE }}
-            className="mt-8 font-display text-balance text-5xl font-semibold leading-[1.08] tracking-tight text-white md:mt-6 md:text-7xl"
           >
-            The study dashboard for staying consistent
-          </motion.h1>
-
-          <motion.p
-            variants={enterVariants(12)}
-            transition={{ duration: DURATION.section, ease: EASE }}
-            className="mt-6 max-w-xl text-balance text-base leading-relaxed text-white/65 md:text-lg"
-          >
-            One calm study workspace with statistics-driven insights instead of
-            noisy AI guesses — create a free account to get started.
-          </motion.p>
+            <LandingHeading as="h1" className="mt-8 md:mt-10">
+              Study without the noise.
+            </LandingHeading>
+          </motion.div>
 
           <motion.div
             variants={enterVariants(10)}
             transition={{ duration: DURATION.section, ease: EASE }}
-            className="mt-8 flex flex-wrap items-center gap-3"
+          >
+            <LandingLead className="mt-5 max-w-md">
+              A quiet command center for studying. Tasks, focus, and progress in one
+              place. Free to start — synced automatically once you sign in.
+            </LandingLead>
+          </motion.div>
+
+          <motion.div
+            variants={enterVariants(8)}
+            transition={{ duration: DURATION.section, ease: EASE }}
+            className="mt-9 flex flex-wrap items-center gap-x-5 gap-y-3"
           >
             <Button
               size="lg"
               asChild
-              className="rounded-lg border-0 bg-white text-sm font-medium text-black shadow-none hover:bg-white/90 hover:shadow-none"
+              ripple={false}
+              className={landingPrimaryCtaClassName}
             >
               <Link href="/login?mode=signup">Get started</Link>
             </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              asChild
-              className="rounded-lg border-white/20 bg-transparent text-sm font-medium text-white shadow-none hover:bg-white/5 hover:text-white hover:shadow-none"
+            <Link
+              href="/login"
+              className={cn(
+                "text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
+                landingFocusRingClassName,
+                "rounded-md"
+              )}
             >
-              <Link href="/login">Log in</Link>
-            </Button>
+              Sign in
+            </Link>
           </motion.div>
+
+          <motion.p
+            variants={enterVariants(6)}
+            transition={{ duration: DURATION.section, ease: EASE }}
+            className="mt-3 text-xs text-muted-foreground"
+          >
+            Free account · no credit card required.
+          </motion.p>
         </motion.div>
 
         <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 24 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{
             duration: DURATION.section,
-            delay: prefersReducedMotion ? 0 : 0.18,
+            delay: prefersReducedMotion ? 0 : 0.12,
             ease: EASE,
           }}
-          className="mx-auto mt-14 w-full max-w-[52rem] md:mt-20 lg:max-w-[56rem]"
+          className="mt-14 w-full md:mt-16"
         >
-          <div
-            data-theme="dark"
-            className="relative shadow-[var(--shadow-elevation-4)]"
-          >
-            <DashboardPreview embedded />
-          </div>
+          <DashboardPreview />
         </motion.div>
-      </div>
+      </LandingContainer>
     </section>
   );
 }

@@ -1,50 +1,47 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import SpecularButton from "@/components/effects/specular-button";
+import { Button } from "@/components/ui/button";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
+import {
+  LandingContainer,
+  LandingHeading,
+  LandingLead,
+  LandingSection,
+  landingPrimaryCtaClassName,
+} from "@/components/landing/landing-primitives";
+import { cn } from "@/lib/utils";
 
 export function FinalCTA() {
-  const router = useRouter();
-
   return (
-    <section className="border-t border-white/[0.06] bg-black px-6 py-24 md:py-32">
-      <ScrollReveal className="mx-auto flex max-w-3xl flex-col items-center text-center">
-        <h2 className="font-display text-4xl font-semibold tracking-tight text-white md:text-5xl lg:text-6xl">
-          Start your first streak today.
-        </h2>
-        <p className="mt-5 max-w-md text-base leading-relaxed text-white/60 md:text-lg">
-          Create a free account and turn one quiet session into a habit.
-        </p>
-        <div className="mt-10">
-          <SpecularButton
-            size="lg"
-            radius={16}
-            tint="#ffffff"
-            tintOpacity={0}
-            blur={0}
-            textColor="#f5f5f5"
-            lineColor="#ffffff"
-            baseColor="#525252"
-            intensity={1}
-            shineSize={10}
-            shineFade={40}
-            thickness={1}
-            speed={0.35}
-            followMouse
-            proximity={250}
-            autoAnimate={false}
-            onClick={() => router.push("/login?mode=signup")}
-          >
-            Get started
-          </SpecularButton>
-        </div>
-        {/* Keep crawlable link for no-JS / a11y fallback */}
-        <Link href="/login?mode=signup" className="sr-only">
-          Get started
-        </Link>
-      </ScrollReveal>
-    </section>
+    <LandingSection size="lg" className="relative bg-background">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[42%] bg-[radial-gradient(ellipse_70%_55%_at_50%_112%,color-mix(in_srgb,var(--color-accent)_8%,transparent),transparent_70%)]"
+      />
+      <LandingContainer>
+        <ScrollReveal className="mx-auto flex max-w-xl flex-col items-center text-center">
+          <LandingHeading as="h2" className="md:text-5xl">
+            Open your command center.
+          </LandingHeading>
+          <LandingLead className="mt-4 max-w-md">
+            Create a free account and run your next session in one calm workspace.
+          </LandingLead>
+          <div className="mt-9">
+            <Button
+              size="lg"
+              asChild
+              ripple={false}
+              className={cn(landingPrimaryCtaClassName, "px-6")}
+            >
+              <Link href="/login?mode=signup">Get started</Link>
+            </Button>
+          </div>
+          <p className="mt-3 text-xs text-muted-foreground">
+            Free account · no credit card required.
+          </p>
+        </ScrollReveal>
+      </LandingContainer>
+    </LandingSection>
   );
 }

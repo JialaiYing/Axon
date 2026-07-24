@@ -433,13 +433,13 @@ export default function PomodoroPage() {
             <TabsList className="mb-3 h-8 w-full gap-0.5 rounded-md border-border/60 bg-transparent p-0.5 shadow-none light:border-border">
               <TabsTrigger
                 value="objective"
-                className="h-7 flex-1 rounded-md px-2.5 text-[12px] shadow-none data-[state=active]:bg-foreground/[0.08] data-[state=active]:text-foreground data-[state=active]:shadow-none light:data-[state=active]:bg-black/[0.06]"
+                className="h-7 flex-1 rounded-md px-2.5 text-[12px] shadow-none data-[state=active]:bg-wash-strong data-[state=active]:text-foreground data-[state=active]:shadow-none"
               >
                 Objective focus
               </TabsTrigger>
               <TabsTrigger
                 value="personal"
-                className="h-7 flex-1 rounded-md px-2.5 text-[12px] shadow-none data-[state=active]:bg-foreground/[0.08] data-[state=active]:text-foreground data-[state=active]:shadow-none light:data-[state=active]:bg-black/[0.06]"
+                className="h-7 flex-1 rounded-md px-2.5 text-[12px] shadow-none data-[state=active]:bg-wash-strong data-[state=active]:text-foreground data-[state=active]:shadow-none"
               >
                 Personal timer
               </TabsTrigger>

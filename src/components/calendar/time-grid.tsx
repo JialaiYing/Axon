@@ -78,7 +78,7 @@ function DayColumn({
       onClick={handleColumnClick}
       className={cn(
         "relative flex-1 border-r border-border/50 transition-colors duration-150 light:border-border/80",
-        isOver && "bg-foreground/[0.03] light:bg-black/[0.03]"
+        isOver && "bg-wash"
       )}
       style={{ height: 24 * HOUR_HEIGHT_PX }}
     >

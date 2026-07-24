@@ -180,7 +180,7 @@ export function TimerFullscreenOverlay({
               aria-label="Exit focus mode"
               title="Exit focus mode"
               onClick={requestExit}
-              className="absolute right-6 top-6 flex h-9 w-9 items-center justify-center rounded-md border border-border/60 bg-transparent text-muted-foreground shadow-none transition-colors duration-150 hover:bg-foreground/[0.06] hover:text-foreground active:scale-95 light:border-border light:hover:bg-black/[0.04]"
+              className="absolute right-6 top-6 flex h-9 w-9 items-center justify-center rounded-md border border-border/60 bg-transparent text-muted-foreground shadow-none transition-colors duration-150 hover:bg-wash hover:text-foreground active:scale-95 light:border-border"
             >
               <Minimize2 className="h-4 w-4" />
             </button>
@@ -196,7 +196,7 @@ export function TimerFullscreenOverlay({
                 {timer.label}
               </h2>
 
-              <span className="inline-flex items-center gap-1 rounded-md bg-foreground/[0.06] px-2.5 py-1 text-[12px] font-medium text-muted-foreground light:bg-black/[0.05]">
+              <span className="inline-flex items-center gap-1 rounded-md bg-wash px-2.5 py-1 text-[12px] font-medium text-muted-foreground">
                 {timer.source === "objective" ? (
                   <Target className="h-3 w-3" />
                 ) : (

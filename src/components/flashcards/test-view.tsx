@@ -292,7 +292,7 @@ export function TestView({ set, onBack, onRecordResult, onComplete }: TestViewPr
                   <label
                     key={opt.value}
                     className={cn(
-                      "flex cursor-pointer items-center justify-between gap-3 rounded-md border border-border/50 px-3.5 py-2.5 transition-colors hover:bg-foreground/[0.03] light:border-border light:hover:bg-black/[0.03]",
+                      "flex cursor-pointer items-center justify-between gap-3 rounded-md border border-border/50 px-3.5 py-2.5 transition-colors hover:bg-wash light:border-border",
                       disabled && "cursor-not-allowed opacity-50"
                     )}
                   >
@@ -415,7 +415,7 @@ export function TestView({ set, onBack, onRecordResult, onComplete }: TestViewPr
                       onClick={() => handleChoiceSelect(option)}
                       className={cn(
                         "cursor-pointer rounded-lg border p-3 text-left text-sm transition-colors disabled:cursor-default",
-                        !revealed && "border-border bg-surface/40 hover:border-border-strong",
+                        !revealed && "border-border bg-wash hover:border-border-strong",
                         revealed &&
                           isCorrectOption &&
                           "border-success/40 bg-success-muted text-success",

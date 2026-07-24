@@ -127,7 +127,7 @@ function RankLadder({ level }: { level: number }) {
                           ),
                         state === "current" &&
                           cn(
-                            "bg-wash-strong ring-1 ring-inset ring-foreground/15 light:ring-black/10",
+                            "bg-wash-strong ring-1 ring-inset ring-border",
                             metal
                           ),
                         state === "locked" && "text-muted-foreground/35"

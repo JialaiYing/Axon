@@ -42,7 +42,7 @@ export function FolderCoverTile({
         "relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-md",
         MARK[size],
         imageSrc
-          ? "bg-foreground/[0.04] light:bg-black/[0.04]"
+          ? "bg-wash"
           : "border border-border/50 text-muted-foreground light:border-border"
       )}
       aria-hidden
