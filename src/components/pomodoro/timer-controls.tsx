@@ -8,6 +8,8 @@ interface TimerControlsProps {
   status: TimerRunStatus;
   /** After a full run settles to Ready — Pause/Resume becomes Restart. */
   showRestart?: boolean;
+  /** Re-open the phase transition prompt after it was dismissed. */
+  onContinue?: () => void;
   onPause: () => void;
   onResume: () => void;
   onStop: () => void;
@@ -20,6 +22,7 @@ interface TimerControlsProps {
 export function TimerControls({
   status,
   showRestart = false,
+  onContinue,
   onPause,
   onResume,
   onStop,
@@ -32,7 +35,13 @@ export function TimerControls({
   if (showRestart) {
     return (
       <div className="flex items-center gap-2">
-        <Button size="sm" onClick={onRestart} className="shadow-none">
+        {onContinue ? (
+          <Button size="sm" onClick={onContinue} className="shadow-none">
+            <Play className="h-3.5 w-3.5" />
+            Continue
+          </Button>
+        ) : null}
+        <Button size="sm" variant={onContinue ? "secondary" : undefined} onClick={onRestart} className="shadow-none">
           <RotateCcw className="h-3.5 w-3.5" />
           Restart
         </Button>

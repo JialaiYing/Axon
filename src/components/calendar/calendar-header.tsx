@@ -44,13 +44,13 @@ export function CalendarHeader({
   const exportableCount = scheduledObjectives.filter((o) => o.scheduledStart).length;
 
   return (
-    <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+    <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
         <div className="min-w-0">
-          <p className="text-[11px] font-medium text-muted-foreground">Calendar</p>
-          <h1 className="truncate text-xl font-semibold tracking-tight text-foreground">
-            {title}
+          <h1 className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+            Calendar
           </h1>
+          <p className="mt-1 truncate text-[14px] text-muted-foreground">{title}</p>
         </div>
         <div className="flex items-center gap-0.5 rounded-md border border-border/60 p-0.5 light:border-border">
           <button

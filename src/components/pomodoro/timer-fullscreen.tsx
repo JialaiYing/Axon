@@ -3,7 +3,7 @@
 import * as React from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { Minimize2, Target, Coffee, ShieldAlert } from "lucide-react";
+import { Minimize2, Target, Coffee } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -16,13 +16,13 @@ import {
 import { TimerDisplay } from "@/components/pomodoro/timer-display";
 import { TimerControls } from "@/components/pomodoro/timer-controls";
 import { showBrowserNotification } from "@/lib/notifications/browser";
+import { phaseLabel } from "@/lib/pomodoro-utils";
 import type { PomodoroTimerInstance } from "@/types";
 
 interface TimerFullscreenOverlayProps {
   timer: PomodoroTimerInstance | null;
   remainingSeconds: number;
   lockdown?: boolean;
-  showBlocklistReminder?: boolean;
   onPause: () => void;
   onResume: () => void;
   onStop: () => void;
@@ -31,13 +31,12 @@ interface TimerFullscreenOverlayProps {
 
 /**
  * Focus Mode — portaled overlay so it covers the shell. When the countdown
- * ends, Focus Mode exits automatically and the card resets to Restart.
+ * ends, Focus Mode exits automatically.
  */
 export function TimerFullscreenOverlay({
   timer,
   remainingSeconds,
   lockdown = true,
-  showBlocklistReminder = true,
   onPause,
   onResume,
   onStop,
@@ -45,7 +44,6 @@ export function TimerFullscreenOverlay({
 }: TimerFullscreenOverlayProps) {
   const leftWhileHiddenRef = React.useRef(false);
   const [mounted, setMounted] = React.useState(false);
-  const [confirmOpen, setConfirmOpen] = React.useState(false);
   const [returnOpen, setReturnOpen] = React.useState(false);
   const [leaveHint, setLeaveHint] = React.useState(false);
 
@@ -66,16 +64,8 @@ export function TimerFullscreenOverlay({
     if (isReadyAfterRun) onExit();
   }, [isReadyAfterRun, onExit]);
 
+  // Single-click exit — no confirm dialog.
   const requestExit = React.useCallback(() => {
-    if (!lockdown || !active) {
-      onExit();
-      return;
-    }
-    setConfirmOpen(true);
-  }, [lockdown, active, onExit]);
-
-  const confirmExit = React.useCallback(() => {
-    setConfirmOpen(false);
     onExit();
   }, [onExit]);
 
@@ -145,7 +135,6 @@ export function TimerFullscreenOverlay({
 
   React.useEffect(() => {
     if (!timer) {
-      setConfirmOpen(false);
       setReturnOpen(false);
       setLeaveHint(false);
       leftWhileHiddenRef.current = false;
@@ -156,6 +145,12 @@ export function TimerFullscreenOverlay({
     setReturnOpen(false);
     onResume();
   }, [onResume]);
+
+  /** Stop ends the session and leaves Focus Mode in one gesture. */
+  const handleStop = React.useCallback(() => {
+    onExit();
+    onStop();
+  }, [onExit, onStop]);
 
   if (!mounted) return null;
 
@@ -196,13 +191,13 @@ export function TimerFullscreenOverlay({
                 {timer.label}
               </h2>
 
-              <span className="inline-flex items-center gap-1 rounded-md bg-wash px-2.5 py-1 text-[12px] font-medium text-muted-foreground">
+              <span className="inline-flex items-center gap-1 text-[12px] font-medium text-muted-foreground">
                 {timer.source === "objective" ? (
                   <Target className="h-3 w-3" />
                 ) : (
                   <Coffee className="h-3 w-3" />
                 )}
-                Focus Mode
+                Focus Mode · {phaseLabel(timer.phase ?? "work")}
               </span>
 
               <TimerDisplay
@@ -211,17 +206,12 @@ export function TimerFullscreenOverlay({
                 size={420}
               />
 
-              <TimerControls status={timer.status} onPause={onPause} onResume={onResume} onStop={onStop} />
-
-              {showBlocklistReminder && (
-                <div className="mt-1 flex max-w-md items-start gap-2 rounded-md border border-border/50 px-3 py-2.5 text-left light:border-border">
-                  <ShieldAlert className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" />
-                  <p className="text-[11px] leading-relaxed text-muted-foreground">
-                    Leaving this tab pauses your session. Browsers can&apos;t hard-block other sites
-                    — close distractions before you start.
-                  </p>
-                </div>
-              )}
+              <TimerControls
+                status={timer.status}
+                onPause={onPause}
+                onResume={onResume}
+                onStop={handleStop}
+              />
 
               <AnimatePresence>
                 {leaveHint && (
@@ -229,7 +219,7 @@ export function TimerFullscreenOverlay({
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0 }}
-                    className="rounded-md border border-warning/30 bg-warning-muted/40 px-3 py-1 text-[12px] font-medium text-warning"
+                    className="text-[12px] font-medium text-warning"
                   >
                     Session paused — come back to keep focusing.
                   </motion.p>
@@ -239,26 +229,6 @@ export function TimerFullscreenOverlay({
           </motion.div>
         )}
       </AnimatePresence>
-
-      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <DialogContent className="z-[110] max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Leave Focus Mode?</DialogTitle>
-            <DialogDescription>
-              Your timer keeps running in the background, but leaving Focus Mode makes it easier
-              to get distracted. Stay focused a little longer?
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex-col gap-2 sm:flex-row">
-            <Button variant="outline" onClick={() => setConfirmOpen(false)} className="shadow-none sm:mr-auto">
-              Keep focusing
-            </Button>
-            <Button variant="secondary" onClick={confirmExit} className="shadow-none">
-              Leave anyway
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       <Dialog
         open={returnOpen}
@@ -278,7 +248,9 @@ export function TimerFullscreenOverlay({
             <Button variant="outline" onClick={() => setReturnOpen(false)} className="shadow-none sm:mr-auto">
               Stay paused
             </Button>
-            <Button onClick={resumeAfterReturn} className="shadow-none">Resume focus</Button>
+            <Button onClick={resumeAfterReturn} className="shadow-none">
+              Resume focus
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

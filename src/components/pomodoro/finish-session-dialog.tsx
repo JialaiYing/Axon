@@ -35,10 +35,9 @@ export function FinishSessionDialog({
           <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-md border border-border/50 text-muted-foreground light:border-border">
             <PartyPopper className="h-4 w-4" />
           </div>
-          <DialogTitle>Time&apos;s up!</DialogTitle>
+          <DialogTitle>Work interval done</DialogTitle>
           <DialogDescription>
-            Your estimated time for &ldquo;{objectiveTitle}&rdquo; just ran out. Are you finished
-            with it?
+            Are you finished with &ldquo;{objectiveTitle}&rdquo;?
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="flex-col gap-2 sm:flex-row">

@@ -161,6 +161,9 @@ export type TimerSource = "objective" | "personal";
 /** Lifecycle of one running Pomodoro timer instance in the multi-timer list. */
 export type TimerRunStatus = "running" | "paused" | "finished";
 
+/** Current interval in a classic Pomodoro work/break cycle. */
+export type PomodoroPhase = "work" | "short-break" | "long-break";
+
 /**
  * One entry in the multi-timer list. Countdown accuracy across reloads/
  * backgrounding comes from `endAt` (an absolute epoch-ms timestamp) rather
@@ -184,6 +187,12 @@ export interface PomodoroTimerInstance {
   pausedRemainingSeconds: number | null;
   status: TimerRunStatus;
   createdAt: string;
+  /** Last local mutation — used by cloud sync last-write-wins. */
+  updatedAt: string;
+  /** Current work/break phase in the Pomodoro cycle. */
+  phase: PomodoroPhase;
+  /** Completed work intervals in the current cycle (0 before the first finishes). */
+  cycleIndex: number;
   /** True once this timer's completion has already been logged, so a full
    *  run never double-awards XP. */
   loggedCompletion?: boolean;
@@ -216,7 +225,7 @@ export interface Goal {
   id: string;
   title: string;
   type: "daily" | "weekly";
-  /** Study goals auto-track from Pomodoro/Kanban; personal goals are manual. */
+  /** Study goals auto-track from completions; personal goals are manual. */
   category?: "study" | "personal";
   /** How progress is measured — personal goals default to manual. */
   tracking?: "auto" | "manual";
@@ -226,6 +235,18 @@ export interface Goal {
   deadline?: string;
   completed: boolean;
   createdAt: string;
+  /** Last local mutation — used by cloud sync last-write-wins. */
+  updatedAt?: string;
+  /**
+   * Personal goals only: consecutive periods where the target was hit.
+   * Updated on daily/weekly rollover — not the in-period progress counter.
+   */
+  streak?: number;
+  /**
+   * Personal goals only: period this `progress` belongs to
+   * (`YYYY-MM-DD` for daily, Monday key for weekly).
+   */
+  periodKey?: string;
 }
 
 /** Closed period result for a tracked goal (daily midnight / weekly Monday reset). */

@@ -7,7 +7,6 @@ export default function FlashcardsPage() {
   return (
     <AppPage
       title="Flashcards"
-      description="Build sets, review, and track mastery across every subject."
       feature="flashcards"
     >
       <FlashcardsSection />

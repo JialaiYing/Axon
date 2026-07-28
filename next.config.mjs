@@ -2,6 +2,11 @@
 // origin rather than hardcoding one project ref. Next's dev server (Fast
 // Refresh/webpack HMR) evaluates code via `eval`, so `unsafe-eval` is only
 // added outside production — the deployed build never needs it.
+//
+// `upgrade-insecure-requests` (and HSTS) are production-only: browsers treat
+// localhost as trustworthy and skip the upgrade, but private LAN IPs
+// (192.168.x / 10.x / 172.16-31.x) get rewritten to https:// and fail on the
+// plain HTTP dev server — so Network host looks broken while Local works.
 const isDev = process.env.NODE_ENV !== "production";
 const CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
@@ -17,7 +22,7 @@ const CONTENT_SECURITY_POLICY = [
   "base-uri 'self'",
   "form-action 'self'",
   "frame-ancestors 'none'",
-  "upgrade-insecure-requests",
+  ...(isDev ? [] : ["upgrade-insecure-requests"]),
 ].join("; ");
 
 const SECURITY_HEADERS = [
@@ -26,7 +31,14 @@ const SECURITY_HEADERS = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
-  { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
+  ...(isDev
+    ? []
+    : [
+        {
+          key: "Strict-Transport-Security",
+          value: "max-age=63072000; includeSubDomains; preload",
+        },
+      ]),
 ];
 
 /** @type {import('next').NextConfig} */

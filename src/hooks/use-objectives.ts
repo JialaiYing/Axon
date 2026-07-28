@@ -247,18 +247,7 @@ export function useObjectives() {
 
   const updateObjective = React.useCallback(
     (id: string, patch: Partial<ObjectiveInput>) => {
-      // If the estimate changes while a Pomodoro timer is already running/
-      // paused for this objective, that timer's duration was snapshotted at
-      // start time and is now stale — drop it so the user starts fresh with
-      // the updated estimate instead of finishing against an outdated one.
       const current = objectives.find((o) => o.id === id);
-      if (
-        current &&
-        patch.estimatedStudyTime !== undefined &&
-        patch.estimatedStudyTime !== current.estimatedStudyTime
-      ) {
-        removeActiveTimersForObjective(id);
-      }
       const now = new Date().toISOString();
       const isNowDone = Boolean(current && current.status !== "done" && patch.status === "done");
       // Mirrors moveObjective: reverting a "done" objective to any other
@@ -301,6 +290,7 @@ export function useObjectives() {
 
   const deleteObjective = React.useCallback(
     (id: string) => {
+      removeActiveTimersForObjective(id);
       recordTombstone(STORAGE_KEY, id);
       setObjectives((prev) => prev.filter((objective) => objective.id !== id));
     },
@@ -463,6 +453,7 @@ export function useObjectives() {
 
   const sendToRecycleBin = React.useCallback(
     (id: string) => {
+      removeActiveTimersForObjective(id);
       const now = new Date().toISOString();
       setObjectives((prev) =>
         prev.map((objective) =>

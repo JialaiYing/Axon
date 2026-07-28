@@ -1,6 +1,8 @@
 import { remainingMinutes } from "@/lib/kanban-utils";
-import type { Objective, PomodoroTimerInstance } from "@/types";
+import { readFocusPreferences } from "@/hooks/use-focus-preferences";
+import type { Objective, PomodoroPhase, PomodoroTimerInstance } from "@/types";
 import type { StartTimerInput } from "@/hooks/use-pomodoro-timers";
+import { elapsedMinutesOf } from "@/hooks/use-pomodoro-timers";
 
 export function formatClock(totalSeconds: number): string {
   const clamped = Math.max(0, Math.round(totalSeconds));
@@ -45,7 +47,9 @@ export function clampPersonalMinutes(minutes: number, fallback = 25): number {
 
 /** Whole minutes a fresh focus session for this objective should run — its remaining
  *  estimate if any time's already logged, otherwise its full estimate, otherwise a
- *  sane default. Falls back gracefully for zero/missing estimates. */
+ *  sane default. Falls back gracefully for zero/missing estimates.
+ *  Prefer Settings work minutes via `readFocusPreferences().workMinutes`
+ *  for new Pomodoro starts; kept for any estimate-display callers. */
 export function focusSessionMinutesFor(objective: Objective): number {
   const remaining = remainingMinutes(objective);
   if (remaining && remaining > 0) return remaining;
@@ -54,11 +58,36 @@ export function focusSessionMinutesFor(objective: Objective): number {
     : 25;
 }
 
+export function phaseLabel(phase: PomodoroPhase): string {
+  switch (phase) {
+    case "short-break":
+      return "Short break";
+    case "long-break":
+      return "Long break";
+    default:
+      return "Work";
+  }
+}
+
+/** True when the timer has settled after a full countdown and awaits a phase transition. */
+export function isAwaitingPhaseTransition(timer: PomodoroTimerInstance): boolean {
+  return Boolean(
+    timer.hasCompletedRun &&
+      timer.status === "paused" &&
+      (timer.pausedRemainingSeconds ?? 0) >= timer.durationSeconds
+  );
+}
+
 export interface FocusSessionDeps {
   timers: PomodoroTimerInstance[];
   startObjectiveSession: (id: string) => void;
   startTimer: (input: StartTimerInput) => PomodoroTimerInstance;
   resumeTimer: (id: string) => void;
+  /** Required for single-timer displace when starting a different session. */
+  stopTimer: (id: string) => number;
+  removeTimer: (id: string) => void;
+  /** Log partial work when an in-progress timer is replaced. */
+  onDisplacedWork?: (timer: PomodoroTimerInstance, elapsedMinutes: number) => void;
 }
 
 /** An objective-linked timer that's still live (running or paused). */
@@ -70,29 +99,62 @@ export function activeTimerForObjective(
 }
 
 /**
+ * Clear any other active timer before starting a new one (single-timer rule).
+ * Logs partial work for mid-run work intervals; Ready intervals were already logged.
+ */
+export function displaceOtherTimers(
+  timers: PomodoroTimerInstance[],
+  keepObjectiveId: string | undefined,
+  deps: Pick<FocusSessionDeps, "stopTimer" | "removeTimer" | "onDisplacedWork">
+) {
+  for (const t of timers) {
+    if (t.status === "finished") continue;
+    if (keepObjectiveId && t.objectiveId === keepObjectiveId) continue;
+
+    if (isAwaitingPhaseTransition(t)) {
+      // Completion already claimed by the notifications watcher.
+      deps.removeTimer(t.id);
+      continue;
+    }
+
+    const elapsed = elapsedMinutesOf(t);
+    deps.stopTimer(t.id);
+    if (elapsed > 0 && (t.phase ?? "work") === "work") {
+      deps.onDisplacedWork?.(t, elapsed);
+    }
+  }
+}
+
+/**
  * The single entry point for starting/resuming a focus session tied to an
  * objective — used by both the Pomodoro page and the Calendar so neither
  * duplicates the other's timer logic. If a timer for this objective is
- * already running, it's left alone; if paused, it's resumed; otherwise a
- * fresh one is started using `durationMinutes` (falling back to the
- * estimate-aware default).
+ * already running, it's left alone; if paused mid-run, it's resumed; otherwise
+ * any other timer is displaced and a fresh Settings-length work interval starts.
  */
 export function startFocusSession(
   objective: Objective,
   deps: FocusSessionDeps,
-  durationMinutes?: number
+  _durationMinutes?: number
 ): PomodoroTimerInstance {
   const existing = activeTimerForObjective(objective.id, deps.timers);
   if (existing) {
-    if (existing.status === "paused") deps.resumeTimer(existing.id);
+    if (existing.status === "paused" && !isAwaitingPhaseTransition(existing)) {
+      deps.resumeTimer(existing.id);
+    }
     return existing;
   }
+
+  displaceOtherTimers(deps.timers, undefined, deps);
+
   deps.startObjectiveSession(objective.id);
-  const minutes = durationMinutes && durationMinutes > 0 ? durationMinutes : focusSessionMinutesFor(objective);
+  const prefs = readFocusPreferences();
   return deps.startTimer({
     source: "objective",
     label: objective.title,
     objectiveId: objective.id,
-    durationSeconds: Math.round(minutes * 60),
+    durationSeconds: Math.round(prefs.workMinutes * 60),
+    phase: "work",
+    cycleIndex: 0,
   });
 }

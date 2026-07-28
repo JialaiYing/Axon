@@ -1,6 +1,6 @@
 # Axon Project Reference
 
-> A local-first study productivity dashboard with optional cloud sync. This file helps AI assistants understand the project structure without deep exploration.
+> A local-first-storage study productivity dashboard that requires a Supabase account to use. This file helps AI assistants understand the project structure without deep exploration.
 
 ## Project Overview
 
@@ -12,11 +12,11 @@
 - Analytics and goal tracking
 - XP/rank gamification system
 
-**Key principle:** Offline-first by default. Optional Supabase integration for auth and cloud sync when env vars are configured.
+**Key principle:** Data is stored locally (`localStorage`) under the hood, but a Supabase account is **required** to use the app at all — `RequireAuth` (`src/components/auth/require-auth.tsx`) blocks every `(app)` route until a session exists. There is no offline-only/guest mode today.
 
 **Current version:** v0.1.0
 
-**Note:** The README is outdated—it describes a fully offline app. The codebase now includes full Supabase auth + sync capabilities (still optional).
+**Note:** Some parts of the README still describe an offline-optional app — that's outdated. Supabase auth is mandatory; see `docs/roadmap/current-state.md` for the corrected, currently-accurate picture of the whole app.
 
 ---
 
@@ -289,7 +289,7 @@ Singleton store: `axon:progress:v1`
 
 ---
 
-## Database & Cloud Sync (Optional)
+## Database & Cloud Sync (Required)
 
 ### Supabase Schema
 
@@ -320,13 +320,13 @@ Supported methods:
 
 Client: `src/lib/supabase/client.ts` — Singleton `createBrowserClient()`
 
-`isSupabaseConfigured()` checks for both env vars — app gracefully degrades to offline-only if not set.
+`isSupabaseConfigured()` checks for both env vars. Since `RequireAuth` gates every dashboard route, the app is **not usable** beyond the marketing/login pages without Supabase configured and a signed-in session — there is no offline-only fallback today.
 
 ---
 
 ## Environment Setup
 
-### Optional Supabase Integration
+### Supabase Integration (Required)
 
 Create `.env.local` (gitignored):
 ```
@@ -334,9 +334,9 @@ NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 ```
 
-**Without these vars:** App runs fully offline, cloud features disabled, no auth.
+**Without these vars:** Sign-in is unavailable and every dashboard route redirects to `/login` indefinitely — the app is not usable beyond the marketing pages.
 
-**With these vars:** Sign-in enabled, cloud sync available, flashcard image storage.
+**With these vars:** Sign-in, cloud sync, and flashcard image storage all work as intended.
 
 Full setup guide: `docs/supabase-setup.md`
 
@@ -354,7 +354,7 @@ Full setup guide: `docs/supabase-setup.md`
 | **Forms** | React Hook Form, Zod, @hookform/resolvers |
 | **Charts** | Recharts |
 | **Backend** | Supabase (`@supabase/supabase-js`, `@supabase/ssr`) |
-| **Persistence** | Browser localStorage + Supabase (optional) |
+| **Persistence** | Browser localStorage + Supabase (Supabase account required to access the app) |
 | **Fonts** | Instrument Sans (sans/UI), Sansation (display/headlines), Fragment Mono (data/mono) via `next/font/google` |
 
 **No AI APIs, no server-side business logic** — all XP, analytics, recommendations computed client-side deterministically.
@@ -407,14 +407,14 @@ Landing page (`/`) is separate from `(app)` shell.
 
 ## Important Notes
 
-1. **README is outdated** — describes offline-only app. Code now has optional auth + sync.
-2. **Offline-first by design** — Supabase is opt-in; app is fully functional without it.
+1. **README is partly outdated** — some sections describe an offline-optional app. Code now requires a signed-in Supabase account for every dashboard route.
+2. **Auth is required, not opt-in** — `RequireAuth` blocks all `(app)` routes without a Supabase session; local-first storage still underlies data once inside the app, but there is no offline-only/guest mode.
 3. **No mock data** — Analytics, goals, and dashboards read from real objectives and sessions.
 4. **Dark by default, light mode in Settings** — the `(app)` dashboard supports both via `data-theme`; the `/` homepage is always dark.
 5. **Composite user IDs** — Objectives use `(user_id, id)` composite keys in Supabase; browser generates IDs.
 6. **Device-local prefs** — Calendar view, pomodoro display mode, onboarding state stay device-local (not synced).
 7. **Last-write-wins sync** — Conflict resolution uses `updatedAt` timestamp; later write wins.
-8. **Graceful degradation** — Missing Supabase env vars don't break the app; features just stay offline.
+8. **No graceful degradation today** — missing Supabase env vars make the dashboard completely inaccessible (perpetual redirect to `/login`); there is no offline-only mode currently.
 
 ---
 

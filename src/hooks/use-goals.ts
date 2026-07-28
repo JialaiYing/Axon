@@ -3,46 +3,58 @@
 import * as React from "react";
 import { asArray, dedupeById, useLocalStorage } from "@/hooks/use-local-storage";
 import { useObjectives } from "@/hooks/use-objectives";
-import { usePomodoroSessions } from "@/hooks/use-pomodoro-sessions";
 import {
-  focusMinutesOnDate,
   localDateKey,
   makeHistoryEntry,
   mondayWeekKey,
+  nextDateKey,
+  nextWeekKey,
   objectivesCompletedInWeek,
+  objectivesCompletedOnDate,
 } from "@/lib/goals-utils";
 import { recordTombstone } from "@/lib/sync/tombstones";
-import type { Goal, GoalHistoryEntry, Objective, PomodoroSession } from "@/types";
+import type { Goal, GoalHistoryEntry, Objective } from "@/types";
 
 const GOALS_STORAGE_KEY = "axon:goals";
 const HISTORY_STORAGE_KEY = "axon:goals:history";
 const META_STORAGE_KEY = "axon:goals:meta";
 const GOAL_TYPES = new Set(["daily", "weekly"]);
 
-/** Well-known ids the dashboard Goals pulse and Goals page track live. */
-export const DAILY_FOCUS_GOAL_ID = "goal-daily-focus";
+/** Fixed system defaults (M1 goals simplification). */
+export const DAILY_OBJECTIVES_TARGET = 3;
+export const WEEKLY_OBJECTIVES_TARGET = 15;
+
+/**
+ * Well-known id for the daily study goal.
+ * String kept as `goal-daily-focus` for localStorage / sync stability after
+ * the focus-minutes → objectives migration.
+ */
+export const DAILY_OBJECTIVES_GOAL_ID = "goal-daily-focus";
+/** @deprecated Use DAILY_OBJECTIVES_GOAL_ID */
+export const DAILY_FOCUS_GOAL_ID = DAILY_OBJECTIVES_GOAL_ID;
+
 export const WEEKLY_OBJECTIVES_GOAL_ID = "goal-weekly-objectives";
 
 const DEFAULT_GOALS: Goal[] = [
   {
-    id: DAILY_FOCUS_GOAL_ID,
-    title: "Focus time",
+    id: DAILY_OBJECTIVES_GOAL_ID,
+    title: "Complete 3 objectives",
     type: "daily",
     category: "study",
     tracking: "auto",
-    target: 90,
-    unit: "min",
+    target: DAILY_OBJECTIVES_TARGET,
+    unit: "objectives",
     progress: 0,
     completed: false,
     createdAt: new Date().toISOString(),
   },
   {
     id: WEEKLY_OBJECTIVES_GOAL_ID,
-    title: "Finish objectives",
+    title: "Complete 15 objectives",
     type: "weekly",
     category: "study",
     tracking: "auto",
-    target: 5,
+    target: WEEKLY_OBJECTIVES_TARGET,
     unit: "objectives",
     progress: 0,
     completed: false,
@@ -65,7 +77,10 @@ const DEFAULT_META: GoalsMeta = { lastDailyKey: null, lastWeeklyKey: null };
 function normalizeGoal(value: Goal): Goal | null {
   if (!value || typeof value !== "object" || typeof value.id !== "string") return null;
   const type = GOAL_TYPES.has(value.type) ? value.type : "daily";
-  const target = typeof value.target === "number" && Number.isFinite(value.target) ? Math.max(1, Math.round(value.target)) : 1;
+  const target =
+    typeof value.target === "number" && Number.isFinite(value.target)
+      ? Math.max(1, Math.round(value.target))
+      : 1;
   const category = value.category === "personal" ? "personal" : "study";
   const tracking =
     value.tracking === "manual" || category === "personal" ? "manual" : "auto";
@@ -73,6 +88,16 @@ function normalizeGoal(value: Goal): Goal | null {
     tracking === "manual" && typeof value.progress === "number" && Number.isFinite(value.progress)
       ? Math.max(0, Math.round(value.progress))
       : 0;
+  const streak =
+    category === "personal" && typeof value.streak === "number" && Number.isFinite(value.streak)
+      ? Math.max(0, Math.round(value.streak))
+      : category === "personal"
+        ? 0
+        : undefined;
+  const periodKey =
+    category === "personal" && typeof value.periodKey === "string" && value.periodKey
+      ? value.periodKey
+      : undefined;
   return {
     ...value,
     title: typeof value.title === "string" && value.title.trim() ? value.title : "Goal",
@@ -83,8 +108,77 @@ function normalizeGoal(value: Goal): Goal | null {
     unit: typeof value.unit === "string" && value.unit.trim() ? value.unit : "",
     progress,
     completed: progress >= target,
+    streak,
+    periodKey,
     createdAt: typeof value.createdAt === "string" ? value.createdAt : new Date().toISOString(),
+    updatedAt:
+      typeof value.updatedAt === "string"
+        ? value.updatedAt
+        : typeof value.createdAt === "string"
+          ? value.createdAt
+          : new Date().toISOString(),
   };
+}
+
+/** Force fixed study goals every read so old focus-minute / custom targets can't stick. */
+function applyFixedStudyGoals(goals: Goal[]): Goal[] {
+  return goals.map((goal) => {
+    if (goal.id === DAILY_OBJECTIVES_GOAL_ID) {
+      const needsMigration =
+        goal.title !== "Complete 3 objectives" ||
+        goal.target !== DAILY_OBJECTIVES_TARGET ||
+        goal.unit !== "objectives" ||
+        goal.type !== "daily" ||
+        goal.category !== "study" ||
+        goal.tracking !== "auto";
+      return {
+        ...goal,
+        title: "Complete 3 objectives",
+        type: "daily",
+        category: "study",
+        tracking: "auto",
+        target: DAILY_OBJECTIVES_TARGET,
+        unit: "objectives",
+        progress: 0,
+        completed: false,
+        updatedAt: needsMigration ? new Date().toISOString() : goal.updatedAt ?? goal.createdAt,
+      };
+    }
+    if (goal.id === WEEKLY_OBJECTIVES_GOAL_ID) {
+      const needsMigration =
+        goal.title !== "Complete 15 objectives" ||
+        goal.target !== WEEKLY_OBJECTIVES_TARGET ||
+        goal.unit !== "objectives" ||
+        goal.type !== "weekly" ||
+        goal.category !== "study" ||
+        goal.tracking !== "auto";
+      return {
+        ...goal,
+        title: "Complete 15 objectives",
+        type: "weekly",
+        category: "study",
+        tracking: "auto",
+        target: WEEKLY_OBJECTIVES_TARGET,
+        unit: "objectives",
+        progress: 0,
+        completed: false,
+        updatedAt: needsMigration ? new Date().toISOString() : goal.updatedAt ?? goal.createdAt,
+      };
+    }
+    return goal;
+  });
+}
+
+function studyGoalShapeMatches(goal: Goal | undefined, expected: Goal): boolean {
+  if (!goal) return false;
+  return (
+    goal.title === expected.title &&
+    goal.target === expected.target &&
+    goal.unit === expected.unit &&
+    goal.type === expected.type &&
+    goal.category === "study" &&
+    goal.tracking === "auto"
+  );
 }
 
 function normalizeGoals(value: unknown): Goal[] {
@@ -99,7 +193,7 @@ function normalizeGoals(value: unknown): Goal[] {
     .map(normalizeGoal)
     .filter((goal): goal is Goal => goal !== null);
   const missing = DEFAULT_GOALS.filter((defaultGoal) => !raw.some((goal) => goal.id === defaultGoal.id));
-  return [...raw, ...missing];
+  return applyFixedStudyGoals([...raw, ...missing]);
 }
 
 function normalizeHistoryEntry(value: GoalHistoryEntry): GoalHistoryEntry | null {
@@ -107,7 +201,9 @@ function normalizeHistoryEntry(value: GoalHistoryEntry): GoalHistoryEntry | null
   if (!GOAL_TYPES.has(value.type)) return null;
   if (typeof value.goalId !== "string" || typeof value.periodKey !== "string") return null;
   const target =
-    typeof value.target === "number" && Number.isFinite(value.target) ? Math.max(1, Math.round(value.target)) : 1;
+    typeof value.target === "number" && Number.isFinite(value.target)
+      ? Math.max(1, Math.round(value.target))
+      : 1;
   const progress =
     typeof value.progress === "number" && Number.isFinite(value.progress)
       ? Math.max(0, Math.round(value.progress))
@@ -124,11 +220,29 @@ function normalizeHistoryEntry(value: GoalHistoryEntry): GoalHistoryEntry | null
   };
 }
 
-function normalizeHistory(value: unknown): GoalHistoryEntry[] {
+/**
+ * Drop legacy daily focus-minute history (targets were typically 90 min).
+ * Keep daily entries already recorded against the fixed objectives target,
+ * and all weekly / personal history.
+ */
+function scrubLegacyFocusHistory(entries: GoalHistoryEntry[]): GoalHistoryEntry[] {
+  return entries.filter((entry) => {
+    if (entry.goalId !== DAILY_OBJECTIVES_GOAL_ID) return true;
+    if (entry.type !== "daily") return true;
+    return entry.target === DAILY_OBJECTIVES_TARGET;
+  });
+}
+
+function parseHistoryEntries(value: unknown): GoalHistoryEntry[] {
   return dedupeById(asArray<GoalHistoryEntry>(value))
     .map(normalizeHistoryEntry)
-    .filter((entry): entry is GoalHistoryEntry => entry !== null)
-    .sort((a, b) => b.periodKey.localeCompare(a.periodKey));
+    .filter((entry): entry is GoalHistoryEntry => entry !== null);
+}
+
+function normalizeHistory(value: unknown): GoalHistoryEntry[] {
+  return scrubLegacyFocusHistory(parseHistoryEntries(value)).sort((a, b) =>
+    b.periodKey.localeCompare(a.periodKey)
+  );
 }
 
 function normalizeMeta(value: unknown): GoalsMeta {
@@ -140,33 +254,48 @@ function normalizeMeta(value: unknown): GoalsMeta {
   };
 }
 
-function withLiveProgress(goal: Goal, todayFocusMinutes: number, weekCompletedCount: number): Goal {
+function withLiveProgress(
+  goal: Goal,
+  todayCompletedCount: number,
+  weekCompletedCount: number
+): Goal {
   if (goal.tracking === "manual" || goal.category === "personal") {
     const progress = Math.min(goal.target, Math.max(0, goal.progress));
     return { ...goal, progress, completed: progress >= goal.target };
   }
-  if (goal.id === DAILY_FOCUS_GOAL_ID) {
-    const progress = Math.min(goal.target, todayFocusMinutes);
-    return { ...goal, category: "study", tracking: "auto", progress, completed: progress >= goal.target };
+  if (goal.id === DAILY_OBJECTIVES_GOAL_ID) {
+    const progress = Math.min(goal.target, todayCompletedCount);
+    return {
+      ...goal,
+      category: "study",
+      tracking: "auto",
+      progress,
+      completed: progress >= goal.target,
+    };
   }
   if (goal.id === WEEKLY_OBJECTIVES_GOAL_ID) {
     const progress = Math.min(goal.target, weekCompletedCount);
-    return { ...goal, category: "study", tracking: "auto", progress, completed: progress >= goal.target };
+    return {
+      ...goal,
+      category: "study",
+      tracking: "auto",
+      progress,
+      completed: progress >= goal.target,
+    };
   }
   return goal;
 }
 
-/** Seed recent closed periods from activity so the history grid isn't empty on first visit. */
+/** Seed recent closed periods from objective activity. */
 function seedHistoryFromActivity(
   existing: GoalHistoryEntry[],
   goals: Goal[],
-  sessions: PomodoroSession[],
   objectives: Objective[],
   todayKey: string,
   weekKey: string
 ): GoalHistoryEntry[] {
   const byId = new Map(existing.map((e) => [e.id, e]));
-  const daily = goals.find((g) => g.id === DAILY_FOCUS_GOAL_ID);
+  const daily = goals.find((g) => g.id === DAILY_OBJECTIVES_GOAL_ID);
   const weekly = goals.find((g) => g.id === WEEKLY_OBJECTIVES_GOAL_ID);
 
   if (daily) {
@@ -174,13 +303,15 @@ function seedHistoryFromActivity(
       const d = new Date(`${todayKey}T12:00:00`);
       d.setDate(d.getDate() - i);
       const key = localDateKey(d);
-      const id = `${DAILY_FOCUS_GOAL_ID}:${key}`;
+      const id = `${DAILY_OBJECTIVES_GOAL_ID}:${key}`;
       if (byId.has(id)) continue;
-      const progress = focusMinutesOnDate(sessions, key);
+      const progress = objectivesCompletedOnDate(objectives, key);
       // First-run backfill represents known activity, not account age.
-      // Zero-activity periods are recorded only after tracking has begun.
       if (progress === 0) continue;
-      byId.set(id, makeHistoryEntry(DAILY_FOCUS_GOAL_ID, "daily", key, progress, daily.target));
+      byId.set(
+        id,
+        makeHistoryEntry(DAILY_OBJECTIVES_GOAL_ID, "daily", key, progress, daily.target)
+      );
     }
   }
 
@@ -193,7 +324,10 @@ function seedHistoryFromActivity(
       if (byId.has(id)) continue;
       const progress = objectivesCompletedInWeek(objectives, key);
       if (progress === 0) continue;
-      byId.set(id, makeHistoryEntry(WEEKLY_OBJECTIVES_GOAL_ID, "weekly", key, progress, weekly.target));
+      byId.set(
+        id,
+        makeHistoryEntry(WEEKLY_OBJECTIVES_GOAL_ID, "weekly", key, progress, weekly.target)
+      );
     }
   }
 
@@ -231,6 +365,50 @@ function closedWeeklyKeys(lastTrackedKey: string, currentWeekKey: string): strin
   return keys;
 }
 
+/**
+ * Rolls a personal goal into the current period.
+ * Hit → streak + 1; miss or skipped periods → streak resets.
+ * Progress resets for the new period.
+ */
+function rolloverPersonalGoal(goal: Goal, todayKey: string, weekKey: string): Goal {
+  if (goal.category !== "personal" || goal.tracking !== "manual") return goal;
+
+  const currentKey = goal.type === "daily" ? todayKey : weekKey;
+  const streak = goal.streak ?? 0;
+
+  // First time seeing this goal after the field landed — bind to current period, keep progress.
+  if (!goal.periodKey) {
+    return {
+      ...goal,
+      periodKey: currentKey,
+      streak,
+      updatedAt: goal.updatedAt ?? goal.createdAt,
+    };
+  }
+
+  if (goal.periodKey === currentKey) return goal;
+
+  // Close the period that still holds progress.
+  let nextStreak = goal.progress >= goal.target ? streak + 1 : 0;
+
+  // Any skipped periods between then and now are misses.
+  let cursor =
+    goal.type === "daily" ? nextDateKey(goal.periodKey) : nextWeekKey(goal.periodKey);
+  while (cursor < currentKey) {
+    nextStreak = 0;
+    cursor = goal.type === "daily" ? nextDateKey(cursor) : nextWeekKey(cursor);
+  }
+
+  return {
+    ...goal,
+    progress: 0,
+    completed: false,
+    streak: nextStreak,
+    periodKey: currentKey,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
 export function useGoals() {
   const [rawGoals, setRawGoals, goalsHydrated] = useLocalStorage<Goal[]>(GOALS_STORAGE_KEY, DEFAULT_GOALS);
   const [rawHistory, setRawHistory, historyHydrated] = useLocalStorage<GoalHistoryEntry[]>(
@@ -240,7 +418,6 @@ export function useGoals() {
   const [rawMeta, setRawMeta, metaHydrated] = useLocalStorage<GoalsMeta>(META_STORAGE_KEY, DEFAULT_META);
 
   const { objectives, hydrated: objectivesHydrated } = useObjectives();
-  const { sessions, todayFocusMinutes, hydrated: sessionsHydrated } = usePomodoroSessions();
 
   const goalsBase = React.useMemo(() => normalizeGoals(rawGoals), [rawGoals]);
   const history = React.useMemo(() => normalizeHistory(rawHistory), [rawHistory]);
@@ -249,17 +426,24 @@ export function useGoals() {
   const todayKey = localDateKey();
   const weekKey = mondayWeekKey();
 
+  const todayCompletedCount = React.useMemo(
+    () => objectivesCompletedOnDate(objectives, todayKey),
+    [objectives, todayKey]
+  );
   const weekCompletedCount = React.useMemo(
     () => objectivesCompletedInWeek(objectives, weekKey),
     [objectives, weekKey]
   );
 
   const goals = React.useMemo(
-    () => goalsBase.map((goal) => withLiveProgress(goal, todayFocusMinutes, weekCompletedCount)),
-    [goalsBase, todayFocusMinutes, weekCompletedCount]
+    () => goalsBase.map((goal) => withLiveProgress(goal, todayCompletedCount, weekCompletedCount)),
+    [goalsBase, todayCompletedCount, weekCompletedCount]
   );
 
-  const dailyGoal = React.useMemo(() => goals.find((g) => g.id === DAILY_FOCUS_GOAL_ID) ?? null, [goals]);
+  const dailyGoal = React.useMemo(
+    () => goals.find((g) => g.id === DAILY_OBJECTIVES_GOAL_ID) ?? null,
+    [goals]
+  );
   const weeklyGoal = React.useMemo(
     () => goals.find((g) => g.id === WEEKLY_OBJECTIVES_GOAL_ID) ?? null,
     [goals]
@@ -269,15 +453,55 @@ export function useGoals() {
     [goals]
   );
 
-  const hydrated =
-    goalsHydrated && historyHydrated && metaHydrated && objectivesHydrated && sessionsHydrated;
+  const hydrated = goalsHydrated && historyHydrated && metaHydrated && objectivesHydrated;
 
-  // On period rollover: snapshot the closed day/week, then seed any missing recent history.
+  // Persist scrubbed focus-minute history + tombstone dropped ids so sync can't resurrect them.
+  React.useEffect(() => {
+    if (!historyHydrated) return;
+    const parsed = parseHistoryEntries(rawHistory);
+    const scrubbed = scrubLegacyFocusHistory(parsed);
+    if (scrubbed.length === parsed.length) return;
+    const keep = new Set(scrubbed.map((e) => e.id));
+    for (const entry of parsed) {
+      if (!keep.has(entry.id)) recordTombstone(HISTORY_STORAGE_KEY, entry.id);
+    }
+    setRawHistory(scrubbed.sort((a, b) => b.periodKey.localeCompare(a.periodKey)));
+  }, [historyHydrated, rawHistory, setRawHistory]);
+
+  // Persist fixed study-goal shape so sync / other devices don't keep focus-minute titles.
+  React.useEffect(() => {
+    if (!goalsHydrated) return;
+    const daily = DEFAULT_GOALS.find((g) => g.id === DAILY_OBJECTIVES_GOAL_ID)!;
+    const weekly = DEFAULT_GOALS.find((g) => g.id === WEEKLY_OBJECTIVES_GOAL_ID)!;
+    const rawNormalized = normalizeGoals(rawGoals);
+    const dailyOk = studyGoalShapeMatches(
+      rawNormalized.find((g) => g.id === DAILY_OBJECTIVES_GOAL_ID),
+      daily
+    );
+    const weeklyOk = studyGoalShapeMatches(
+      rawNormalized.find((g) => g.id === WEEKLY_OBJECTIVES_GOAL_ID),
+      weekly
+    );
+    if (dailyOk && weeklyOk) return;
+    setRawGoals(rawNormalized);
+  }, [goalsHydrated, rawGoals, setRawGoals]);
+
+  // Auto-reset personal goals at daily/weekly boundaries; maintain real hit streaks.
+  React.useEffect(() => {
+    if (!goalsHydrated) return;
+    const current = normalizeGoals(rawGoals);
+    const needsRollover = current.some((goal) => {
+      if (goal.category !== "personal") return false;
+      const period = goal.type === "daily" ? todayKey : weekKey;
+      return !goal.periodKey || goal.periodKey !== period;
+    });
+    if (!needsRollover) return;
+    setRawGoals(current.map((goal) => rolloverPersonalGoal(goal, todayKey, weekKey)));
+  }, [goalsHydrated, rawGoals, todayKey, weekKey, setRawGoals]);
+
+  // On period rollover: snapshot closed day/week, scrub legacy focus history, seed gaps.
   React.useEffect(() => {
     if (!hydrated) return;
-
-    const dailyTarget = goalsBase.find((g) => g.id === DAILY_FOCUS_GOAL_ID)?.target ?? 90;
-    const weeklyTarget = goalsBase.find((g) => g.id === WEEKLY_OBJECTIVES_GOAL_ID)?.target ?? 5;
 
     const snapshots: GoalHistoryEntry[] = [];
     let nextMeta = { ...meta };
@@ -288,11 +512,11 @@ export function useGoals() {
         for (const closedKey of closedDailyKeys(meta.lastDailyKey, todayKey)) {
           snapshots.push(
             makeHistoryEntry(
-              DAILY_FOCUS_GOAL_ID,
+              DAILY_OBJECTIVES_GOAL_ID,
               "daily",
               closedKey,
-              focusMinutesOnDate(sessions, closedKey),
-              dailyTarget
+              objectivesCompletedOnDate(objectives, closedKey),
+              DAILY_OBJECTIVES_TARGET
             )
           );
         }
@@ -310,7 +534,7 @@ export function useGoals() {
               "weekly",
               closedKey,
               objectivesCompletedInWeek(objectives, closedKey),
-              weeklyTarget
+              WEEKLY_OBJECTIVES_TARGET
             )
           );
         }
@@ -320,9 +544,8 @@ export function useGoals() {
     }
 
     const seeded = seedHistoryFromActivity(
-      mergeHistory(history, snapshots),
+      scrubLegacyFocusHistory(mergeHistory(history, snapshots)),
       goalsBase,
-      sessions,
       objectives,
       todayKey,
       weekKey
@@ -338,7 +561,6 @@ export function useGoals() {
     meta,
     history,
     goalsBase,
-    sessions,
     objectives,
     todayKey,
     weekKey,
@@ -346,11 +568,15 @@ export function useGoals() {
     setRawMeta,
   ]);
 
+  /** No-op for fixed study goals; personal goals keep their own targets via create form. */
   const updateTarget = React.useCallback(
     (goalId: string, target: number) => {
+      if (goalId === DAILY_OBJECTIVES_GOAL_ID || goalId === WEEKLY_OBJECTIVES_GOAL_ID) return;
       const nextTarget = Math.max(1, Math.round(target));
       setRawGoals((prev) =>
-        normalizeGoals(prev).map((goal) => (goal.id === goalId ? { ...goal, target: nextTarget } : goal))
+        normalizeGoals(prev).map((goal) =>
+          goal.id === goalId ? { ...goal, target: nextTarget } : goal
+        )
       );
     },
     [setRawGoals]
@@ -360,6 +586,8 @@ export function useGoals() {
     (input: { title: string; type: "daily" | "weekly"; target: number; unit?: string }) => {
       const title = input.title.trim().slice(0, 120);
       if (!title) return null;
+      const now = new Date().toISOString();
+      const currentKey = input.type === "daily" ? localDateKey() : mondayWeekKey();
       const goal: Goal = {
         id: createId(),
         title,
@@ -367,10 +595,13 @@ export function useGoals() {
         category: "personal",
         tracking: "manual",
         target: Math.max(1, Math.round(input.target)),
-        unit: (input.unit ?? "").trim().slice(0, 24),
+        unit: "",
         progress: 0,
         completed: false,
-        createdAt: new Date().toISOString(),
+        streak: 0,
+        periodKey: currentKey,
+        createdAt: now,
+        updatedAt: now,
       };
       setRawGoals((prev) => [...normalizeGoals(prev), goal]);
       return goal;
@@ -380,7 +611,7 @@ export function useGoals() {
 
   const deleteGoal = React.useCallback(
     (goalId: string) => {
-      if (goalId === DAILY_FOCUS_GOAL_ID || goalId === WEEKLY_OBJECTIVES_GOAL_ID) return;
+      if (goalId === DAILY_OBJECTIVES_GOAL_ID || goalId === WEEKLY_OBJECTIVES_GOAL_ID) return;
       recordTombstone(GOALS_STORAGE_KEY, goalId);
       setRawGoals((prev) => normalizeGoals(prev).filter((g) => g.id !== goalId));
     },
@@ -393,7 +624,12 @@ export function useGoals() {
         normalizeGoals(prev).map((goal) => {
           if (goal.id !== goalId || goal.tracking !== "manual") return goal;
           const next = Math.min(goal.target, Math.max(0, Math.round(progress)));
-          return { ...goal, progress: next, completed: next >= goal.target };
+          return {
+            ...goal,
+            progress: next,
+            completed: next >= goal.target,
+            updatedAt: new Date().toISOString(),
+          };
         })
       );
     },

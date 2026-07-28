@@ -152,7 +152,7 @@ export function RankOverview() {
 
   if (!hydrated) {
     return (
-      <AppPage title="Rank" description="Your full level ladder, streaks, and how XP is earned." feature="rank">
+      <AppPage title="Rank" feature="rank">
         <div className="space-y-5">
           <Skeleton className="h-32 rounded-md" />
           <Skeleton className="h-24 rounded-md" />
@@ -163,11 +163,7 @@ export function RankOverview() {
   }
 
   return (
-    <AppPage
-      title="Rank & Progress"
-      description="Your full level ladder, streaks, and how XP is earned — in one place."
-      feature="rank"
-    >
+    <AppPage title="Rank & Progress" feature="rank">
       <motion.div
         initial={prefersReducedMotion ? undefined : { opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}

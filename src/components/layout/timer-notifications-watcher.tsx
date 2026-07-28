@@ -31,7 +31,8 @@ export function TimerNotificationsWatcher() {
   const { logStudyTime } = useObjectives();
   const [toasts, setToasts] = React.useState<Toast[]>([]);
 
-  // Award session + XP as soon as a full run completes (timer settles to Ready).
+  // Award session + XP as soon as a full interval completes (timer settles to Ready).
+  // Work intervals earn XP/study time; breaks are logged without XP.
   React.useEffect(() => {
     if (!hydrated) return;
     for (const timer of timers) {
@@ -39,10 +40,13 @@ export function TimerNotificationsWatcher() {
       const claimed = claimCompletion(timer.id);
       if (!claimed) continue;
       const minutes = Math.max(1, Math.round(claimed.durationSeconds / 60));
-      if (claimed.objectiveId) logStudyTime(claimed.objectiveId, minutes);
+      const phase = claimed.phase ?? "work";
+      if (phase === "work" && claimed.objectiveId) {
+        logStudyTime(claimed.objectiveId, minutes);
+      }
       logSession({
         durationMinutes: minutes,
-        type: "work",
+        type: phase,
         completed: true,
         objectiveId: claimed.objectiveId,
         label: claimed.label,
@@ -56,8 +60,17 @@ export function TimerNotificationsWatcher() {
     if (due.length === 0) return;
 
     due.forEach((timer) => {
-      const title = "Timer finished";
-      const message = `"${timer.label}" just ran out of time.`;
+      const phase = timer.phase ?? "work";
+      const title =
+        phase === "work"
+          ? "Work interval done"
+          : phase === "long-break"
+            ? "Long break over"
+            : "Break over";
+      const message =
+        phase === "work"
+          ? `"${timer.label}" — start a break or skip to the next work interval.`
+          : `"${timer.label}" — ready for the next work interval.`;
 
       // OS alert only when the tab is in the background (browser.ts).
       const browserNote = showBrowserNotification(title, {

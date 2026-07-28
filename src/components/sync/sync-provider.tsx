@@ -30,6 +30,26 @@ interface SyncContextValue {
 
 const SyncContext = React.createContext<SyncContextValue | null>(null);
 
+function isUnreachableSyncError(error: unknown): boolean {
+  if (typeof navigator !== "undefined" && !navigator.onLine) return true;
+  if (error instanceof TypeError) return true;
+  const text =
+    error && typeof error === "object"
+      ? [
+          "message" in error ? String((error as { message: unknown }).message) : "",
+          "details" in error ? String((error as { details: unknown }).details) : "",
+          "hint" in error ? String((error as { hint: unknown }).hint) : "",
+        ].join(" ")
+      : String(error ?? "");
+  const lower = text.toLowerCase();
+  return (
+    lower.includes("failed to fetch") ||
+    lower.includes("networkerror") ||
+    lower.includes("load failed") ||
+    lower.includes("network request failed")
+  );
+}
+
 export function SyncProvider({ children }: { children: React.ReactNode }) {
   const { user, configured } = useAuth();
   const [status, setStatus] = React.useState<SyncStatus>("idle");
@@ -69,12 +89,17 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
         setLastSyncedAt(new Date().toISOString());
         setStatus("synced");
       } catch (error) {
-        const detail =
-          error && typeof error === "object"
-            ? JSON.stringify(error, ["message", "details", "hint", "code", "status"])
-            : String(error);
-        console.error(`Axon sync failed: ${detail}`, error);
-        setStatus("error");
+        if (isUnreachableSyncError(error)) {
+          // Expected when offline / Supabase unreachable — quiet, retry later.
+          setStatus("offline");
+        } else {
+          const detail =
+            error && typeof error === "object"
+              ? JSON.stringify(error, ["message", "details", "hint", "code", "status"])
+              : String(error);
+          console.error(`Axon sync failed: ${detail}`, error);
+          setStatus("error");
+        }
       } finally {
         syncingRef.current = false;
         if (dirtyRef.current) {

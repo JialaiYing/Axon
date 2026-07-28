@@ -81,6 +81,17 @@ export function focusMinutesOnDate(sessions: PomodoroSession[], dateKey: string)
 }
 
 /**
+ * Count objectives completed on a local calendar day (`YYYY-MM-DD`).
+ * Same done/recycled + completedAt rules as `objectivesCompletedInWeek`.
+ */
+export function objectivesCompletedOnDate(objectives: Objective[], dateKey: string): number {
+  return objectives.filter((o) => {
+    if ((o.status !== "done" && o.status !== "recycled") || !o.completedAt) return false;
+    return localDateKey(new Date(o.completedAt)) === dateKey;
+  }).length;
+}
+
+/**
  * Count objectives completed within the Monday-start week identified by
  * `weekKey`. Counts "recycled" objectives too (as long as they carry a
  * `completedAt` in-window) — an objective auto-recycles 7 days after
@@ -136,10 +147,24 @@ export function previousDateKey(dateKey: string): string {
   return localDateKey(d);
 }
 
+/** Next local calendar day key. */
+export function nextDateKey(dateKey: string): string {
+  const d = new Date(`${dateKey}T12:00:00`);
+  d.setDate(d.getDate() + 1);
+  return localDateKey(d);
+}
+
 /** Previous Monday week key. */
 export function previousWeekKey(weekKey: string): string {
   const d = new Date(`${weekKey}T12:00:00`);
   d.setDate(d.getDate() - 7);
+  return mondayWeekKey(d);
+}
+
+/** Next Monday week key. */
+export function nextWeekKey(weekKey: string): string {
+  const d = new Date(`${weekKey}T12:00:00`);
+  d.setDate(d.getDate() + 7);
   return mondayWeekKey(d);
 }
 
@@ -152,30 +177,48 @@ export function formatPeriodLabel(type: Goal["type"], periodKey: string): string
   return `Week of ${d.toLocaleDateString(undefined, { month: "short", day: "numeric" })}`;
 }
 
-export function streakFromHistory(entries: GoalHistoryEntry[], type: Goal["type"]): {
+export function streakFromHistory(
+  entries: GoalHistoryEntry[],
+  type: Goal["type"],
+  goalId?: string
+): {
   current: number;
   best: number;
 } {
-  const sorted = entries
-    .filter((e) => e.type === type)
-    .slice()
-    .sort((a, b) => b.periodKey.localeCompare(a.periodKey));
+  const filtered = entries.filter(
+    (e) => e.type === type && (goalId === undefined || e.goalId === goalId)
+  );
+  const byKey = new Map(filtered.map((e) => [e.periodKey, e]));
 
+  // Current: walk calendar periods backward from the last closed period
+  // (yesterday / previous week). Missing entries count as misses so sparse
+  // seeding can't inflate streaks across gaps.
   let current = 0;
-  for (const entry of sorted) {
-    if (!entry.hit) break;
+  let cursor =
+    type === "daily" ? previousDateKey(localDateKey()) : previousWeekKey(mondayWeekKey());
+  for (;;) {
+    const entry = byKey.get(cursor);
+    if (!entry?.hit) break;
     current += 1;
+    cursor = type === "daily" ? previousDateKey(cursor) : previousWeekKey(cursor);
   }
 
+  // Best: walk from oldest recorded period to newest, treating gaps as breaks.
+  const keys = Array.from(byKey.keys()).sort((a, b) => a.localeCompare(b));
   let best = 0;
   let run = 0;
-  // Chronological for best streak
-  for (const entry of sorted.slice().reverse()) {
-    if (entry.hit) {
-      run += 1;
-      best = Math.max(best, run);
-    } else {
-      run = 0;
+  if (keys.length > 0) {
+    let walk = keys[0]!;
+    const end = keys[keys.length - 1]!;
+    while (walk <= end) {
+      const entry = byKey.get(walk);
+      if (entry?.hit) {
+        run += 1;
+        best = Math.max(best, run);
+      } else {
+        run = 0;
+      }
+      walk = type === "daily" ? nextDateKey(walk) : nextWeekKey(walk);
     }
   }
 

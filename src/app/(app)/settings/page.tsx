@@ -235,7 +235,6 @@ export default function SettingsPage() {
     <>
       <AppPage
         title="Settings"
-        description="Appearance, profile, privacy, and study preferences."
       >
         <div className="space-y-8">
           <section className="space-y-3">
@@ -433,16 +432,86 @@ export default function SettingsPage() {
                   In-app Focus Mode when a Pomodoro starts. Leaving the tab pauses your session and
                   can send a desktop nudge — browsers still can&apos;t hard-block other sites.
                 </p>
+                <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  <div className="space-y-1">
+                    <Label htmlFor="focus-work-min" className="text-[11px] text-muted-foreground">
+                      Work (min)
+                    </Label>
+                    <Input
+                      id="focus-work-min"
+                      type="number"
+                      inputMode="numeric"
+                      min={1}
+                      max={480}
+                      value={focusPreferences.workMinutes}
+                      onChange={(e) => {
+                        const n = Number.parseInt(e.target.value, 10);
+                        if (Number.isFinite(n)) updateFocusPreferences({ workMinutes: n });
+                      }}
+                      className="h-8 font-mono text-[13px] tabular-nums"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="focus-short-min" className="text-[11px] text-muted-foreground">
+                      Short break
+                    </Label>
+                    <Input
+                      id="focus-short-min"
+                      type="number"
+                      inputMode="numeric"
+                      min={1}
+                      max={480}
+                      value={focusPreferences.shortBreakMinutes}
+                      onChange={(e) => {
+                        const n = Number.parseInt(e.target.value, 10);
+                        if (Number.isFinite(n)) updateFocusPreferences({ shortBreakMinutes: n });
+                      }}
+                      className="h-8 font-mono text-[13px] tabular-nums"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="focus-long-min" className="text-[11px] text-muted-foreground">
+                      Long break
+                    </Label>
+                    <Input
+                      id="focus-long-min"
+                      type="number"
+                      inputMode="numeric"
+                      min={1}
+                      max={480}
+                      value={focusPreferences.longBreakMinutes}
+                      onChange={(e) => {
+                        const n = Number.parseInt(e.target.value, 10);
+                        if (Number.isFinite(n)) updateFocusPreferences({ longBreakMinutes: n });
+                      }}
+                      className="h-8 font-mono text-[13px] tabular-nums"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="focus-cycles" className="text-[11px] text-muted-foreground">
+                      Cycles → long
+                    </Label>
+                    <Input
+                      id="focus-cycles"
+                      type="number"
+                      inputMode="numeric"
+                      min={1}
+                      max={12}
+                      value={focusPreferences.cyclesBeforeLongBreak}
+                      onChange={(e) => {
+                        const n = Number.parseInt(e.target.value, 10);
+                        if (Number.isFinite(n))
+                          updateFocusPreferences({ cyclesBeforeLongBreak: n });
+                      }}
+                      className="h-8 font-mono text-[13px] tabular-nums"
+                    />
+                  </div>
+                </div>
                 <div className="flex flex-col gap-2">
                   <ToggleRow
                     label="Auto-enter on timer start"
                     checked={focusPreferences.autoEnterFocusMode}
                     onChange={(next) => updateFocusPreferences({ autoEnterFocusMode: next })}
-                  />
-                  <ToggleRow
-                    label="Show stay-focused reminder"
-                    checked={focusPreferences.showBlocklistReminder}
-                    onChange={(next) => updateFocusPreferences({ showBlocklistReminder: next })}
                   />
                 </div>
               </SettingBlock>

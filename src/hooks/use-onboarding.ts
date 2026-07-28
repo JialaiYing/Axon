@@ -73,7 +73,7 @@ export const ONBOARDING_COPY: Record<OnboardingFeature, OnboardingTip> = {
   },
   goals: {
     title: "You're on Goals",
-    body: "Daily and weekly targets track automatically. Add a personal goal for anything you'd like to track manually.",
+    body: "Hit 3 objectives today and 15 this week — progress updates automatically when you finish work on the board.",
   },
   gamification: {
     title: "XP, ranks, and streaks",

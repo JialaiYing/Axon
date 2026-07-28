@@ -303,11 +303,9 @@ function PersonalGoalsSection({
   const remainingPersonalGoals = personalGoals.length - visiblePersonalGoals.length;
 
   const contextualCta =
-    dailyStatus === "behind"
-      ? { href: "/pomodoro" as const, label: "Start focus" }
-      : weeklyStatus === "behind"
-        ? { href: "/kanban" as const, label: "Open board" }
-        : null;
+    dailyStatus === "behind" || weeklyStatus === "behind"
+      ? { href: "/kanban" as const, label: "Open board" }
+      : null;
 
   return (
     <section className="flex h-full min-h-0 flex-col">
@@ -334,7 +332,7 @@ function PersonalGoalsSection({
           </>
         ) : (
           <p className="text-xs text-muted-foreground">
-            No personal goals yet — add one to track something outside daily/weekly focus time.
+            No personal goals yet — add one on the Goals page.
           </p>
         )}
       </div>
@@ -580,7 +578,7 @@ export function DashboardOverview() {
                 day: "numeric",
               })}
             </p>
-            <h1 className="mt-1 text-xl font-semibold tracking-tight text-foreground md:text-2xl">
+            <h1 className="mt-1 text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
               {greeting}
             </h1>
           </div>

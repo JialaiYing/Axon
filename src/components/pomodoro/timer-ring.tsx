@@ -83,7 +83,7 @@ export function TimerRing({ remainingSeconds, totalSeconds, size }: TimerRingPro
           style={
             fluid
               ? undefined
-              : { fontSize: size! >= 400 ? "4.5rem" : size! >= 300 ? "3.25rem" : "2.75rem" }
+              : { fontSize: size! >= 400 ? "5rem" : size! >= 300 ? "3.25rem" : "2.75rem" }
           }
         >
           {formatClock(remainingSeconds)}

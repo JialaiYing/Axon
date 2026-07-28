@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { ObjectiveDialog } from "@/components/kanban/objective-dialog";
 import { useObjectives } from "@/hooks/use-objectives";
 import { usePomodoroTimers } from "@/hooks/use-pomodoro-timers";
+import { usePomodoroSessions } from "@/hooks/use-pomodoro-sessions";
 import { useCalendarState } from "@/hooks/use-calendar-state";
 import { startFocusSession } from "@/lib/pomodoro-utils";
 import {
@@ -61,9 +62,11 @@ export function CalendarPage() {
     scheduleObjective,
     unscheduleObjective,
     startObjectiveSession,
+    logStudyTime,
   } = useObjectives();
-  const { timers, hydrated: timersHydrated, startTimer, pauseTimer, resumeTimer, removeTimer } =
+  const { timers, hydrated: timersHydrated, startTimer, pauseTimer, resumeTimer, stopTimer, removeTimer } =
     usePomodoroTimers();
+  const { logSession } = usePomodoroSessions();
   const { view, setView, currentDate, setCurrentDate, goToday, goPrev, goNext } = useCalendarState();
   const prefersReducedMotion = useReducedMotion();
 
@@ -113,11 +116,24 @@ export function CalendarPage() {
   }
 
   function handleStartFocusSession(objective: Objective) {
-    startFocusSession(
-      objective,
-      { timers, startObjectiveSession, startTimer, resumeTimer },
-      objective.scheduledDurationMinutes
-    );
+    startFocusSession(objective, {
+      timers,
+      startObjectiveSession,
+      startTimer,
+      resumeTimer,
+      stopTimer,
+      removeTimer,
+      onDisplacedWork: (timer, elapsedMinutes) => {
+        if (timer.objectiveId) logStudyTime(timer.objectiveId, elapsedMinutes);
+        logSession({
+          durationMinutes: elapsedMinutes,
+          type: "work",
+          completed: false,
+          objectiveId: timer.objectiveId,
+          label: timer.label,
+        });
+      },
+    });
   }
 
   function handleDragStart(e: DragStartEvent) {

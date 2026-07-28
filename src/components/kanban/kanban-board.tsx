@@ -184,7 +184,6 @@ export function KanbanBoard() {
     <AppPage
       feature="kanban"
       title="Kanban"
-      description="Move objectives from queued to done."
       actions={
         <button
           type="button"

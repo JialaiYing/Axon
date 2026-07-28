@@ -16,6 +16,8 @@ interface AppPageProps {
   toolbar?: React.ReactNode;
   /** When set, shows a one-time Canva-style intro for this feature. */
   feature?: OnboardingFeature;
+  /** Hide the page title row (Pomodoro hides this while a timer runs). */
+  hideHeader?: boolean;
   children: React.ReactNode;
   className?: string;
 }
@@ -31,6 +33,7 @@ export function AppPage({
   actions,
   toolbar,
   feature,
+  hideHeader = false,
   children,
   className,
 }: AppPageProps) {
@@ -49,12 +52,14 @@ export function AppPage({
     >
       {feature && <FeatureIntro feature={feature} />}
 
-      <motion.div
-        variants={sectionVariants}
-        transition={{ duration: DURATION.section, ease: EASE }}
-      >
-        <PageHeader title={title} description={description} actions={actions} />
-      </motion.div>
+      {!hideHeader && (
+        <motion.div
+          variants={sectionVariants}
+          transition={{ duration: DURATION.section, ease: EASE }}
+        >
+          <PageHeader title={title} description={description} actions={actions} />
+        </motion.div>
+      )}
 
       {toolbar && (
         <motion.div

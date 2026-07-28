@@ -1,0 +1,60 @@
+# Known issues — salvaged from prior audits
+
+This consolidates everything still worth knowing from `docs/dashboard-audit-findings.md`, `docs/kanban-audit-findings.md`, `docs/calendar-audit-findings.md`, `docs/pomodoro-audit-findings.md`, `docs/flashcards-audit-findings.md`, and `docs/landing-redesign-spec.md` before those files were deleted (they were about to go stale the moment the redesign work in `product-requirements.md` starts, and five separately-dated line-numbered audits are exactly the kind of thing that confuses a future chat).
+
+Each item is tagged:
+- **[Independent]** — a real bug/gap unrelated to the redesign; still needs fixing on its own regardless of what else ships.
+- **[Subsumed]** — the redesign work already scoped in `product-requirements.md` resolves this as a side effect; no separate ticket needed.
+- **[By design]** — logged in the original audit as intentional; not a bug.
+
+Update this file as items get resolved instead of letting it silently rot — see `development-process.md`.
+
+---
+
+## Landing / marketing page
+
+- **[Independent]** No mobile nav menu. Below 768px, "How it works" / "Progress" / "Principles" / "FAQ" links are completely unreachable — `landing-nav.tsx` hides them with no hamburger/disclosure.
+- **[Independent]** How It Works section breaks on mobile: the shared visual sits above all four step rows; tapping step 3/4 changes a visual already scrolled past, with no feedback.
+- **[Subsumed]** Homepage copy contradicts mandatory auth ("Works offline. Syncs when you want." in hero/trust/footer) — this needed a rewrite already, and now needs a *second* rewrite once the differentiation positioning in `product-requirements.md` lands, since the product story itself is changing, not just the auth framing.
+- **[Independent]** `/faq` page uses raw `bg-black`/`text-white`/`border-white/10` instead of the shared token system — the one page the dark-mode sweep missed.
+- **[Independent]** No risk-reversal microcopy under Hero/Final CTA buttons (e.g. "free account, sync included").
+
+## Dashboard
+
+- **[Subsumed]** Hardcoded indigo glow (`rgba(94,106,210,…)`) — the dashboard page itself was already cleaned up; remnants live in Calendar/`xp-burst`/`tilt-card`/Tabs (see Calendar entry below).
+- **[Subsumed]** "Recent" column had no footer strip while Goals/Rank did (uneven baseline) — moot once Personal goals/Recent are removed from the dashboard per the new PRD scope.
+
+## Kanban
+
+- **[Subsumed]** `priorityDotClass`/`priorityTextClass` map "medium" priority to accent color, conflicting with "accent = action only" — the new subject-owned-color rework in `product-requirements.md` replaces this color system anyway.
+- **[Independent]** Hardcoded indigo glow debt (same root cause as Calendar/Dashboard below) — one sweep needed across `xp-burst`, `tilt-card`, Tabs regardless of the Kanban rename/color work.
+- **[By design]** Objective form / recycle-bin dialog polish was intentionally deferred in the original audit; still not urgent.
+
+## Calendar
+
+- **[Independent]** Hardcoded indigo glow (`rgba(94,106,210,…)`) still present — the one surface that never got the token cleanup the other pages got.
+- **[Independent]** Unscheduled → week/day drag-drop always lands at 9:00, no pointer→minutes snapping.
+- **[Independent]** Event actions menu still uses a Sparkles icon + heavy elevation shadow, inconsistent with the flattened chip style elsewhere.
+- **[Subsumed]** Toolbar alignment (title `text-xl` vs. `h-7`/`h-8` controls, loose `sm:items-center` centering) — scoped as a fix in `product-requirements.md`.
+
+## Pomodoro
+
+- **[Independent]** Toast auto-expire doesn't clear the notification-bell entry (minor, intentional-for-history per original audit, but worth a real decision).
+- **[Resolved — M1]** Multi-timer-grid-as-default and lack of work/break phase cycling — replaced with a single primary timer, classic work→short/long break cycling (Settings defaults), and prompt-gated transitions.
+- **[By design]** Objective timers wait for Stop before showing the finish dialog (toast covers the immediate signal) — logged as intentional, not a bug. Interval end now opens the phase-transition prompt; finish-objective dialog still appears when Stop ends a Ready work session.
+
+## Goals
+
+- **[Resolved — M1]** User-configurable daily/weekly targets (including focus-minutes) and the generic `buildInsight` blurb — replaced with fixed system defaults (3 objectives/day, 15/week), live progress from board completions only, and a decluttered Goals page without edit-target or Insights chrome.
+
+## Flashcards
+
+- **[Independent]** Legacy folders may still store old purple hex colors in `localStorage` from before the token migration — self-healing (users can recolor via Edit), low priority.
+- **[Subsumed]** "Spaced repetition / scheduled review still deferred" — this was logged as deferred product work in the old audit; it is now a committed differentiation feature in `product-requirements.md`, not deferred.
+- **[Subsumed]** Home left-rail duplication and the "Visual gallery" tab — both scoped for removal in `product-requirements.md`.
+
+## Not previously audited (found during this pass)
+
+- **CLAUDE.md auth-optional inaccuracy** — corrected directly in `CLAUDE.md` as part of this round (see git history); flagging here so it isn't rediscovered as a mystery later.
+- **No error/empty/loading-state audit exists** for Supabase outage during sync, failed auth, corrupted localStorage payload, or expired session mid-edit — nobody has looked at this yet. Still open, not addressed by this roadmap pass; see `product-requirements.md` reliability section.
+- **No accessibility audit has actually been run** against the app despite `.cursor/skills/accessibility-audit/SKILL.md` existing — still open.

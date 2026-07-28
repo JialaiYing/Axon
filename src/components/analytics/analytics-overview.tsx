@@ -482,10 +482,7 @@ export function AnalyticsOverview() {
         className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"
       >
         <div>
-          <h1 className="text-xl font-semibold tracking-tight text-foreground md:text-2xl">Analytics</h1>
-          <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
-            Focus trends and completion over the last {rangeDays} days.
-          </p>
+          <h1 className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">Analytics</h1>
         </div>
         {rangeToolbar}
       </motion.div>

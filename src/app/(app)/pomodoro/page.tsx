@@ -1,37 +1,35 @@
 "use client";
 
 import * as React from "react";
-import { Flame, Timer as TimerIcon, Play } from "lucide-react";
+import { Maximize2, Target, Coffee } from "lucide-react";
 import { AppPage } from "@/components/layout/app-page";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ConfettiBurst } from "@/components/ui/confetti";
-import { ObjectivePickerSkeleton } from "@/components/ui/skeleton";
-import { TimerCard } from "@/components/pomodoro/timer-card";
+import { TimerDisplay } from "@/components/pomodoro/timer-display";
+import { TimerControls } from "@/components/pomodoro/timer-controls";
 import { TimerFullscreenOverlay } from "@/components/pomodoro/timer-fullscreen";
-import { ObjectivePicker } from "@/components/pomodoro/objective-picker";
-import { PersonalTimerForm } from "@/components/pomodoro/personal-timer-form";
 import { FinishSessionDialog } from "@/components/pomodoro/finish-session-dialog";
 import { SessionSummaryDialog } from "@/components/pomodoro/session-summary-dialog";
+import { PhaseTransitionDialog } from "@/components/pomodoro/phase-transition-dialog";
+import { PomodoroIdleStatus } from "@/components/pomodoro/pomodoro-idle-status";
+import { PomodoroStartMenu } from "@/components/pomodoro/pomodoro-start-menu";
 import { useShellChrome } from "@/components/layout/shell-chrome";
 import { useObjectives } from "@/hooks/use-objectives";
 import { usePomodoroTimers, remainingSecondsOf } from "@/hooks/use-pomodoro-timers";
 import { usePomodoroSessions } from "@/hooks/use-pomodoro-sessions";
 import { useFocusPreferences } from "@/hooks/use-focus-preferences";
 import { useUserStats } from "@/hooks/use-user-stats";
-import { asArray, useLocalStorage } from "@/hooks/use-local-storage";
 import { isToday } from "@/lib/goals-utils";
-import { clampPersonalMinutes, startFocusSession } from "@/lib/pomodoro-utils";
+import { isAwaitingPhaseTransition, phaseLabel, startFocusSession } from "@/lib/pomodoro-utils";
 import { focusSessionXp } from "@/lib/progress/xp-rules";
 import type { Objective, TimerSource } from "@/types";
 
 export default function PomodoroPage() {
   const { objectives, hydrated, addObjective, updateObjective, deleteObjective, startObjectiveSession, logStudyTime, completeObjective } =
     useObjectives();
-  const { logSession, todaySessions, todayFocusMinutes } = usePomodoroSessions();
+  const { logSession } = usePomodoroSessions();
   const {
     timers,
-    hydrated: timersHydrated,
     startTimer,
     pauseTimer,
     resumeTimer,
@@ -39,6 +37,7 @@ export default function PomodoroPage() {
     removeTimer,
     extendTimer,
     restartTimer,
+    advancePhase,
   } = usePomodoroTimers();
   const { preferences: focusPreferences } = useFocusPreferences();
   const { setFocusLock } = useShellChrome();
@@ -47,22 +46,18 @@ export default function PomodoroPage() {
   const [source, setSource] = React.useState<TimerSource>("objective");
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
   const [personalLabel, setPersonalLabel] = React.useState("");
-  const [personalMinutes, setPersonalMinutes] = React.useState(25);
   const [celebrateKey, setCelebrateKey] = React.useState(0);
   const [finishQueue, setFinishQueue] = React.useState<string[]>([]);
   const [summaryQueue, setSummaryQueue] = React.useState<string[]>([]);
+  const [phasePromptId, setPhasePromptId] = React.useState<string | null>(null);
   const [addToKanban, setAddToKanban] = React.useState(false);
   const [personalLinkedObjectiveId, setPersonalLinkedObjectiveId] = React.useState<string | null>(null);
   const [fullscreenTimerId, setFullscreenTimerId] = React.useState<string | null>(null);
-  const knownTimerIds = React.useRef<Set<string>>(new Set());
-  const seenPersonalReadyIds = React.useRef<Set<string>>(new Set());
-  const [hiddenObjectiveIds, setHiddenObjectiveIds] = useLocalStorage<string[]>(
-    "axon:pomodoro:hiddenObjectiveIds",
-    []
-  );
-  const [showHidden, setShowHidden] = React.useState(false);
+  const dismissedPhasePromptIds = React.useRef<Set<string>>(new Set());
 
-  // Objectives already being timed (running or paused) can't be picked again.
+  const activeTimer = timers[0] ?? null;
+  const hasActiveTimer = activeTimer !== null;
+
   const activeObjectiveIds = React.useMemo(
     () =>
       new Set(
@@ -84,69 +79,31 @@ export default function PomodoroPage() {
     () => eligibleObjectives.find((o) => o.id === selectedId) ?? null,
     [eligibleObjectives, selectedId]
   );
-  const hiddenIdSet = React.useMemo(
-    () => new Set(asArray<string>(hiddenObjectiveIds)),
-    [hiddenObjectiveIds]
-  );
-  const visibleEligibleObjectives = React.useMemo(
-    () => eligibleObjectives.filter((o) => !hiddenIdSet.has(o.id)),
-    [eligibleObjectives, hiddenIdSet]
-  );
-  const hiddenEligibleObjectives = React.useMemo(
-    () => eligibleObjectives.filter((o) => hiddenIdSet.has(o.id)),
-    [eligibleObjectives, hiddenIdSet]
-  );
-
-  function handleToggleHiddenObjective(objective: Objective) {
-    setHiddenObjectiveIds((prev) => {
-      const safePrev = asArray<string>(prev);
-      return safePrev.includes(objective.id)
-        ? safePrev.filter((id) => id !== objective.id)
-        : [...safePrev, objective.id];
-    });
-  }
 
   const fullscreenTimer = React.useMemo(
     () => timers.find((t) => t.id === fullscreenTimerId) ?? null,
     [timers, fullscreenTimerId]
   );
 
-  // If a fullscreened timer gets removed elsewhere (finish dialog, stop, or
-  // the objective-edit edge case below), fall back to the regular grid view.
   React.useEffect(() => {
     if (fullscreenTimerId && !timers.some((t) => t.id === fullscreenTimerId)) {
       setFullscreenTimerId(null);
     }
   }, [timers, fullscreenTimerId]);
 
-  // Auto-enter Focus Mode when a new running timer appears (preference-gated).
-  React.useEffect(() => {
-    if (!timersHydrated || !focusPreferences.autoEnterFocusMode) return;
-    const currentIds = new Set(timers.map((t) => t.id));
-    for (const timer of timers) {
-      if (timer.status === "running" && !knownTimerIds.current.has(timer.id)) {
-        setFullscreenTimerId(timer.id);
-      }
-    }
-    knownTimerIds.current = currentIds;
-  }, [timers, timersHydrated, focusPreferences.autoEnterFocusMode]);
-
-  // Keep the queued card's title/estimated time in sync with the personal
-  // timer form while it's still sitting untouched in "todo". If it's been
-  // moved elsewhere (started via another path), leave it alone.
   React.useEffect(() => {
     if (!addToKanban || !personalLinkedObjectiveId) return;
     const linked = objectives.find((o) => o.id === personalLinkedObjectiveId);
     if (!linked || linked.status !== "todo") return;
     const nextTitle = personalLabel.trim() || "Personal focus session";
-    const nextMinutes = clampPersonalMinutes(personalMinutes);
+    const nextMinutes = focusPreferences.workMinutes;
     if (linked.title === nextTitle && linked.estimatedStudyTime === nextMinutes) return;
     updateObjective(personalLinkedObjectiveId, {
       title: nextTitle,
       estimatedStudyTime: nextMinutes,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [personalLabel, personalMinutes, addToKanban, personalLinkedObjectiveId, objectives]);
+  }, [personalLabel, addToKanban, personalLinkedObjectiveId, objectives, focusPreferences.workMinutes]);
 
   function handleAddToKanbanChange(next: boolean) {
     setAddToKanban(next);
@@ -155,7 +112,7 @@ export default function PomodoroPage() {
         title: personalLabel.trim() || "Personal focus session",
         subject: "Personal",
         priority: "medium",
-        estimatedStudyTime: clampPersonalMinutes(personalMinutes),
+        estimatedStudyTime: focusPreferences.workMinutes,
         progress: 0,
         labels: [],
         status: "todo",
@@ -174,8 +131,6 @@ export default function PomodoroPage() {
     setFullscreenTimerId(null);
   }, []);
 
-  // Exit Focus Mode when the active timer completes a full run (settles to
-  // paused at the original duration). Do not exit on a mid-run pause.
   const focusWasRunningRef = React.useRef(false);
   React.useEffect(() => {
     if (!fullscreenTimerId) {
@@ -192,12 +147,7 @@ export default function PomodoroPage() {
       focusWasRunningRef.current = true;
       return;
     }
-    if (
-      focusWasRunningRef.current &&
-      active.hasCompletedRun &&
-      active.status === "paused" &&
-      (active.pausedRemainingSeconds ?? 0) >= active.durationSeconds
-    ) {
+    if (focusWasRunningRef.current && isAwaitingPhaseTransition(active)) {
       focusWasRunningRef.current = false;
       setFullscreenTimerId(null);
     }
@@ -207,6 +157,35 @@ export default function PomodoroPage() {
     setFocusLock(Boolean(fullscreenTimerId));
     return () => setFocusLock(false);
   }, [fullscreenTimerId, setFocusLock]);
+
+  React.useEffect(() => {
+    // Drop dismiss markers for timers that left Ready or were removed.
+    for (const id of [...dismissedPhasePromptIds.current]) {
+      const t = timers.find((x) => x.id === id);
+      if (!t || !isAwaitingPhaseTransition(t)) dismissedPhasePromptIds.current.delete(id);
+    }
+
+    if (phasePromptId && timers.some((t) => t.id === phasePromptId && isAwaitingPhaseTransition(t))) {
+      return;
+    }
+    if (phasePromptId && !timers.some((t) => t.id === phasePromptId)) {
+      setPhasePromptId(null);
+    }
+    const awaiting = timers.find((t) => isAwaitingPhaseTransition(t));
+    if (
+      awaiting &&
+      !dismissedPhasePromptIds.current.has(awaiting.id) &&
+      !finishQueue.includes(awaiting.id) &&
+      !summaryQueue.includes(awaiting.id)
+    ) {
+      setPhasePromptId(awaiting.id);
+    }
+  }, [timers, phasePromptId, finishQueue, summaryQueue]);
+
+  const phasePromptTimer = React.useMemo(
+    () => timers.find((t) => t.id === phasePromptId) ?? null,
+    [timers, phasePromptId]
+  );
 
   const activeFinishId = finishQueue[0] ?? null;
   const activeFinishTimer = React.useMemo(
@@ -229,7 +208,7 @@ export default function PomodoroPage() {
   );
   const summaryStats = React.useMemo(() => {
     if (!activeSummaryTimer) return null;
-    const focusedMinutes = Math.max(1, Math.round(activeSummaryTimer.durationSeconds / 60));
+    const focusedMinutes = Math.max(1, Math.round(focusPreferences.workMinutes));
     return {
       focusedMinutes,
       sessionXp: focusSessionXp(focusedMinutes),
@@ -237,21 +216,7 @@ export default function PomodoroPage() {
       tasksDoneToday,
       label: activeSummaryTimer.label,
     };
-  }, [activeSummaryTimer, userStats.currentStreak, tasksDoneToday]);
-
-  // Pure personal timers: open a summary when they settle to Ready (parity with
-  // objective finish dialog — toast alone is not enough for a clear end state).
-  React.useEffect(() => {
-    for (const timer of timers) {
-      if (!timer.hasCompletedRun || timer.objectiveId) continue;
-      if (seenPersonalReadyIds.current.has(timer.id)) continue;
-      seenPersonalReadyIds.current.add(timer.id);
-      setSummaryQueue((q) => (q.includes(timer.id) ? q : [...q, timer.id]));
-    }
-    for (const id of [...seenPersonalReadyIds.current]) {
-      if (!timers.some((t) => t.id === id)) seenPersonalReadyIds.current.delete(id);
-    }
-  }, [timers]);
+  }, [activeSummaryTimer, userStats.currentStreak, tasksDoneToday, focusPreferences.workMinutes]);
 
   function dequeueFinish(id: string) {
     setFinishQueue((q) => q.filter((x) => x !== id));
@@ -264,75 +229,119 @@ export default function PomodoroPage() {
   function handleStartNewTimer() {
     if (source === "objective") {
       if (!selectedObjective) return;
-      startFocusSession(selectedObjective, {
+      const started = startFocusSession(selectedObjective, {
         timers,
         startObjectiveSession,
         startTimer,
         resumeTimer,
+        stopTimer,
+        removeTimer,
+        onDisplacedWork: (timer, elapsedMinutes) => {
+          if (timer.objectiveId) logStudyTime(timer.objectiveId, elapsedMinutes);
+          logSession({
+            durationMinutes: elapsedMinutes,
+            type: "work",
+            completed: false,
+            objectiveId: timer.objectiveId,
+            label: timer.label,
+          });
+        },
       });
       setSelectedId(null);
+      if (focusPreferences.autoEnterFocusMode && started.status === "running") {
+        setFullscreenTimerId(started.id);
+      }
     } else {
       let objectiveId: string | undefined;
       if (addToKanban && personalLinkedObjectiveId) {
         const linked = objectives.find((o) => o.id === personalLinkedObjectiveId);
         const alreadyActiveElsewhere = activeObjectiveIds.has(personalLinkedObjectiveId);
-        // If the linked card was already started/moved via some other path
-        // (e.g. picked from the Objective tab, or dragged on the board),
-        // it already has its own timer — don't attach a duplicate here.
         if (linked && !alreadyActiveElsewhere) {
           startObjectiveSession(personalLinkedObjectiveId);
           objectiveId = personalLinkedObjectiveId;
         }
       }
-      startTimer({
+      const started = startTimer({
         source: "personal",
         label: personalLabel || "Personal focus session",
         objectiveId,
-        durationSeconds: clampPersonalMinutes(personalMinutes) * 60,
+        durationSeconds: focusPreferences.workMinutes * 60,
+        phase: "work",
+        cycleIndex: 0,
       });
       setPersonalLabel("");
       setAddToKanban(false);
       setPersonalLinkedObjectiveId(null);
+      if (focusPreferences.autoEnterFocusMode) {
+        setFullscreenTimerId(started.id);
+      }
     }
   }
 
-  /** Stop dismisses the timer. Full-run XP was already awarded on settle. */
   function handleStop(id: string) {
     const timer = timers.find((t) => t.id === id);
     if (fullscreenTimerId === id) setFullscreenTimerId(null);
+    if (phasePromptId === id) setPhasePromptId(null);
     if (!timer) return;
 
-    if (timer.hasCompletedRun && timer.objectiveId) {
+    if (isAwaitingPhaseTransition(timer) && (timer.phase ?? "work") === "work" && timer.objectiveId) {
       setFinishQueue((q) => (q.includes(id) ? q : [...q, id]));
       return;
     }
 
-    if (timer.hasCompletedRun && !timer.objectiveId) {
+    if (isAwaitingPhaseTransition(timer) && (timer.phase ?? "work") === "work" && !timer.objectiveId) {
       setSummaryQueue((q) => (q.includes(id) ? q : [...q, id]));
       return;
     }
 
-    // Mid-run stop: keep study-time progress, no focus XP (incomplete session).
-    if (!timer.hasCompletedRun) {
-      const elapsedMinutes = stopTimer(id);
-      if (elapsedMinutes > 0) {
-        if (timer.objectiveId) logStudyTime(timer.objectiveId, elapsedMinutes);
-        logSession({
-          durationMinutes: elapsedMinutes,
-          type: "work",
-          completed: false,
-          objectiveId: timer.objectiveId,
-          label: timer.label,
-        });
-      }
+    if (isAwaitingPhaseTransition(timer)) {
+      removeTimer(id);
       dequeueFinish(id);
       dequeueSummary(id);
       return;
     }
 
-    removeTimer(id);
+    const elapsedMinutes = stopTimer(id);
+    if (elapsedMinutes > 0 && (timer.phase ?? "work") === "work") {
+      if (timer.objectiveId) logStudyTime(timer.objectiveId, elapsedMinutes);
+      logSession({
+        durationMinutes: elapsedMinutes,
+        type: "work",
+        completed: false,
+        objectiveId: timer.objectiveId,
+        label: timer.label,
+      });
+    }
     dequeueFinish(id);
     dequeueSummary(id);
+  }
+
+  function handleStopSessionFromPhasePrompt() {
+    if (!phasePromptTimer) return;
+    const id = phasePromptTimer.id;
+    setPhasePromptId(null);
+    handleStop(id);
+  }
+
+  function handleStartBreak() {
+    if (!phasePromptTimer) return;
+    const id = phasePromptTimer.id;
+    setPhasePromptId(null);
+    advancePhase(id, "start-break");
+  }
+
+  function handleSkipBreak() {
+    if (!phasePromptTimer) return;
+    const id = phasePromptTimer.id;
+    setPhasePromptId(null);
+    advancePhase(id, "skip-break");
+  }
+
+  function handleStartWork() {
+    if (!phasePromptTimer) return;
+    const id = phasePromptTimer.id;
+    setPhasePromptId(null);
+    advancePhase(id, "start-work");
   }
 
   function handleSummaryContinue() {
@@ -365,119 +374,135 @@ export default function PomodoroPage() {
 
   function handleRestartTimer(id: string) {
     restartTimer(id);
+    setPhasePromptId(null);
     dequeueFinish(id);
     dequeueSummary(id);
-    seenPersonalReadyIds.current.delete(id);
   }
 
-  const canStart =
-    source === "objective"
-      ? Boolean(selectedObjective)
-      : clampPersonalMinutes(personalMinutes) > 0;
+  function handleContinuePhase(id: string) {
+    const timer = timers.find((t) => t.id === id);
+    if (!timer || !isAwaitingPhaseTransition(timer)) return;
+    dismissedPhasePromptIds.current.delete(id);
+    setPhasePromptId(id);
+  }
 
-  return (
-    <AppPage
-      feature="pomodoro"
-      title="Pomodoro"
-      description="Timed focus sessions — linked to your objectives, or entirely off the record. Run as many at once as you like."
-    >
-      <div className="mb-6 grid grid-cols-2 gap-3 sm:max-w-sm">
-        <div className="rounded-md border border-border/50 px-3.5 py-3 light:border-border">
-          <p className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
-            <TimerIcon className="h-3 w-3" /> Focused today
-          </p>
-          <p className="mt-1 font-mono text-[15px] font-semibold tabular-nums text-foreground">
-            {todayFocusMinutes}m
-          </p>
-        </div>
-        <div className="rounded-md border border-border/50 px-3.5 py-3 light:border-border">
-          <p className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
-            <Flame className="h-3 w-3 text-warning" /> Sessions today
-          </p>
-          <p className="mt-1 font-mono text-[15px] font-semibold tabular-nums text-foreground">
-            {todaySessions.length}
-          </p>
-        </div>
+  const canStart = source === "objective" ? Boolean(selectedObjective) : true;
+
+  const activePhase = activeTimer?.phase ?? "work";
+  const cyclesBeforeLong = focusPreferences.cyclesBeforeLongBreak;
+  const cycleDisplay = activeTimer
+    ? activePhase === "work"
+      ? `${Math.min(activeTimer.cycleIndex + 1, cyclesBeforeLong)}/${cyclesBeforeLong}`
+      : `${activeTimer.cycleIndex}/${cyclesBeforeLong}`
+    : null;
+
+  const nextBreakIsLong = Boolean(
+    phasePromptTimer &&
+      phasePromptTimer.phase === "work" &&
+      phasePromptTimer.cycleIndex + 1 >= cyclesBeforeLong
+  );
+
+  const startPanel = (
+    <div className="mx-auto flex w-full max-w-lg flex-col gap-4 pt-6">
+      <PomodoroIdleStatus />
+      <PomodoroStartMenu
+        source={source}
+        onSourceChange={setSource}
+        hydrated={hydrated}
+        objectives={eligibleObjectives}
+        selectedId={selectedId}
+        onSelect={(o: Objective) => setSelectedId(o.id)}
+        personalLabel={personalLabel}
+        onPersonalLabelChange={setPersonalLabel}
+        workMinutes={focusPreferences.workMinutes}
+        addToKanban={addToKanban}
+        onAddToKanbanChange={handleAddToKanbanChange}
+        canStart={canStart}
+        onStart={handleStartNewTimer}
+      />
+    </div>
+  );
+
+  const activeTimerView = activeTimer ? (
+    <div className="flex w-full max-w-xl flex-col items-center gap-5 px-2">
+      <div className="flex flex-wrap items-center justify-center gap-2">
+        <span className="inline-flex items-center gap-1.5 text-[13px] font-medium text-muted-foreground">
+          {activePhase === "work" ? (
+            activeTimer.source === "objective" ? (
+              <Target className="h-3.5 w-3.5" />
+            ) : (
+              <Coffee className="h-3.5 w-3.5" />
+            )
+          ) : (
+            <Coffee className="h-3.5 w-3.5" />
+          )}
+          {phaseLabel(activePhase)}
+          {cycleDisplay ? (
+            <span className="font-mono tabular-nums text-muted-foreground/80">· {cycleDisplay}</span>
+          ) : null}
+        </span>
+        {isAwaitingPhaseTransition(activeTimer) && (
+          <span className="text-[12px] font-medium text-success">Ready</span>
+        )}
       </div>
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
-        <div>
-          {timers.length === 0 ? (
-            <div className="flex flex-col items-center gap-1.5 rounded-md border border-dashed border-border/60 px-6 py-10 text-center light:border-border">
-              <p className="text-[13px] font-medium text-foreground">No timers running yet</p>
-              <p className="max-w-xs text-[12px] text-muted-foreground">
-                Configure a focus session on the right, then start it — you can stack up as many
-                as you like.
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              {timers.map((timer) => (
-                <TimerCard
-                  key={timer.id}
-                  timer={timer}
-                  remainingSeconds={remainingSecondsOf(timer)}
-                  onPause={() => pauseTimer(timer.id)}
-                  onResume={() => resumeTimer(timer.id)}
-                  onStop={() => handleStop(timer.id)}
-                  onRestart={() => handleRestartTimer(timer.id)}
-                  onFullscreen={() => setFullscreenTimerId(timer.id)}
-                />
-              ))}
-            </div>
-          )}
-        </div>
+      <h2
+        className="max-w-xl truncate px-2 text-center text-xl font-semibold tracking-tight text-foreground sm:text-2xl"
+        title={activeTimer.label}
+      >
+        {activeTimer.label}
+      </h2>
 
-        <div className="rounded-md border border-border/50 p-4 light:border-border light:bg-card">
-          <Tabs value={source} onValueChange={(v) => setSource(v as TimerSource)}>
-            <TabsList className="mb-3 h-8 w-full gap-0.5 rounded-md border-border/60 bg-transparent p-0.5 shadow-none light:border-border">
-              <TabsTrigger
-                value="objective"
-                className="h-7 flex-1 rounded-md px-2.5 text-[12px] shadow-none data-[state=active]:bg-wash-strong data-[state=active]:text-foreground data-[state=active]:shadow-none"
-              >
-                Objective focus
-              </TabsTrigger>
-              <TabsTrigger
-                value="personal"
-                className="h-7 flex-1 rounded-md px-2.5 text-[12px] shadow-none data-[state=active]:bg-wash-strong data-[state=active]:text-foreground data-[state=active]:shadow-none"
-              >
-                Personal timer
-              </TabsTrigger>
-            </TabsList>
+      <TimerDisplay
+        remainingSeconds={
+          activeTimer.status === "finished"
+            ? activeTimer.durationSeconds
+            : remainingSecondsOf(activeTimer)
+        }
+        totalSeconds={activeTimer.durationSeconds || 1}
+        size={440}
+      />
 
-            <TabsContent value="objective">
-              {!hydrated ? (
-                <ObjectivePickerSkeleton />
-              ) : (
-                <ObjectivePicker
-                  objectives={showHidden ? hiddenEligibleObjectives : visibleEligibleObjectives}
-                  selectedId={selectedId}
-                  onSelect={(o: Objective) => setSelectedId(o.id)}
-                  onHide={handleToggleHiddenObjective}
-                  hiddenCount={hiddenEligibleObjectives.length}
-                  showHidden={showHidden}
-                  onToggleShowHidden={() => setShowHidden((prev) => !prev)}
-                />
-              )}
-            </TabsContent>
-
-            <TabsContent value="personal">
-              <PersonalTimerForm
-                label={personalLabel}
-                onLabelChange={setPersonalLabel}
-                minutes={personalMinutes}
-                onMinutesChange={setPersonalMinutes}
-                addToKanban={addToKanban}
-                onAddToKanbanChange={handleAddToKanbanChange}
-              />
-            </TabsContent>
-          </Tabs>
-
-          <Button className="mt-4 w-full shadow-none" onClick={handleStartNewTimer} disabled={!canStart}>
-            <Play className="h-4 w-4" />
-            Start new timer
+      <div className="flex flex-wrap items-center justify-center gap-2">
+        <TimerControls
+          status={activeTimer.status}
+          showRestart={isAwaitingPhaseTransition(activeTimer)}
+          onContinue={
+            isAwaitingPhaseTransition(activeTimer) && phasePromptId !== activeTimer.id
+              ? () => handleContinuePhase(activeTimer.id)
+              : undefined
+          }
+          onPause={() => pauseTimer(activeTimer.id)}
+          onResume={() => resumeTimer(activeTimer.id)}
+          onStop={() => handleStop(activeTimer.id)}
+          onRestart={() => handleRestartTimer(activeTimer.id)}
+        />
+        {!isAwaitingPhaseTransition(activeTimer) && activeTimer.status !== "finished" && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="shadow-none"
+            onClick={() => setFullscreenTimerId(activeTimer.id)}
+            aria-label="Open focus mode"
+          >
+            <Maximize2 className="h-3.5 w-3.5" />
+            Focus mode
           </Button>
-        </div>
+        )}
+      </div>
+    </div>
+  ) : null;
+
+  return (
+    <AppPage feature="pomodoro" title="Pomodoro" hideHeader={hasActiveTimer}>
+      <div
+        className={
+          hasActiveTimer
+            ? "flex min-h-[calc(100dvh-6rem)] w-full flex-col items-center justify-center py-4"
+            : "flex w-full flex-col items-center py-2"
+        }
+      >
+        {!hasActiveTimer ? startPanel : activeTimerView}
       </div>
 
       <ConfettiBurst triggerKey={celebrateKey} />
@@ -486,7 +511,6 @@ export default function PomodoroPage() {
         timer={fullscreenTimer}
         remainingSeconds={fullscreenTimer ? remainingSecondsOf(fullscreenTimer) : 0}
         lockdown
-        showBlocklistReminder={focusPreferences.showBlocklistReminder}
         onPause={() => fullscreenTimer && pauseTimer(fullscreenTimer.id)}
         onResume={() => fullscreenTimer && resumeTimer(fullscreenTimer.id)}
         onStop={() => {
@@ -494,6 +518,23 @@ export default function PomodoroPage() {
           handleStop(fullscreenTimer.id);
         }}
         onExit={exitFocusMode}
+      />
+
+      <PhaseTransitionDialog
+        open={phasePromptTimer !== null && activeFinishId === null && activeSummaryId === null}
+        onOpenChange={(open) => {
+          if (!open && phasePromptTimer) {
+            dismissedPhasePromptIds.current.add(phasePromptTimer.id);
+            setPhasePromptId(null);
+          }
+        }}
+        phase={phasePromptTimer?.phase ?? "work"}
+        label={phasePromptTimer?.label ?? ""}
+        nextBreakIsLong={nextBreakIsLong}
+        onStartBreak={handleStartBreak}
+        onSkipBreak={handleSkipBreak}
+        onStartWork={handleStartWork}
+        onStopSession={handleStopSessionFromPhasePrompt}
       />
 
       <FinishSessionDialog
