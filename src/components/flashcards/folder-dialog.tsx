@@ -98,7 +98,7 @@ export function FolderDialog({
           <DialogDescription>
             {isEdit
               ? "Update the name or cover image. Changes show in the library grid and list."
-              : "Folders group your flashcard sets and appear in the library gallery."}
+              : "Folders group your flashcard sets in the library."}
           </DialogDescription>
         </DialogHeader>
 

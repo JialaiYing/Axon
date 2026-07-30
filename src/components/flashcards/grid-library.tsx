@@ -17,8 +17,6 @@ import {
   ArrowRight,
   Check,
   ChevronDown,
-  Eye,
-  EyeOff,
   LayoutGrid,
   Layers,
   List,
@@ -61,7 +59,6 @@ interface FlashcardsGridLibraryProps {
   onOpenSet: (set: FlashcardSet) => void;
   onToggleFolderPin: (id: string) => void;
   onToggleSetPin: (id: string) => void;
-  onShowInDome?: (id: string) => void;
   onDeleteFolder: () => void;
   onRecycleFolder: (folder: FlashcardFolder) => void;
   onRecycleSet: (set: FlashcardSet) => void;
@@ -108,7 +105,6 @@ export function FlashcardsGridLibrary({
   onOpenSet,
   onToggleFolderPin,
   onToggleSetPin,
-  onShowInDome,
   onDeleteFolder,
   onRecycleFolder,
   onRecycleSet,
@@ -203,10 +199,10 @@ export function FlashcardsGridLibrary({
                 imageSrc={folder.imageDataUrl}
                 size="sm"
               />
-              <p className="truncate text-[13px] font-medium text-foreground">{folder.title}</p>
+              <p className="truncate text-2xl font-medium tracking-tight text-foreground sm:text-[28px]">{folder.title}</p>
             </>
           ) : (
-            <p className="text-[12px] font-medium text-muted-foreground">All items</p>
+            <p className="text-[15px] font-medium text-muted-foreground">All items</p>
           )}
         </div>
         <div className="flex shrink-0 items-center gap-1">
@@ -214,7 +210,7 @@ export function FlashcardsGridLibrary({
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className="inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-md border border-border/60 px-2 text-[12px] font-medium text-muted-foreground transition-colors hover:bg-wash hover:text-foreground light:border-border"
+                className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-md border border-border/60 px-2.5 text-[14px] font-medium text-muted-foreground transition-colors hover:bg-wash hover:text-foreground light:border-border"
                 aria-label="Change library view"
               >
                 <LayoutIcon className="h-3.5 w-3.5" />
@@ -236,7 +232,7 @@ export function FlashcardsGridLibrary({
                       <Icon className="h-3.5 w-3.5" />
                       <span className="flex flex-col">
                         <span>{option.label}</span>
-                        <span className="text-[10px] text-muted-foreground">
+                        <span className="text-[12px] text-muted-foreground">
                           {option.description}
                         </span>
                       </span>
@@ -252,7 +248,7 @@ export function FlashcardsGridLibrary({
               type="button"
               aria-label={`Move folder ${folder.title} to recycle bin`}
               onClick={onDeleteFolder}
-              className="cursor-pointer rounded-md px-2 py-1.5 text-[12px] text-muted-foreground transition-colors hover:bg-wash hover:text-danger"
+              className="cursor-pointer rounded-md px-2 py-1.5 text-[14px] text-muted-foreground transition-colors hover:bg-wash hover:text-danger"
             >
               Delete
             </button>
@@ -271,10 +267,10 @@ export function FlashcardsGridLibrary({
             <div className="flex h-full min-h-[280px] flex-col items-center justify-center gap-2 text-center">
               <Layers className="h-7 w-7 text-muted-foreground" />
               <div>
-                <p className="text-[13px] font-medium text-foreground">
+                <p className="text-[15px] font-medium text-foreground">
                   {folder ? "No sets in this folder" : "No folders or sets yet"}
                 </p>
-                <p className="mt-1 max-w-xs text-[12px] text-muted-foreground">
+                <p className="mt-1 max-w-xs text-[14px] text-muted-foreground">
                   {folder
                     ? "Use Create below to add a set, or drag one here from another folder."
                     : "Use Create below to add a folder or an unfiled set."}
@@ -306,9 +302,6 @@ export function FlashcardsGridLibrary({
                           onEdit={onEditFolder ? () => onEditFolder(item.folder) : undefined}
                           onTogglePin={() => onToggleFolderPin(item.folder.id)}
                           onRecycle={() => onRecycleFolder(item.folder)}
-                          onToggleInDome={
-                            onShowInDome ? () => onShowInDome(item.folder.id) : undefined
-                          }
                         />
                       </li>
                     ) : (
@@ -326,7 +319,7 @@ export function FlashcardsGridLibrary({
             </ul>
           ) : (
             <div className="overflow-hidden rounded-md border border-border/50 light:border-border">
-              <div className="grid grid-cols-[minmax(0,1fr)_7rem_6rem] gap-2 border-b border-border/50 px-3 py-1.5 text-[11px] font-medium text-muted-foreground light:border-border">
+              <div className="grid grid-cols-[minmax(0,1fr)_7rem_6rem] gap-2 border-b border-border/50 px-3 py-2 text-[14px] font-medium text-muted-foreground light:border-border">
                 <span>Name</span>
                 <span>Type</span>
                 <span className="text-right">Details</span>
@@ -355,9 +348,6 @@ export function FlashcardsGridLibrary({
                             onEdit={onEditFolder ? () => onEditFolder(item.folder) : undefined}
                             onTogglePin={() => onToggleFolderPin(item.folder.id)}
                             onRecycle={() => onRecycleFolder(item.folder)}
-                            onToggleInDome={
-                              onShowInDome ? () => onShowInDome(item.folder.id) : undefined
-                            }
                           />
                         </li>
                       ) : (
@@ -380,8 +370,8 @@ export function FlashcardsGridLibrary({
         <DragOverlay dropAnimation={null}>
           {activeSet ? (
             <div className="w-52 rounded-md border border-border bg-card px-3 py-2 shadow-[var(--shadow-elevation-1)]">
-              <p className="truncate text-[13px] font-medium text-foreground">{activeSet.title}</p>
-              <p className="mt-0.5 text-[11px] text-muted-foreground">
+              <p className="truncate text-[15px] font-medium text-foreground">{activeSet.title}</p>
+              <p className="mt-0.5 text-[13px] text-muted-foreground">
                 {activeSet.subject || "General"} · {activeSet.cards.length} card
                 {activeSet.cards.length === 1 ? "" : "s"}
               </p>
@@ -401,7 +391,7 @@ function RootDropZone({ onBack, active }: { onBack: () => void; active: boolean 
       type="button"
       onClick={onBack}
       className={cn(
-        "inline-flex cursor-pointer items-center gap-1 rounded-md px-1.5 py-1 text-xs transition-colors",
+        "inline-flex cursor-pointer items-center gap-1 rounded-md px-1.5 py-1 text-[14px] transition-colors",
         isOver && active
           ? "bg-wash-strong text-foreground"
           : "text-muted-foreground hover:bg-wash hover:text-foreground"
@@ -513,7 +503,6 @@ function FolderItem({
   onEdit,
   onTogglePin,
   onRecycle,
-  onToggleInDome,
 }: {
   folder: FlashcardFolder;
   setCount: number;
@@ -522,13 +511,11 @@ function FolderItem({
   onEdit?: () => void;
   onTogglePin: () => void;
   onRecycle: () => void;
-  onToggleInDome?: () => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({
     id: folderDropId(folder.id),
     data: { kind: "folder", folderId: folder.id },
   });
-  const inDome = folder.showInDome !== false;
 
   if (layout === "list") {
     return (
@@ -550,34 +537,16 @@ function FolderItem({
               imageSrc={folder.imageDataUrl}
               size="sm"
             />
-            <span className="truncate text-sm font-medium text-foreground">{folder.title}</span>
+            <span className="truncate text-[15px] font-medium text-foreground">{folder.title}</span>
           </button>
           <div className={itemActionsClass}>
             {onEdit && <MiniEditButton label={folder.title} onClick={onEdit} />}
-            {onToggleInDome && (
-              <button
-                type="button"
-                aria-label={
-                  inDome
-                    ? `Hide ${folder.title} from dome gallery`
-                    : `Show ${folder.title} in dome gallery`
-                }
-                title={inDome ? "Hide from visual gallery" : "Show in visual gallery"}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onToggleInDome();
-                }}
-                className="cursor-pointer rounded-md p-1.5 text-muted-foreground transition-colors hover:text-foreground"
-              >
-                {inDome ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-              </button>
-            )}
             <MiniPinButton pinned={folder.pinned} label={folder.title} onClick={onTogglePin} />
             <MiniTrashButton label={folder.title} onClick={onRecycle} />
           </div>
         </div>
-        <span className="text-xs text-muted-foreground">Folder</span>
-        <span className="text-right font-mono text-xs tabular-nums text-muted-foreground">
+        <span className="text-[14px] text-muted-foreground">Folder</span>
+        <span className="text-right font-mono text-[14px] tabular-nums text-muted-foreground">
           {setCount} set{setCount === 1 ? "" : "s"}
         </span>
       </div>
@@ -594,24 +563,6 @@ function FolderItem({
     >
       <div className={itemActionsOverlayClass}>
         {onEdit && <MiniEditButton label={folder.title} onClick={onEdit} />}
-        {onToggleInDome && (
-          <button
-            type="button"
-            aria-label={
-              inDome
-                ? `Hide ${folder.title} from dome gallery`
-                : `Show ${folder.title} in dome gallery`
-            }
-            title={inDome ? "Hide from visual gallery" : "Show in visual gallery"}
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleInDome();
-            }}
-            className="cursor-pointer rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground"
-          >
-            {inDome ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-          </button>
-        )}
         <MiniPinButton pinned={folder.pinned} label={folder.title} onClick={onTogglePin} />
         <MiniTrashButton label={folder.title} onClick={onRecycle} />
       </div>
@@ -672,15 +623,15 @@ function SetItem({
             className="flex min-w-0 flex-1 cursor-grab items-center gap-2.5 rounded-md px-1.5 py-1.5 text-left transition-colors hover:bg-wash active:cursor-grabbing"
           >
             <Layers className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-            <span className="truncate text-sm font-medium text-foreground">{set.title}</span>
+            <span className="truncate text-[15px] font-medium text-foreground">{set.title}</span>
           </button>
           <div className={itemActionsClass}>
             <MiniPinButton pinned={set.pinned} label={set.title} onClick={onTogglePin} />
             <MiniTrashButton label={set.title} onClick={onRecycle} />
           </div>
         </div>
-        <span className="text-xs text-muted-foreground">Set</span>
-        <span className="truncate text-right text-xs text-muted-foreground">
+        <span className="text-[14px] text-muted-foreground">Set</span>
+        <span className="truncate text-right text-[14px] text-muted-foreground">
           {set.cards.length} card{set.cards.length === 1 ? "" : "s"}
         </span>
       </div>
@@ -700,12 +651,12 @@ function SetItem({
         onClick={onOpen}
         className="flex h-full w-full cursor-grab flex-col rounded-md border border-border/50 bg-card p-3 text-left transition-colors hover:bg-wash active:cursor-grabbing light:border-border"
       >
-        <p className="truncate pr-10 text-[13px] font-medium text-foreground">{set.title}</p>
-        <p className="mt-1 text-[11px] text-muted-foreground">
+        <p className="truncate pr-10 text-[15px] font-medium text-foreground">{set.title}</p>
+        <p className="mt-1 text-[13px] text-muted-foreground">
           {set.subject || "General"} · {set.cards.length} card
           {set.cards.length === 1 ? "" : "s"}
         </p>
-        <span className="mt-2 inline-flex items-center gap-1 text-[11px] text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
+        <span className="mt-2 inline-flex items-center gap-1 text-[13px] text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
           Open <ArrowRight className="h-3 w-3" />
         </span>
       </button>

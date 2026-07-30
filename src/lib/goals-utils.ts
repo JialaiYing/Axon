@@ -1,4 +1,4 @@
-import type { Goal, GoalHistoryEntry, Objective, PomodoroSession } from "@/types";
+import type { Goal, GoalHistoryEntry, Objective } from "@/types";
 
 export type GoalPaceStatus = "done" | "on-track" | "behind";
 
@@ -72,12 +72,6 @@ export function goalPaceStatus(goal: Goal, elapsedFraction: number): GoalPaceSta
   if (goal.completed || (goal.target > 0 && goal.progress >= goal.target)) return "done";
   const progressFraction = goal.target > 0 ? goal.progress / goal.target : 0;
   return progressFraction + 0.02 >= elapsedFraction ? "on-track" : "behind";
-}
-
-export function focusMinutesOnDate(sessions: PomodoroSession[], dateKey: string): number {
-  return sessions
-    .filter((s) => s.type === "work" && s.durationMinutes > 0 && localDateKey(new Date(s.date)) === dateKey)
-    .reduce((sum, s) => sum + s.durationMinutes, 0);
 }
 
 /**

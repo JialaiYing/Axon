@@ -8,7 +8,6 @@
 import * as React from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { motion } from "framer-motion";
 import {
   Pencil,
   Trash2,
@@ -20,7 +19,6 @@ import {
   ListChecks,
   Repeat,
 } from "lucide-react";
-import { ProgressBar } from "@/components/ui/progress-bar";
 import { cn } from "@/lib/utils";
 import {
   priorityDotClass,
@@ -45,15 +43,25 @@ interface KanbanCardProps {
   isOverlay?: boolean;
 }
 
-export function KanbanCard({
+/**
+ * DragOverlay must NOT call useSortable with the same id as the live card —
+ * duplicate registrations leave the card undraggable after a cross-column move.
+ */
+export function KanbanCard({ isOverlay = false, ...props }: KanbanCardProps) {
+  if (isOverlay) {
+    return <KanbanCardView {...props} isOverlay isDragging={false} />;
+  }
+  return <SortableKanbanCard {...props} />;
+}
+
+function SortableKanbanCard({
   objective,
   onEdit,
   onDelete,
   onSendToRecycleBin,
   onSchedule,
   onUnschedule,
-  isOverlay = false,
-}: KanbanCardProps) {
+}: Omit<KanbanCardProps, "isOverlay">) {
   const {
     attributes,
     listeners,
@@ -68,6 +76,43 @@ export function KanbanCard({
     transition,
   };
 
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={cn(
+        "touch-none",
+        isDragging && "opacity-40"
+      )}
+    >
+      <KanbanCardView
+        objective={objective}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        onSendToRecycleBin={onSendToRecycleBin}
+        onSchedule={onSchedule}
+        onUnschedule={onUnschedule}
+        isDragging={isDragging}
+      />
+    </div>
+  );
+}
+
+function KanbanCardView({
+  objective,
+  onEdit,
+  onDelete,
+  onSendToRecycleBin,
+  onSchedule,
+  onUnschedule,
+  isOverlay = false,
+  isDragging = false,
+}: Omit<KanbanCardProps, "isOverlay"> & {
+  isOverlay?: boolean;
+  isDragging?: boolean;
+}) {
   const dueLabel = formatDueDate(objective.dueDate);
   const timeLabel = formatEstimatedTime(objective.estimatedStudyTime);
   const overdue = isOverdue(objective.dueDate, objective.status);
@@ -76,26 +121,16 @@ export function KanbanCard({
   const scheduledLabel = formatScheduledDateTime(objective.scheduledStart);
   const scheduleOverdue = isScheduleOverdue(objective);
   const hasSubtasks = Boolean(objective.subtasks && objective.subtasks.length > 0);
-  const showProgress = objective.progress > 0 || hasSubtasks;
   const extraLabels = objective.labels.slice(0, 2);
 
   return (
-    <motion.div
-      ref={setNodeRef}
-      style={style}
-      layout={!isOverlay}
-      initial={isOverlay ? false : { opacity: 0 }}
-      animate={isOverlay ? undefined : { opacity: 1 }}
-      exit={isOverlay ? undefined : { opacity: 0 }}
-      transition={{ duration: 0.15, ease: [0.21, 0.47, 0.32, 0.98] }}
-      {...(isOverlay ? {} : attributes)}
-      {...(isOverlay ? {} : listeners)}
+    <div
       className={cn(
-        "group relative touch-none rounded-md border border-border/50 bg-card px-2.5 py-2 light:border-border",
+        "group relative rounded-md border border-border/50 bg-card px-2.5 py-2 light:border-border",
         "transition-colors duration-150 hover:bg-wash",
         !isOverlay && "cursor-grab active:cursor-grabbing",
-        isDragging && !isOverlay && "opacity-40",
-        isOverlay && "border-border bg-card shadow-[var(--shadow-elevation-2)]"
+        isOverlay && "border-border bg-card shadow-[var(--shadow-elevation-2)]",
+        isDragging && !isOverlay && "pointer-events-none"
       )}
     >
       {objective.color && (
@@ -113,7 +148,6 @@ export function KanbanCard({
             e.stopPropagation();
             onEdit(objective);
           }}
-          onPointerDown={(e) => e.stopPropagation()}
           className="flex min-w-0 flex-1 items-start gap-2 text-left"
         >
           <span
@@ -128,47 +162,49 @@ export function KanbanCard({
           </span>
         </button>
 
-        <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
-          {isDone && onSendToRecycleBin && (
+        {!isOverlay && (
+          <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+            {isDone && onSendToRecycleBin && (
+              <button
+                type="button"
+                aria-label="Send to recycle bin"
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSendToRecycleBin(objective);
+                }}
+                className="flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-wash hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-border-strong"
+                title="Send to recycle bin"
+              >
+                <ArchiveX className="h-3 w-3" />
+              </button>
+            )}
             <button
               type="button"
-              aria-label="Send to recycle bin"
+              aria-label="Edit objective"
               onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => {
                 e.stopPropagation();
-                onSendToRecycleBin(objective);
+                onEdit(objective);
               }}
               className="flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-wash hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-border-strong"
-              title="Send to recycle bin"
             >
-              <ArchiveX className="h-3 w-3" />
+              <Pencil className="h-3 w-3" />
             </button>
-          )}
-          <button
-            type="button"
-            aria-label="Edit objective"
-            onPointerDown={(e) => e.stopPropagation()}
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit(objective);
-            }}
-            className="flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-wash hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-border-strong"
-          >
-            <Pencil className="h-3 w-3" />
-          </button>
-          <button
-            type="button"
-            aria-label="Delete objective"
-            onPointerDown={(e) => e.stopPropagation()}
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(objective);
-            }}
-            className="flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-danger-muted hover:text-danger focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-border-strong"
-          >
-            <Trash2 className="h-3 w-3" />
-          </button>
-        </div>
+            <button
+              type="button"
+              aria-label="Delete objective"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(objective);
+              }}
+              className="flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-danger-muted hover:text-danger focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-border-strong"
+            >
+              <Trash2 className="h-3 w-3" />
+            </button>
+          </div>
+        )}
       </div>
 
       {objective.description && (
@@ -192,16 +228,6 @@ export function KanbanCard({
           </React.Fragment>
         ))}
       </div>
-
-      {showProgress && (
-        <div className="mt-2 pl-4">
-          <ProgressBar
-            value={objective.progress}
-            size="sm"
-            barClassName={isDone ? "bg-success" : undefined}
-          />
-        </div>
-      )}
 
       {(hasSubtasks || (objective.recurrence && objective.recurrence !== "none") || dueLabel || timeLabel) && (
         <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 pl-4 text-[11px] text-muted-foreground">
@@ -284,6 +310,6 @@ export function KanbanCard({
             : `Auto-recycles in ${recycleCountdown}d`}
         </p>
       )}
-    </motion.div>
+    </div>
   );
 }

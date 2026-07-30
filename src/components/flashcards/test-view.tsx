@@ -250,7 +250,7 @@ export function TestView({ set, onBack, onRecordResult, onComplete }: TestViewPr
             <ArrowLeft className="h-3.5 w-3.5" /> Study
           </Button>
           <div className="min-w-0">
-            <h2 className="truncate text-sm font-semibold text-foreground">{set.title} · Test</h2>
+            <h2 className="truncate text-2xl font-medium tracking-tight text-foreground sm:text-[28px]">{set.title} · Test</h2>
             {phase === "running" && (
               <p className="truncate text-xs text-muted-foreground">
                 Question {current + 1} of {questions.length}

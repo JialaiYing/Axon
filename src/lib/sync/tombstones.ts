@@ -4,8 +4,10 @@
  * We never infer deletes from "local is missing an id" (that wiped other-device
  * data when one browser had a thinner copy). Instead:
  * - Local hard-deletes record a tombstone → push DELETEs that id on Supabase
+ * - Pull always drops tombstoned ids (never resurrects because remote looks newer)
  * - Pull tracks last-known remote ids → removes local rows that disappeared
  *   from the server after a prior successful pull
+ * - Tombstones clear only after the remote row is confirmed gone (or push DELETE)
  */
 
 import { readLocalStorage, writeLocalStorage } from "@/hooks/use-local-storage";

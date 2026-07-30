@@ -52,7 +52,7 @@ export const ONBOARDING_COPY: Record<OnboardingFeature, OnboardingTip> = {
     body: "Today's agenda, streak, and quick actions live here — a glance-and-go home base for the whole app.",
   },
   kanban: {
-    title: "You're on the Kanban board",
+    title: "You're on the board",
     body: "Create a study objective with the toolbar, then drag cards Queued → In progress → Done.",
   },
   calendar: {

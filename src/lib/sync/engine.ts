@@ -139,23 +139,16 @@ async function pullArray(
   const local = readArray(collection).filter((item) => !deletedRemotely.includes(String(item.id)));
   let merged = mergeByUpdatedAt(local, remote);
 
-  // Drop anything we explicitly deleted locally, unless the remote copy is newer
-  // (another device recreated / restored it after our tombstone).
+  // Always honor local hard-deletes. Never resurrect a tombstoned id just
+  // because the remote row still exists / looks "newer" (that race brought
+  // deleted objectives back on the next pull). Keep the tombstone until
+  // push deletes the remote row; then clear it below when the id is gone.
   const tombstones = readTombstonesForTable(collection.table);
-  const clearedTombstoneIds: string[] = [];
-  merged = merged.filter((item) => {
-    const id = String(item.id);
-    const deletedAt = tombstones[id];
-    if (!deletedAt) return true;
-    const deletedTs = Date.parse(deletedAt) || 0;
-    if (entityUpdatedAt(item) > deletedTs) {
-      clearedTombstoneIds.push(id);
-      return true;
-    }
-    return false;
-  });
-  if (clearedTombstoneIds.length > 0) {
-    clearTombstonesForTable(collection.table, clearedTombstoneIds);
+  merged = merged.filter((item) => !tombstones[String(item.id)]);
+
+  const resolvedTombstoneIds = Object.keys(tombstones).filter((id) => !remoteIdSet.has(id));
+  if (resolvedTombstoneIds.length > 0) {
+    clearTombstonesForTable(collection.table, resolvedTombstoneIds);
   }
 
   writeLocalStorage(collection.key, () => merged, collection.fallback as never);

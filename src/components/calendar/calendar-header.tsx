@@ -34,7 +34,7 @@ export function CalendarHeader({
   onAddExisting,
   scheduledObjectives = [],
 }: CalendarHeaderProps) {
-  const title =
+  const rangeTitle =
     view === "month"
       ? formatMonthTitle(currentDate)
       : view === "week"
@@ -44,42 +44,66 @@ export function CalendarHeader({
   const exportableCount = scheduledObjectives.filter((o) => o.scheduledStart).length;
 
   return (
-    <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
-        <div className="min-w-0">
-          <h1 className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
-            Calendar
-          </h1>
-          <p className="mt-1 truncate text-[14px] text-muted-foreground">{title}</p>
-        </div>
-        <div className="flex items-center gap-0.5 rounded-md border border-border/60 p-0.5 light:border-border">
-          <button
-            type="button"
-            aria-label="Previous"
-            onClick={onPrev}
-            className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-wash hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-border-strong"
+    <div className="mb-6 space-y-4">
+      {/* Page title row — actions share the title baseline, not vertical center */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <h1 className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+          Calendar
+        </h1>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={exportableCount === 0}
+            onClick={() => downloadObjectivesIcs(scheduledObjectives)}
+            title={
+              exportableCount === 0
+                ? "Schedule at least one objective to export"
+                : `Export ${exportableCount} scheduled event${exportableCount === 1 ? "" : "s"}`
+            }
+            className="h-8 text-[13px] text-muted-foreground"
           >
-            <ChevronLeft className="h-3.5 w-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={onToday}
-            className="rounded-md px-2.5 py-1 text-[12px] font-medium text-muted-foreground transition-colors duration-150 hover:bg-wash hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-border-strong"
-          >
-            Today
-          </button>
-          <button
-            type="button"
-            aria-label="Next"
-            onClick={onNext}
-            className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-wash hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-border-strong"
-          >
-            <ChevronRight className="h-3.5 w-3.5" />
-          </button>
+            <Download className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Export</span>
+          </Button>
+          <Button size="sm" onClick={onAddExisting} className="h-8 shadow-none">
+            <CalendarPlus className="h-3.5 w-3.5" />
+            Add event
+          </Button>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
+      {/* Toolbar — date nav + view mode, one control height */}
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <p className="min-w-0 truncate text-[15px] font-medium text-foreground">{rangeTitle}</p>
+          <div className="flex h-8 items-center gap-0.5 rounded-md border border-border/60 p-0.5 light:border-border">
+            <button
+              type="button"
+              aria-label="Previous"
+              onClick={onPrev}
+              className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-wash hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-border-strong"
+            >
+              <ChevronLeft className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={onToday}
+              className="h-7 rounded-md px-2.5 text-[12px] font-medium text-muted-foreground transition-colors duration-150 hover:bg-wash hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-border-strong"
+            >
+              Today
+            </button>
+            <button
+              type="button"
+              aria-label="Next"
+              onClick={onNext}
+              className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-wash hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-border-strong"
+            >
+              <ChevronRight className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+
         <Tabs value={view} onValueChange={(v) => onViewChange(v as CalendarViewMode)}>
           <TabsList className="h-8 gap-0.5 rounded-md border border-border/60 bg-transparent p-0.5 shadow-none light:border-border">
             <TabsTrigger
@@ -102,25 +126,6 @@ export function CalendarHeader({
             </TabsTrigger>
           </TabsList>
         </Tabs>
-        <Button
-          variant="ghost"
-          size="sm"
-          disabled={exportableCount === 0}
-          onClick={() => downloadObjectivesIcs(scheduledObjectives)}
-          title={
-            exportableCount === 0
-              ? "Schedule at least one objective to export"
-              : `Export ${exportableCount} scheduled event${exportableCount === 1 ? "" : "s"}`
-          }
-          className="h-8 text-[13px] text-muted-foreground"
-        >
-          <Download className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline">Export</span>
-        </Button>
-        <Button size="sm" onClick={onAddExisting} className="h-8 shadow-none">
-          <CalendarPlus className="h-3.5 w-3.5" />
-          Add event
-        </Button>
       </div>
     </div>
   );

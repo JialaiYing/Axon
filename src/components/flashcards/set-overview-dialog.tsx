@@ -38,8 +38,8 @@ export function SetOverviewDialog({
     <Dialog open={!!set} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="pr-8">{set.title}</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="pr-8 text-2xl font-medium tracking-tight sm:text-[28px]">{set.title}</DialogTitle>
+          <DialogDescription className="text-[15px]">
             {set.subject || "General"} · {set.cards.length} card
             {set.cards.length === 1 ? "" : "s"}
           </DialogDescription>
@@ -47,23 +47,23 @@ export function SetOverviewDialog({
 
         <div className="grid grid-cols-2 gap-2">
           <div className="rounded-md border border-border/50 px-3 py-2.5 light:border-border">
-            <p className="font-mono text-lg font-semibold tabular-nums text-foreground">{mastery}%</p>
-            <p className="mt-0.5 text-[11px] text-muted-foreground">
+            <p className="font-mono text-3xl font-medium tabular-nums tracking-tight text-foreground sm:text-4xl">{mastery}%</p>
+            <p className="mt-0.5 text-[14px] text-muted-foreground">
               Mastery
             </p>
           </div>
           <div className="rounded-md border border-border/50 px-3 py-2.5 light:border-border">
-            <p className="font-mono text-lg font-semibold tabular-nums text-foreground">
+            <p className="font-mono text-3xl font-medium tabular-nums tracking-tight text-foreground sm:text-4xl">
               {set.cards.length}
             </p>
-            <p className="mt-0.5 text-[11px] text-muted-foreground">
+            <p className="mt-0.5 text-[14px] text-muted-foreground">
               Cards
             </p>
           </div>
         </div>
 
         {set.description?.trim() && (
-          <p className="text-sm leading-relaxed text-muted-foreground">{set.description.trim()}</p>
+          <p className="text-[15px] leading-relaxed text-muted-foreground">{set.description.trim()}</p>
         )}
 
         <div className="flex flex-col gap-2 pt-1">

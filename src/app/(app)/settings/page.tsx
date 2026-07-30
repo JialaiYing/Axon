@@ -57,7 +57,7 @@ import { cn } from "@/lib/utils";
 
 function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="text-[13px] font-semibold text-foreground">{children}</h2>
+    <h2 className="text-xl font-semibold tracking-tight text-foreground">{children}</h2>
   );
 }
 
@@ -79,9 +79,9 @@ function SettingBlock({
         className
       )}
     >
-      <div className="mb-2.5 flex items-center gap-2">
+      <div className="mb-3 flex items-center gap-2">
         <Icon className="h-3.5 w-3.5 text-muted-foreground" />
-        <h3 className="text-[13px] font-semibold text-foreground">{title}</h3>
+        <h3 className="text-[15px] font-semibold text-foreground">{title}</h3>
       </div>
       {children}
     </div>
@@ -236,15 +236,11 @@ export default function SettingsPage() {
       <AppPage
         title="Settings"
       >
-        <div className="space-y-8">
-          <section className="space-y-3">
+        <div className="space-y-12">
+          <section className="space-y-4">
             <SectionHeading>You</SectionHeading>
             <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
               <SettingBlock icon={UserRound} title="Profile">
-                <p className="mb-3 text-[13px] leading-relaxed text-muted-foreground">
-                  Your display name powers dashboard greetings ({`“Good morning, …”`}). Stored
-                  locally and synced to your profile when signed in.
-                </p>
                 <div className="space-y-1.5">
                   <Label htmlFor="display-name">Display name</Label>
                   <div className="flex gap-2">
@@ -275,9 +271,6 @@ export default function SettingsPage() {
               </SettingBlock>
 
               <SettingBlock icon={Palette} title="Appearance">
-                <p className="mb-3 text-[13px] leading-relaxed text-muted-foreground">
-                  Switch between dark and light. Dashboard backgrounds also adapt their palette.
-                </p>
                 <div className="flex gap-2">
                   <Button
                     type="button"
@@ -304,12 +297,11 @@ export default function SettingsPage() {
             </div>
           </section>
 
-          <section className="space-y-3">
+          <section className="space-y-4">
             <SectionHeading>Atmosphere</SectionHeading>
             <SettingBlock icon={Sparkles} title="Dashboard backgrounds">
-              <p className="mb-4 text-[13px] leading-relaxed text-muted-foreground">
-                Default is a solid canvas. Unlock React Bits ambient backgrounds as you level up —
-                each keeps its normal look in dark and light mode. You&apos;re level {level}.
+              <p className="mb-4 text-[13px] text-muted-foreground">
+                Level {level} · unlock more as you rank up
               </p>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {catalog.map((bg) => {
@@ -351,33 +343,29 @@ export default function SettingsPage() {
             </SettingBlock>
           </section>
 
-          <section className="space-y-3">
+          <section className="space-y-4">
             <SectionHeading>Account &amp; study</SectionHeading>
             <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
               <SettingBlock icon={Shield} title="Data & privacy">
                 <p className="text-[13px] leading-relaxed text-muted-foreground">
-                  An Axon account is required to use the dashboard. Study data syncs to your account
-                  via Supabase — Row Level Security ensures other users cannot read your rows. We do
-                  not sell personal data. Review our{" "}
+                  Study data syncs to your account via Supabase (RLS). We do not sell personal data.{" "}
                   <Link
                     href="/privacy"
                     className="underline decoration-border underline-offset-2 transition-colors hover:text-foreground hover:decoration-foreground"
                   >
                     Privacy Policy
-                  </Link>{" "}
-                  and{" "}
+                  </Link>
+                  {" · "}
                   <Link
                     href="/terms"
                     className="underline decoration-border underline-offset-2 transition-colors hover:text-foreground hover:decoration-foreground"
                   >
                     Terms of Use
                   </Link>
-                  .
                 </p>
                 <p className="mt-2 text-[12px] text-muted-foreground">
-                  A few things stay device-local by design and won&apos;t follow your account across
-                  devices: calendar view mode, Pomodoro display mode, and which feature tips
-                  you&apos;ve seen.
+                  Device-local only (not synced): calendar view, Pomodoro display mode, feature tips
+                  seen.
                 </p>
                 {configured && user && (
                   <p className="mt-2 text-[12px] text-muted-foreground">
@@ -421,16 +409,15 @@ export default function SettingsPage() {
                 )}
                 {user && (
                   <p className="mt-2 text-[12px] text-muted-foreground">
-                    Sign out clears synced study data from this browser and returns you to login.
-                    Delete account permanently removes your cloud account and data.
+                    Sign out clears synced data from this browser. Delete account permanently removes
+                    your cloud account, synced rows, and flashcard images.
                   </p>
                 )}
               </SettingBlock>
 
               <SettingBlock icon={Focus} title="Focus Mode">
-                <p className="mb-3 text-[13px] leading-relaxed text-muted-foreground">
-                  In-app Focus Mode when a Pomodoro starts. Leaving the tab pauses your session and
-                  can send a desktop nudge — browsers still can&apos;t hard-block other sites.
+                <p className="mb-3 text-[12px] text-muted-foreground">
+                  Leaving the tab pauses your session — browsers can&apos;t block other sites.
                 </p>
                 <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
                   <div className="space-y-1">
@@ -517,13 +504,9 @@ export default function SettingsPage() {
               </SettingBlock>
 
               <SettingBlock icon={Bell} title="Notifications">
-                <p className="mb-3 text-[13px] leading-relaxed text-muted-foreground">
-                  Lean by design: Pomodoro completion and missed-block alerts are on by default.
-                  Optional due-soon reminders fire at most once per day.
-                </p>
                 <div className="mb-3 flex flex-col gap-2">
                   <ToggleRow
-                    label="Missed objective / calendar event (when a block or due date passes unfinished)"
+                    label="Missed objective / calendar event"
                     checked={missedScheduleEnabled}
                     onChange={(next) => {
                       setMissedScheduleNotificationPreference(next);
@@ -531,7 +514,7 @@ export default function SettingsPage() {
                     }}
                   />
                   <ToggleRow
-                    label="Due-soon / overdue reminder (once daily)"
+                    label="Due-soon reminder (once daily)"
                     checked={dueSoonEnabled}
                     onChange={(next) => {
                       setDueSoonNotificationPreference(next);
@@ -574,11 +557,6 @@ export default function SettingsPage() {
               </SettingBlock>
 
               <SettingBlock icon={Sparkles} title="Feature tips">
-                <p className="mb-3 text-[13px] leading-relaxed text-muted-foreground">
-                  Every page shows a short one-time tip the first time you visit it, right alongside
-                  its content — no separate walkthrough to sit through. Replay brings every tip
-                  back, so each one reappears as you naturally revisit that page.
-                </p>
                 <div className="flex flex-wrap gap-2">
                   <Button
                     type="button"
@@ -605,9 +583,6 @@ export default function SettingsPage() {
               </SettingBlock>
 
               <SettingBlock icon={Home} title="Homepage" className="lg:col-span-2">
-                <p className="mb-3 text-[13px] leading-relaxed text-muted-foreground">
-                  Leave the app and return to the Axon landing page.
-                </p>
                 <Button asChild variant="outline" size="sm" className="shadow-none">
                   <Link href="/">
                     <Home className="h-3.5 w-3.5" />

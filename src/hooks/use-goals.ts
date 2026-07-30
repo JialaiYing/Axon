@@ -30,8 +30,6 @@ export const WEEKLY_OBJECTIVES_TARGET = 15;
  * the focus-minutes → objectives migration.
  */
 export const DAILY_OBJECTIVES_GOAL_ID = "goal-daily-focus";
-/** @deprecated Use DAILY_OBJECTIVES_GOAL_ID */
-export const DAILY_FOCUS_GOAL_ID = DAILY_OBJECTIVES_GOAL_ID;
 
 export const WEEKLY_OBJECTIVES_GOAL_ID = "goal-weekly-objectives";
 
@@ -221,15 +219,17 @@ function normalizeHistoryEntry(value: GoalHistoryEntry): GoalHistoryEntry | null
 }
 
 /**
- * Drop legacy daily focus-minute history (targets were typically 90 min).
- * Keep daily entries already recorded against the fixed objectives target,
- * and all weekly / personal history.
+ * Drop legacy focus-minute daily history and pre-M1 weekly rows with custom targets.
  */
 function scrubLegacyFocusHistory(entries: GoalHistoryEntry[]): GoalHistoryEntry[] {
   return entries.filter((entry) => {
-    if (entry.goalId !== DAILY_OBJECTIVES_GOAL_ID) return true;
-    if (entry.type !== "daily") return true;
-    return entry.target === DAILY_OBJECTIVES_TARGET;
+    if (entry.goalId === DAILY_OBJECTIVES_GOAL_ID && entry.type === "daily") {
+      return entry.target === DAILY_OBJECTIVES_TARGET;
+    }
+    if (entry.goalId === WEEKLY_OBJECTIVES_GOAL_ID && entry.type === "weekly") {
+      return entry.target === WEEKLY_OBJECTIVES_TARGET;
+    }
+    return true;
   });
 }
 
@@ -376,14 +376,16 @@ function rolloverPersonalGoal(goal: Goal, todayKey: string, weekKey: string): Go
   const currentKey = goal.type === "daily" ? todayKey : weekKey;
   const streak = goal.streak ?? 0;
 
-  // First time seeing this goal after the field landed — bind to current period, keep progress.
+  // Legacy goals without periodKey: infer from last update, then roll forward.
   if (!goal.periodKey) {
-    return {
-      ...goal,
-      periodKey: currentKey,
-      streak,
-      updatedAt: goal.updatedAt ?? goal.createdAt,
-    };
+    const stamp = goal.updatedAt ?? goal.createdAt;
+    const stampDate = new Date(stamp);
+    const inferred = Number.isNaN(stampDate.getTime())
+      ? currentKey
+      : goal.type === "daily"
+        ? localDateKey(stampDate)
+        : mondayWeekKey(stampDate);
+    return rolloverPersonalGoal({ ...goal, periodKey: inferred }, todayKey, weekKey);
   }
 
   if (goal.periodKey === currentKey) return goal;
@@ -416,15 +418,30 @@ export function useGoals() {
     []
   );
   const [rawMeta, setRawMeta, metaHydrated] = useLocalStorage<GoalsMeta>(META_STORAGE_KEY, DEFAULT_META);
+  const [clockMs, setClockMs] = React.useState(() => Date.now());
 
   const { objectives, hydrated: objectivesHydrated } = useObjectives();
+
+  // Refresh period keys when the tab stays open past midnight / Monday.
+  React.useEffect(() => {
+    const tick = () => setClockMs(Date.now());
+    const interval = setInterval(tick, 60_000);
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") tick();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, []);
 
   const goalsBase = React.useMemo(() => normalizeGoals(rawGoals), [rawGoals]);
   const history = React.useMemo(() => normalizeHistory(rawHistory), [rawHistory]);
   const meta = React.useMemo(() => normalizeMeta(rawMeta), [rawMeta]);
 
-  const todayKey = localDateKey();
-  const weekKey = mondayWeekKey();
+  const todayKey = localDateKey(new Date(clockMs));
+  const weekKey = mondayWeekKey(new Date(clockMs));
 
   const todayCompletedCount = React.useMemo(
     () => objectivesCompletedOnDate(objectives, todayKey),
@@ -435,9 +452,13 @@ export function useGoals() {
     [objectives, weekKey]
   );
 
+  // Rollover personal goals in the render path so UI never shows a stale period.
   const goals = React.useMemo(
-    () => goalsBase.map((goal) => withLiveProgress(goal, todayCompletedCount, weekCompletedCount)),
-    [goalsBase, todayCompletedCount, weekCompletedCount]
+    () =>
+      goalsBase
+        .map((goal) => rolloverPersonalGoal(goal, todayKey, weekKey))
+        .map((goal) => withLiveProgress(goal, todayCompletedCount, weekCompletedCount)),
+    [goalsBase, todayKey, weekKey, todayCompletedCount, weekCompletedCount]
   );
 
   const dailyGoal = React.useMemo(
@@ -568,22 +589,8 @@ export function useGoals() {
     setRawMeta,
   ]);
 
-  /** No-op for fixed study goals; personal goals keep their own targets via create form. */
-  const updateTarget = React.useCallback(
-    (goalId: string, target: number) => {
-      if (goalId === DAILY_OBJECTIVES_GOAL_ID || goalId === WEEKLY_OBJECTIVES_GOAL_ID) return;
-      const nextTarget = Math.max(1, Math.round(target));
-      setRawGoals((prev) =>
-        normalizeGoals(prev).map((goal) =>
-          goal.id === goalId ? { ...goal, target: nextTarget } : goal
-        )
-      );
-    },
-    [setRawGoals]
-  );
-
   const addPersonalGoal = React.useCallback(
-    (input: { title: string; type: "daily" | "weekly"; target: number; unit?: string }) => {
+    (input: { title: string; type: "daily" | "weekly"; target: number }) => {
       const title = input.title.trim().slice(0, 120);
       if (!title) return null;
       const now = new Date().toISOString();
@@ -644,7 +651,6 @@ export function useGoals() {
     history,
     todayKey,
     weekKey,
-    updateTarget,
     addPersonalGoal,
     deleteGoal,
     setManualProgress,

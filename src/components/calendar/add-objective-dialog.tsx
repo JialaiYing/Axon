@@ -208,7 +208,7 @@ export function AddObjectiveDialog({
             {resolvedStart ? (
               <>
                 Schedule into <span className="font-medium text-foreground">{slotLabel}</span>.
-                Pick an existing Kanban objective below, or create a new event.
+                Pick an existing board objective below, or create a new event.
               </>
             ) : (
               <>
@@ -331,7 +331,7 @@ export function AddObjectiveDialog({
               <ul className="flex max-h-[min(50vh,360px)] flex-col gap-1.5 overflow-y-auto overscroll-contain pr-1">
                 {objectives.length === 0 && (
                   <li className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-                    No objectives yet. Create one on the Kanban board, or use the New event tab.
+                    No objectives yet. Create one on the board, or use the New event tab.
                   </li>
                 )}
                 {objectives.length > 0 && filtered.length === 0 && (
@@ -508,7 +508,7 @@ export function AddObjectiveDialog({
 
               <div className="flex items-center justify-between gap-3 rounded-md border border-border bg-surface px-3 py-2.5">
                 <div>
-                  <p className="text-xs font-medium text-foreground">Add to Kanban board?</p>
+                  <p className="text-xs font-medium text-foreground">Add to board?</p>
                   <p className="text-[11px] text-muted-foreground">
                     Off = calendar-only event (supports location). On = also appears as a queued card.
                   </p>

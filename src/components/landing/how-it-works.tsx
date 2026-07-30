@@ -19,7 +19,7 @@ const STEPS = [
     id: "capture",
     title: "Capture objectives",
     description:
-      "Put assignments on a Kanban board. Priorities stay visible so nothing disappears into a notebook.",
+      "Put assignments on a to-do board. Priorities stay visible so nothing disappears into a notebook.",
   },
   {
     id: "schedule",

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ChevronRight, ListTodo, Plus, Trash2, X } from "lucide-react";
+import { ChevronRight, Plus, Trash2, X } from "lucide-react";
 import { AppPage } from "@/components/layout/app-page";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -123,7 +123,8 @@ function PersonalGoalRow({
 }) {
   const percent = goal.target > 0 ? (goal.progress / goal.target) * 100 : 0;
   const done = goal.completed || percent >= 100;
-  const status: GoalPaceStatus = done ? "done" : goal.progress > 0 ? "on-track" : "behind";
+  // Don't mark zero-progress personal goals "Behind" — that's pace math for study goals.
+  const status: GoalPaceStatus = done ? "done" : "on-track";
   const remaining = Math.max(0, goal.target - goal.progress);
   const streakCount = goal.streak ?? 0;
   const streakLabel = goal.type === "weekly" ? "week" : "day";
@@ -157,7 +158,7 @@ function PersonalGoalRow({
             type="button"
             aria-label="Delete goal"
             onClick={onDelete}
-            className="rounded-sm p-1.5 text-muted-foreground opacity-0 transition-opacity hover:bg-wash hover:text-danger group-hover:opacity-100 focus-visible:opacity-100"
+            className="rounded-sm p-1.5 text-muted-foreground opacity-100 transition-opacity hover:bg-wash hover:text-danger md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100"
           >
             <Trash2 className="h-4 w-4" />
           </button>
@@ -272,10 +273,16 @@ export function GoalsOverview() {
     hydrated,
   } = useGoals();
   const [createOpen, setCreateOpen] = React.useState(false);
+  const [personalOpen, setPersonalOpen] = React.useState(false);
   const [historyOpen, setHistoryOpen] = React.useState(false);
   const [draftTitle, setDraftTitle] = React.useState("");
   const [draftType, setDraftType] = React.useState<"daily" | "weekly">("daily");
   const [draftTarget, setDraftTarget] = React.useState("1");
+
+  function openPersonalCreate() {
+    setPersonalOpen(true);
+    setCreateOpen(true);
+  }
 
   const now = new Date();
   const dailyStatus = dailyGoal ? goalPaceStatus(dailyGoal, dayElapsedFraction(now)) : null;
@@ -310,12 +317,6 @@ export function GoalsOverview() {
     [history]
   );
 
-  const isEmpty =
-    dailyGoal?.progress === 0 &&
-    weeklyGoal?.progress === 0 &&
-    dailyHistory.length === 0 &&
-    weeklyHistory.length === 0;
-
   return (
     <AppPage
       feature="goals"
@@ -325,7 +326,7 @@ export function GoalsOverview() {
           size="sm"
           variant="ghost"
           className="text-[15px] text-muted-foreground shadow-none hover:text-foreground"
-          onClick={() => setCreateOpen((v) => !v)}
+          onClick={openPersonalCreate}
         >
           <Plus className="h-4 w-4" />
           Personal
@@ -336,159 +337,184 @@ export function GoalsOverview() {
         <LoadingState />
       ) : (
         <div className="w-full">
-          {isEmpty ? (
-            <div className="py-20 text-center">
-              <p className="text-xl font-medium text-foreground">Nothing completed yet</p>
-              <p className="mx-auto mt-3 text-[15px] leading-relaxed text-muted-foreground">
-                <span className="text-foreground">3</span> today
-                <span className="text-muted-foreground/40"> · </span>
-                <span className="text-foreground">15</span> this week
-              </p>
-              <Button asChild variant="ghost" size="sm" className="mt-8 text-[15px] shadow-none">
-                <Link href="/kanban">
-                  <ListTodo className="h-4 w-4" />
-                  Open board
-                </Link>
-              </Button>
-            </div>
-          ) : (
-            <>
-              <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[15px]">
-                <span className={cn("font-medium", onTrackSummaryClass(onTrackCount, totalTracked))}>
-                  {onTrackCount} of {totalTracked} on track
+          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[15px]">
+            <span className={cn("font-medium", onTrackSummaryClass(onTrackCount, totalTracked))}>
+              {onTrackCount} of {totalTracked} on track
+            </span>
+            {dailyStreak.current > 0 ? (
+              <>
+                <span className="text-muted-foreground/40">·</span>
+                <span className="inline-flex items-center gap-1.5 font-medium text-warning">
+                  <StreakFlame days={dailyStreak.current} size="md" />
+                  {dailyStreak.current} day streak
                 </span>
-                {dailyStreak.current > 0 ? (
-                  <>
-                    <span className="text-muted-foreground/40">·</span>
-                    <span className="inline-flex items-center gap-1.5 font-medium text-warning">
-                      <StreakFlame days={dailyStreak.current} size="md" />
-                      {dailyStreak.current} day streak
-                    </span>
-                  </>
-                ) : null}
-              </p>
+              </>
+            ) : null}
+          </p>
 
-              <div className="mt-3 divide-y divide-border/40 light:divide-border">
-                {dailyGoal && dailyStatus && (
-                  <StudyGoalRow
-                    goal={dailyGoal}
-                    status={dailyStatus}
-                    resetLabel="at midnight"
-                  />
-                )}
-                {weeklyGoal && weeklyStatus && (
-                  <StudyGoalRow
-                    goal={weeklyGoal}
-                    status={weeklyStatus}
-                    resetLabel="Mondays"
-                  />
-                )}
-              </div>
+          <div className="mt-3 divide-y divide-border/40 light:divide-border">
+            {dailyGoal && dailyStatus && (
+              <StudyGoalRow
+                goal={dailyGoal}
+                status={dailyStatus}
+                resetLabel="at midnight"
+              />
+            )}
+            {weeklyGoal && weeklyStatus && (
+              <StudyGoalRow
+                goal={weeklyGoal}
+                status={weeklyStatus}
+                resetLabel="Mondays"
+              />
+            )}
+          </div>
 
-              <div className="mt-3">
-                <Link
-                  href="/kanban"
-                  className="inline-flex items-center gap-1.5 text-[15px] text-accent transition-colors hover:text-foreground"
-                >
-                  Open board
-                  <span aria-hidden>→</span>
-                </Link>
-              </div>
-            </>
+          <div className="mt-3">
+            <Link
+              href="/kanban"
+              className="inline-flex items-center gap-1.5 text-[15px] text-accent transition-colors hover:text-foreground"
+            >
+              Open board
+              <span aria-hidden>→</span>
+            </Link>
+          </div>
+
+          {(personalGoals.length > 0 || createOpen) && (
+            <section className="mt-14 border-t border-border/40 pt-10 light:border-border">
+              <button
+                type="button"
+                aria-expanded={personalOpen}
+                onClick={() => setPersonalOpen((v) => !v)}
+                className="flex w-full items-center justify-between gap-3 text-left transition-colors hover:text-foreground"
+              >
+                <span className="inline-flex items-center gap-2 text-xl font-medium text-foreground">
+                  <ChevronRight
+                    className={cn(
+                      "h-5 w-5 text-muted-foreground transition-transform duration-200",
+                      personalOpen && "rotate-90"
+                    )}
+                  />
+                  Personal
+                </span>
+                <span className="text-[15px] text-muted-foreground tabular-nums">
+                  {personalGoals.length === 0
+                    ? "None yet"
+                    : `${personalGoals.length} goal${personalGoals.length === 1 ? "" : "s"}`}
+                </span>
+              </button>
+
+              {personalOpen && (
+                <div className="mt-6 space-y-8">
+                  {createOpen && (
+                    <div className="space-y-5">
+                      <p className="text-[15px] font-medium text-foreground">New personal goal</p>
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div className="space-y-2 sm:col-span-2">
+                          <Label
+                            htmlFor="personal-title"
+                            className="text-[14px] text-muted-foreground"
+                          >
+                            Title
+                          </Label>
+                          <Input
+                            id="personal-title"
+                            value={draftTitle}
+                            maxLength={120}
+                            onChange={(e) => setDraftTitle(e.target.value)}
+                            placeholder="Drink 8 glasses of water"
+                            className="h-11 border-0 border-b border-border/40 bg-transparent px-0 text-[16px] shadow-none focus-visible:ring-0"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor="personal-type"
+                            className="text-[14px] text-muted-foreground"
+                          >
+                            Cadence
+                          </Label>
+                          <select
+                            id="personal-type"
+                            value={draftType}
+                            onChange={(e) => setDraftType(e.target.value as "daily" | "weekly")}
+                            className="flex h-11 w-full border-0 border-b border-border/40 bg-transparent px-0 text-[16px] text-foreground focus:outline-none light:border-border"
+                          >
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor="personal-target"
+                            className="text-[14px] text-muted-foreground"
+                          >
+                            Target
+                          </Label>
+                          <Input
+                            id="personal-target"
+                            type="number"
+                            min={1}
+                            max={9999}
+                            value={draftTarget}
+                            onChange={(e) => setDraftTarget(e.target.value)}
+                            className="h-11 border-0 border-b border-border/40 bg-transparent px-0 text-[16px] shadow-none focus-visible:ring-0"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        <Button
+                          size="sm"
+                          className="shadow-none"
+                          onClick={() => {
+                            const created = addPersonalGoal({
+                              title: draftTitle,
+                              type: draftType,
+                              target: Number(draftTarget) || 1,
+                            });
+                            if (created) {
+                              setDraftTitle("");
+                              setDraftTarget("1");
+                              setCreateOpen(false);
+                              setPersonalOpen(true);
+                            }
+                          }}
+                        >
+                          Create
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setCreateOpen(false)}
+                        >
+                          <X className="h-3.5 w-3.5" />
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {personalGoals.length > 0 ? (
+                    <ul className="divide-y divide-border/40 light:divide-border">
+                      {personalGoals.map((goal) => (
+                        <PersonalGoalRow
+                          key={goal.id}
+                          goal={goal}
+                          onIncrement={() => setManualProgress(goal.id, goal.progress + 1)}
+                          onReset={() => setManualProgress(goal.id, 0)}
+                          onDelete={() => deleteGoal(goal.id)}
+                        />
+                      ))}
+                    </ul>
+                  ) : !createOpen ? (
+                    <p className="text-[15px] text-muted-foreground">
+                      No personal goals yet — use Personal in the header to add one.
+                    </p>
+                  ) : null}
+                </div>
+              )}
+            </section>
           )}
 
-          {createOpen && (
-            <div className="mt-12 space-y-5 border-t border-border/40 pt-10 light:border-border">
-              <p className="text-xl font-medium text-foreground">New personal goal</p>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="space-y-2 sm:col-span-2">
-                  <Label htmlFor="personal-title" className="text-[14px] text-muted-foreground">
-                    Title
-                  </Label>
-                  <Input
-                    id="personal-title"
-                    value={draftTitle}
-                    maxLength={120}
-                    onChange={(e) => setDraftTitle(e.target.value)}
-                    placeholder="Drink 8 glasses of water"
-                    className="h-11 border-0 border-b border-border/40 bg-transparent px-0 text-[16px] shadow-none focus-visible:ring-0"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="personal-type" className="text-[14px] text-muted-foreground">
-                    Cadence
-                  </Label>
-                  <select
-                    id="personal-type"
-                    value={draftType}
-                    onChange={(e) => setDraftType(e.target.value as "daily" | "weekly")}
-                    className="flex h-11 w-full border-0 border-b border-border/40 bg-transparent px-0 text-[16px] text-foreground focus:outline-none light:border-border"
-                  >
-                    <option value="daily">Daily</option>
-                    <option value="weekly">Weekly</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="personal-target" className="text-[14px] text-muted-foreground">
-                    Target
-                  </Label>
-                  <Input
-                    id="personal-target"
-                    type="number"
-                    min={1}
-                    max={9999}
-                    value={draftTarget}
-                    onChange={(e) => setDraftTarget(e.target.value)}
-                    className="h-11 border-0 border-b border-border/40 bg-transparent px-0 text-[16px] shadow-none focus-visible:ring-0"
-                  />
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-2 pt-1">
-                <Button
-                  size="sm"
-                  className="shadow-none"
-                  onClick={() => {
-                    const created = addPersonalGoal({
-                      title: draftTitle,
-                      type: draftType,
-                      target: Number(draftTarget) || 1,
-                    });
-                    if (created) {
-                      setDraftTitle("");
-                      setDraftTarget("1");
-                      setCreateOpen(false);
-                    }
-                  }}
-                >
-                  Create
-                </Button>
-                <Button size="sm" variant="ghost" onClick={() => setCreateOpen(false)}>
-                  <X className="h-3.5 w-3.5" />
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {personalGoals.length > 0 && (
-            <div className="mt-14">
-              <p className="text-[15px] font-medium text-foreground">Personal</p>
-              <ul className="mt-3 divide-y divide-border/40 light:divide-border">
-                {personalGoals.map((goal) => (
-                  <PersonalGoalRow
-                    key={goal.id}
-                    goal={goal}
-                    onIncrement={() => setManualProgress(goal.id, goal.progress + 1)}
-                    onReset={() => setManualProgress(goal.id, 0)}
-                    onDelete={() => deleteGoal(goal.id)}
-                  />
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {!isEmpty && (
-            <section className="mt-16 border-t border-border/40 pt-10 light:border-border">
+          <section className="mt-16 border-t border-border/40 pt-10 light:border-border">
               <button
                 type="button"
                 aria-expanded={historyOpen}
@@ -528,7 +554,6 @@ export function GoalsOverview() {
                 </div>
               )}
             </section>
-          )}
         </div>
       )}
     </AppPage>

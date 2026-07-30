@@ -110,8 +110,8 @@ export function StudyView({ set, onBack, onEdit, onStartTest, onCompletePass }: 
             <ArrowLeft className="h-3.5 w-3.5" /> Library
           </Button>
           <div className="min-w-0">
-            <h2 className="truncate text-sm font-semibold text-foreground">{set.title}</h2>
-            <p className="truncate text-xs text-muted-foreground">
+            <h2 className="truncate text-2xl font-medium tracking-tight text-foreground sm:text-[28px]">{set.title}</h2>
+            <p className="truncate text-[14px] text-muted-foreground">
               {set.subject} · {cards.length} card{cards.length === 1 ? "" : "s"}
             </p>
           </div>

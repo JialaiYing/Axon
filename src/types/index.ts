@@ -82,6 +82,11 @@ export interface Objective {
   recurrence?: Recurrence;
   /** Links a spawned occurrence back to its template/previous instance. */
   recurrenceParentId?: string;
+  /**
+   * `completedAt` value we already spawned a follow-up for. Prevents housekeeping
+   * from recreating a recurring clone after the user deletes it.
+   */
+  recurrenceSpawnedAt?: string;
 }
 
 export interface FlashcardFolder {

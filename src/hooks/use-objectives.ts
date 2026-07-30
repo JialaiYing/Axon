@@ -175,6 +175,7 @@ function normalizeObjective(value: Objective): Objective | null {
     recurrence,
     recurrenceParentId:
       typeof value.recurrenceParentId === "string" ? value.recurrenceParentId : undefined,
+    recurrenceSpawnedAt: validIso(value.recurrenceSpawnedAt),
   };
 }
 
@@ -297,42 +298,75 @@ export function useObjectives() {
     [setObjectives]
   );
 
-  /** Moves a card to a different column, optionally at a specific position. */
+  /** Moves a card to a different column, placing it at the end of that column. */
   const moveObjective = React.useCallback(
     (id: string, status: ObjectiveStatus) => {
       let completedObjective: Objective | null = null;
-      setObjectives((prev) =>
-        prev.map((objective) => {
-          if (objective.id !== id) return objective;
-          const now = new Date().toISOString();
-          const isNowDone = status === "done" && objective.status !== "done";
-          const isLeavingDone = objective.status === "done" && status !== "done";
-          const next = {
-            ...objective,
-            status,
-            progress: isNowDone ? 100 : objective.progress,
-            completedAt: isNowDone ? now : isLeavingDone ? undefined : objective.completedAt,
-            recycledAt: status === "recycled" ? now : undefined,
-            updatedAt: now,
-          };
-          if (isNowDone) completedObjective = next;
-          return next;
-        })
-      );
+      setObjectives((prev) => {
+        const current = prev.find((o) => o.id === id);
+        if (!current || current.status === status) return prev;
+
+        const now = new Date().toISOString();
+        const isNowDone = status === "done" && current.status !== "done";
+        const isLeavingDone = current.status === "done" && status !== "done";
+        const next: Objective = {
+          ...current,
+          status,
+          progress: isNowDone ? 100 : current.progress,
+          completedAt: isNowDone ? now : isLeavingDone ? undefined : current.completedAt,
+          recycledAt: status === "recycled" ? now : undefined,
+          updatedAt: now,
+        };
+        if (isNowDone) completedObjective = next;
+
+        // Pull out of current position, then append after other cards already
+        // in the destination column so a drop into In Progress doesn't become
+        // an undraggable "first" ghost from mid-array remounts.
+        const without = prev.filter((o) => o.id !== id);
+        const lastDestIndex = without.reduce(
+          (last, o, i) => (o.status === status ? i : last),
+          -1
+        );
+        if (lastDestIndex === -1) {
+          return [...without, next];
+        }
+        const result = [...without];
+        result.splice(lastDestIndex + 1, 0, next);
+        return result;
+      });
       if (completedObjective) awardObjectiveCompletionXp(completedObjective);
     },
     [setObjectives]
   );
 
-  /** Reorders within the same column (or across, if statuses already match) by dragged card id and target card id. */
+  /** Reorders within the same column by dragged card id and target card id. */
   const reorderObjectives = React.useCallback(
     (activeId: string, overId: string) => {
       if (activeId === overId) return;
       setObjectives((prev) => {
-        const oldIndex = prev.findIndex((o) => o.id === activeId);
-        const newIndex = prev.findIndex((o) => o.id === overId);
-        if (oldIndex === -1 || newIndex === -1) return prev;
-        return arrayMove(prev, oldIndex, newIndex);
+        const active = prev.find((o) => o.id === activeId);
+        const over = prev.find((o) => o.id === overId);
+        if (!active || !over || active.status !== over.status) return prev;
+
+        // Rebuild so same-status peers keep relative order; only the dragged
+        // card jumps to the target's slot. Other statuses stay put.
+        const columnIds = prev
+          .filter((o) => o.status === active.status)
+          .map((o) => o.id);
+        const from = columnIds.indexOf(activeId);
+        const to = columnIds.indexOf(overId);
+        if (from === -1 || to === -1 || from === to) return prev;
+
+        const nextColumnIds = [...columnIds];
+        nextColumnIds.splice(from, 1);
+        nextColumnIds.splice(to, 0, activeId);
+
+        let cursor = 0;
+        return prev.map((objective) => {
+          if (objective.status !== active.status) return objective;
+          const id = nextColumnIds[cursor++]!;
+          return prev.find((o) => o.id === id)!;
+        });
       });
     },
     [setObjectives]
@@ -655,7 +689,8 @@ export function useObjectives() {
    * Applies the two time-based lifecycle rules: a "done" card auto-recycles
    * after AUTO_RECYCLE_AFTER_DAYS, and a recycled card is permanently
    * deleted after RECYCLE_BIN_RETENTION_DAYS. Also spawns the next occurrence
-   * for recurring objectives that were just completed.
+   * for recurring objectives — once per completion, never again if that
+   * follow-up was deleted.
    */
   const runHousekeeping = React.useCallback(() => {
     setObjectives((prev) => {
@@ -663,8 +698,6 @@ export function useObjectives() {
       const now = new Date();
       const nowIso = now.toISOString();
       const spawned: Objective[] = [];
-      // Avoid spawning twice in one pass for the same parent.
-      const spawnedParents = new Set<string>();
       const permanentlyDeletedIds: string[] = [];
 
       const next = prev
@@ -673,13 +706,40 @@ export function useObjectives() {
             objective.status === "done" &&
             objective.recurrence &&
             objective.recurrence !== "none" &&
-            !spawnedParents.has(objective.id)
+            objective.completedAt
           ) {
-            // Skip if a non-recycled occurrence already exists for this parent.
-            const hasActiveChild = prev.some(
-              (o) => o.recurrenceParentId === objective.id && o.status !== "recycled"
-            );
-            if (!hasActiveChild) {
+            // Already spawned for this completion cycle — do nothing.
+            if (objective.recurrenceSpawnedAt === objective.completedAt) {
+              // fall through to auto-recycle checks
+            } else {
+              const hasActiveChild = prev.some(
+                (o) => o.recurrenceParentId === objective.id && o.status !== "recycled"
+              );
+              const completedMs = Date.parse(objective.completedAt);
+              const ageMs = Number.isFinite(completedMs) ? Date.now() - completedMs : Infinity;
+
+              if (hasActiveChild) {
+                // Child already exists — just mark the parent so we never re-check.
+                changed = true;
+                return {
+                  ...objective,
+                  recurrenceSpawnedAt: objective.completedAt,
+                  updatedAt: nowIso,
+                };
+              }
+
+              // Stale completion with no child: user likely deleted the follow-up
+              // (or it never synced). Mark handled — do NOT resurrect a clone.
+              if (!objective.recurrenceSpawnedAt && ageMs > 5 * 60 * 1000) {
+                changed = true;
+                return {
+                  ...objective,
+                  recurrenceSpawnedAt: objective.completedAt,
+                  updatedAt: nowIso,
+                };
+              }
+
+              // Fresh completion — spawn exactly one follow-up.
               const offsetMs =
                 objective.recurrence === "daily"
                   ? 24 * 60 * 60 * 1000
@@ -697,6 +757,7 @@ export function useObjectives() {
                 progress: 0,
                 completedAt: undefined,
                 recycledAt: undefined,
+                recurrenceSpawnedAt: undefined,
                 createdAt: nowIso,
                 updatedAt: nowIso,
                 dueDate: nextDue,
@@ -709,8 +770,12 @@ export function useObjectives() {
                 })),
                 recurrenceParentId: objective.id,
               });
-              spawnedParents.add(objective.id);
               changed = true;
+              return {
+                ...objective,
+                recurrenceSpawnedAt: objective.completedAt,
+                updatedAt: nowIso,
+              };
             }
           }
 

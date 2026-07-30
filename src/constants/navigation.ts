@@ -1,6 +1,6 @@
 import {
   LayoutDashboard,
-  Kanban,
+  ListTodo,
   Layers,
   Timer,
   BarChart3,
@@ -25,7 +25,7 @@ export interface NavGroup {
 /** Top-level destinations — Goals nests under Progress with Analytics. */
 export const NAV_PRIMARY: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Kanban", href: "/kanban", icon: Kanban },
+  { label: "Board", href: "/kanban", icon: ListTodo },
   { label: "Calendar", href: "/calendar", icon: CalendarDays },
   { label: "Flashcards", href: "/flashcards", icon: Layers },
   { label: "Pomodoro", href: "/pomodoro", icon: Timer },

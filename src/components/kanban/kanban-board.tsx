@@ -8,14 +8,15 @@ import {
   KeyboardSensor,
   useSensor,
   useSensors,
-  closestCenter,
+  closestCorners,
+  pointerWithin,
+  type CollisionDetection,
   type DragStartEvent,
-  type DragOverEvent,
   type DragEndEvent,
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { motion, useReducedMotion } from "framer-motion";
-import { Kanban, RotateCcw, SearchX } from "lucide-react";
+import { ListTodo, RotateCcw, SearchX } from "lucide-react";
 import { AppPage } from "@/components/layout/app-page";
 import { EASE } from "@/lib/motion";
 import { KanbanColumn } from "@/components/kanban/kanban-column";
@@ -28,7 +29,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { KanbanBoardSkeleton } from "@/components/ui/skeleton";
 import { ConfettiBurst } from "@/components/ui/confetti";
 import { KANBAN_COLUMNS } from "@/constants/kanban";
-import { canMarkObjectiveDone, sortByPriority } from "@/lib/kanban-utils";
+import { canMarkObjectiveDone } from "@/lib/kanban-utils";
 import { useObjectives, isOnKanbanBoard, type ObjectiveInput } from "@/hooks/use-objectives";
 import type { Objective, KanbanStatus } from "@/types";
 
@@ -36,6 +37,18 @@ type DialogState =
   | { mode: "create"; status: KanbanStatus }
   | { mode: "edit"; objective: Objective }
   | null;
+
+/** Prefer cards under the pointer; fall back to columns / closest corner. */
+const boardCollisionDetection: CollisionDetection = (args) => {
+  const pointerHits = pointerWithin(args);
+  if (pointerHits.length > 0) {
+    const columnIds = new Set(KANBAN_COLUMNS.map((c) => c.id));
+    const overCard = pointerHits.find((hit) => !columnIds.has(String(hit.id)));
+    if (overCard) return [overCard];
+    return pointerHits;
+  }
+  return closestCorners(args);
+};
 
 export function KanbanBoard() {
   const prefersReducedMotion = useReducedMotion();
@@ -109,15 +122,13 @@ export function KanbanBoard() {
       "in-progress": [],
       done: [],
     };
+    // Preserve store order so drag-reorder sticks — including the top card.
+    // Priority still shows as a dot; it no longer overrides manual position.
     for (const objective of filtered) {
       if (objective.status === "recycled") continue;
       map[objective.status].push(objective);
     }
-    return {
-      todo: sortByPriority(map.todo),
-      "in-progress": sortByPriority(map["in-progress"]),
-      done: sortByPriority(map.done),
-    };
+    return map;
   }, [filtered]);
 
   const activeObjective = activeId ? objectives.find((o) => o.id === activeId) ?? null : null;
@@ -129,40 +140,46 @@ export function KanbanBoard() {
     setActiveId(String(event.active.id));
   }
 
-  function handleDragOver(event: DragOverEvent) {
+  /**
+   * Commit column moves only on drop — never mid-drag.
+   * Moving during onDragOver remounts the card into a new SortableContext
+   * while the pointer is still down, which leaves it undraggable afterward
+   * (especially when dropping into an empty column).
+   */
+  function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
+    setActiveId(null);
     if (!over) return;
 
     const activeObjective = objectives.find((o) => o.id === active.id);
     if (!activeObjective) return;
 
-    // Dropping directly over a column (empty space) moves it to that column.
     const overColumn = KANBAN_COLUMNS.find((c) => c.id === over.id);
-    if (overColumn && activeObjective.status !== overColumn.id) {
+    if (overColumn) {
+      if (activeObjective.status === overColumn.id) return;
       if (overColumn.id === "done" && !canMarkObjectiveDone(activeObjective)) return;
       moveObjective(activeObjective.id, overColumn.id);
       if (overColumn.id === "done") setCelebrateKey((k) => k + 1);
       return;
     }
 
-    // Dropping over another card: if it's in a different column, adopt that column.
     const overObjective = objectives.find((o) => o.id === over.id);
-    if (overObjective && overObjective.status !== activeObjective.status) {
+    if (!overObjective || overObjective.id === activeObjective.id) return;
+
+    if (overObjective.status !== activeObjective.status) {
       if (overObjective.status === "done" && !canMarkObjectiveDone(activeObjective)) return;
+      // Single write: change column and land next to the target card.
       moveObjective(activeObjective.id, overObjective.status);
+      // queueMicrotask so reorder sees the post-move store (avoids a same-tick
+      // status mismatch if the two setStates don't chain as expected).
+      queueMicrotask(() => {
+        reorderObjectives(String(active.id), overObjective.id);
+      });
       if (overObjective.status === "done") setCelebrateKey((k) => k + 1);
+      return;
     }
-  }
 
-  function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-    setActiveId(null);
-    if (!over) return;
-
-    const overObjective = objectives.find((o) => o.id === over.id);
-    if (overObjective && overObjective.id !== active.id) {
-      reorderObjectives(String(active.id), overObjective.id);
-    }
+    reorderObjectives(String(active.id), overObjective.id);
   }
 
   function handleFormSubmit(input: ObjectiveInput) {
@@ -183,7 +200,7 @@ export function KanbanBoard() {
   return (
     <AppPage
       feature="kanban"
-      title="Kanban"
+      title="Board"
       actions={
         <button
           type="button"
@@ -213,7 +230,7 @@ export function KanbanBoard() {
         <KanbanBoardSkeleton />
       ) : isBoardEmpty ? (
         <EmptyState
-          icon={<Kanban className="h-5 w-5 text-muted-foreground" />}
+          icon={<ListTodo className="h-5 w-5 text-muted-foreground" />}
           title="No objectives yet"
           description="Add a study objective, then drag it across Queued → In progress → Done."
           actionLabel="New objective"
@@ -233,19 +250,18 @@ export function KanbanBoard() {
       ) : (
         <DndContext
           sensors={sensors}
-          collisionDetection={closestCenter}
+          collisionDetection={boardCollisionDetection}
           onDragStart={handleDragStart}
-          onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
           <motion.div
             initial={prefersReducedMotion ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: prefersReducedMotion ? 0 : 0.2, ease: EASE }}
-            className="grid w-full grid-flow-col auto-cols-[minmax(260px,1fr)] gap-4 overflow-x-auto pb-3 lg:grid-flow-row lg:grid-cols-3 lg:gap-0 lg:divide-x lg:divide-border/50 light:lg:divide-border"
+            className="grid w-full grid-flow-col auto-cols-[minmax(260px,1fr)] items-stretch gap-4 overflow-x-auto pb-3 lg:grid-flow-row lg:grid-cols-3 lg:gap-0 lg:divide-x lg:divide-border/50 light:lg:divide-border"
           >
             {KANBAN_COLUMNS.map((column) => (
-              <div key={column.id} className="min-w-0 lg:px-5 lg:first:pl-0 lg:last:pr-0">
+              <div key={column.id} className="flex min-w-0 flex-col lg:px-5 lg:first:pl-0 lg:last:pr-0">
                 <KanbanColumn
                   column={column}
                   objectives={grouped[column.id]}

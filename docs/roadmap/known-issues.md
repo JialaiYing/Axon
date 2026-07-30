@@ -27,15 +27,16 @@ Update this file as items get resolved instead of letting it silently rot — se
 ## Kanban
 
 - **[Subsumed]** `priorityDotClass`/`priorityTextClass` map "medium" priority to accent color, conflicting with "accent = action only" — the new subject-owned-color rework in `product-requirements.md` replaces this color system anyway.
-- **[Independent]** Hardcoded indigo glow debt (same root cause as Calendar/Dashboard below) — one sweep needed across `xp-burst`, `tilt-card`, Tabs regardless of the Kanban rename/color work.
+- **[Independent]** Hardcoded indigo glow debt (same root cause as Calendar/Dashboard below) — one sweep still needed across `xp-burst`, `tilt-card`, Tabs regardless of the M2 color rework.
 - **[By design]** Objective form / recycle-bin dialog polish was intentionally deferred in the original audit; still not urgent.
+- **[Resolved — M1]** Page/copy still said "Kanban" throughout ("Kanban" title, empty-state icon/copy, Calendar's "Pick an existing Kanban objective" / "Add to Kanban board?" strings) — renamed the page to "Board" and swapped the leftover Calendar copy to match, since the feature is objective management, not a specific board-software brand.
 
 ## Calendar
 
 - **[Independent]** Hardcoded indigo glow (`rgba(94,106,210,…)`) still present — the one surface that never got the token cleanup the other pages got.
 - **[Independent]** Unscheduled → week/day drag-drop always lands at 9:00, no pointer→minutes snapping.
 - **[Independent]** Event actions menu still uses a Sparkles icon + heavy elevation shadow, inconsistent with the flattened chip style elsewhere.
-- **[Subsumed]** Toolbar alignment (title `text-xl` vs. `h-7`/`h-8` controls, loose `sm:items-center` centering) — scoped as a fix in `product-requirements.md`.
+- **[Resolved — M1]** Toolbar alignment (title `text-xl` vs. `h-7`/`h-8` controls, loose `sm:items-center` centering) — split into two clean rows: a title row with Export/Add event on the title's baseline, and a toolbar row (range label, prev/today/next, view tabs) all sharing one `h-8` control height.
 
 ## Pomodoro
 
@@ -51,7 +52,11 @@ Update this file as items get resolved instead of letting it silently rot — se
 
 - **[Independent]** Legacy folders may still store old purple hex colors in `localStorage` from before the token migration — self-healing (users can recolor via Edit), low priority.
 - **[Subsumed]** "Spaced repetition / scheduled review still deferred" — this was logged as deferred product work in the old audit; it is now a committed differentiation feature in `product-requirements.md`, not deferred.
-- **[Subsumed]** Home left-rail duplication and the "Visual gallery" tab — both scoped for removal in `product-requirements.md`.
+- **[Resolved — M1]** Home left-rail duplication ("Continue studying" / "Recent folders" sections) and the "Visual gallery" tab (lazy-loaded Three.js dome view) removed — the plain grid library is now the only view, cutting the duplicate entry points and the extra bundle weight the dome pulled in on every page load.
+
+## Settings
+
+- **[Resolved — M1]** Every setting block carried a full explanatory paragraph (Profile, Appearance, Dashboard backgrounds, Data & privacy, Focus Mode, Notifications, Feature tips, Homepage) — cut down to essentials or removed outright where the control was self-explanatory; section/block headings bumped up a size for scannability now that the body copy is gone.
 
 ## Not previously audited (found during this pass)
 

@@ -7,10 +7,13 @@ This is written for whoever (whichever chat/session) picks this work up next, in
 Work in this order unless new evidence (real usage, user feedback) says otherwise. Each milestone should be a shippable unit — don't start the next one with the previous one half-done.
 
 ### M1 — Cheap, real, low-risk wins
-- Pomodoro work/break interval cycling (`product-requirements.md` §9)
-- Goals simplification: fixed "3 objectives/day" default (§5)
-- Per-page decluttering: Dashboard trim, Kanban copy rename, Flashcards Home-rail/gallery-tab removal, Calendar toolbar alignment (§9)
-- Settings copy cuts (§8, using `known-issues.md`'s catalogued strings)
+- [x] Pomodoro work/break interval cycling (`product-requirements.md` §9)
+- [x] Goals simplification: fixed "3 objectives/day" default (§5)
+- [ ] Dashboard trim (§9) — not started; the aesthetic pass attempted here didn't land and was reverted, page is still at its pre-M1 baseline
+- [x] Kanban copy rename (§9)
+- [x] Flashcards Home-rail/gallery-tab removal (§9)
+- [x] Calendar toolbar alignment (§9)
+- [x] Settings copy cuts (§8, using `known-issues.md`'s catalogued strings)
 
 **Skills to use:** `.cursor/skills/premium-frontend/SKILL.md`, `.cursor/skills/dashboard-ux/SKILL.md`, `.cursor/skills/nextjs-react-patterns/SKILL.md` for the Dashboard/Kanban/Flashcards work; `.cursor/skills/axon-design-workflow/SKILL.md` if doing a full coordinated pass across pages rather than one at a time.
 
