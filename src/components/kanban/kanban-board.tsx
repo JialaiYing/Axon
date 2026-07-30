@@ -42,7 +42,7 @@ type DialogState =
 const boardCollisionDetection: CollisionDetection = (args) => {
   const pointerHits = pointerWithin(args);
   if (pointerHits.length > 0) {
-    const columnIds = new Set(KANBAN_COLUMNS.map((c) => c.id));
+    const columnIds = new Set<string>(KANBAN_COLUMNS.map((c) => c.id));
     const overCard = pointerHits.find((hit) => !columnIds.has(String(hit.id)));
     if (overCard) return [overCard];
     return pointerHits;
