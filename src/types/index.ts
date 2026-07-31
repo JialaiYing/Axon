@@ -180,8 +180,8 @@ export interface PomodoroTimerInstance {
   source: TimerSource;
   /** Objective title, or the personal timer's label. */
   label: string;
-  /** Present when this timer is tracking a kanban objective (source "objective",
-   *  or a personal timer whose "Add to Kanban board?" toggle created a card). */
+  /** Present when this timer is tracking a board objective (source "objective",
+   *  or a personal timer whose "Add to board" toggle created a card). */
   objectiveId?: string;
   /** The full configured duration of the current run, in seconds. Restart and
    *  "keep working" extensions both operate against this value. */

@@ -7,12 +7,9 @@ import {
   CheckCircle2,
   Clock,
   Layers,
-  Minus,
   Sparkles,
   Target,
   Timer,
-  TrendingDown,
-  TrendingUp,
 } from "lucide-react";
 import {
   Area,
@@ -32,12 +29,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
 import { StreakFlame } from "@/components/ui/streak-flame";
+import { TrendBadge } from "@/components/ui/trend-badge";
 import { FeatureIntro } from "@/components/onboarding/feature-intro";
 import { useObjectives } from "@/hooks/use-objectives";
 import { usePomodoroSessions } from "@/hooks/use-pomodoro-sessions";
 import { useFlashcards } from "@/hooks/use-flashcards";
 import { useUserStats } from "@/hooks/use-user-stats";
 import { DURATION, EASE, STAGGER, enterVariants, staggerContainer } from "@/lib/motion";
+import { percentTrend, type Trend } from "@/lib/percent-trend";
 import type { Objective, PomodoroSession } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -62,18 +61,10 @@ const PRIORITY_COLORS: Record<Objective["priority"], string> = {
 };
 
 /**
- * Subject legend needs more hues than the token set provides. Deliberate
- * off-palette extensions for chart readability — not accent-as-data paint
- * on the primary trend chart.
+ * Subject bars stay monochrome so the page accent lives on chrome/targets,
+ * not categorical paint.
  */
-const SUBJECT_COLORS = [
-  "var(--color-foreground)",
-  "var(--color-muted)",
-  "#5fa88f",
-  "#c99a5b",
-  "#b381ad",
-  "#6f9fc4",
-];
+const SUBJECT_BAR = "var(--color-foreground)";
 
 function dayKey(d: Date) {
   return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
@@ -110,35 +101,6 @@ function focusMinutesInRange(
     })
     .reduce((sum, s) => sum + s.durationMinutes, 0);
 }
-
-interface Trend {
-  direction: "up" | "down" | "flat";
-  label: string;
-}
-
-function percentTrend(current: number, previous: number): Trend | undefined {
-  if (previous <= 0) return current > 0 ? { direction: "up", label: "New" } : undefined;
-  const pct = Math.round(((current - previous) / previous) * 100);
-  if (pct === 0) return { direction: "flat", label: "Same" };
-  return { direction: pct > 0 ? "up" : "down", label: `${Math.abs(pct)}%` };
-}
-
-const TrendBadge = React.memo(function TrendBadge({ direction, label }: Trend) {
-  const Icon = direction === "up" ? TrendingUp : direction === "down" ? TrendingDown : Minus;
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-0.5 font-mono text-[11px] font-medium tabular-nums",
-        direction === "up" && "text-success",
-        direction === "down" && "text-danger",
-        direction === "flat" && "text-foreground/60"
-      )}
-    >
-      <Icon className="h-3 w-3" />
-      {label}
-    </span>
-  );
-});
 
 /** Per-day focus minutes for the trend chart. Buckets by week when the range is long. */
 function buildTrend(sessions: PomodoroSession[], days: number) {
@@ -202,6 +164,7 @@ function buildSubjectBreakdown(
   }
   return [...bySubject.entries()]
     .map(([subject, minutes]) => ({ subject, minutes }))
+    .filter((row) => row.minutes > 0)
     .sort((a, b) => b.minutes - a.minutes)
     .slice(0, 6);
 }
@@ -302,17 +265,17 @@ const StatCard = React.memo(function StatCard({
   return (
     <div className="flex h-full flex-col justify-between px-4 py-3.5">
       <div className="flex items-center justify-between">
-        <p className="text-[11px] font-medium text-muted-foreground">
+        <p className="text-[14px] font-medium text-muted-foreground">
           {label}
         </p>
-        <Icon className={cn("h-3.5 w-3.5", iconClassName ?? "text-muted-foreground")} />
+        <Icon className={cn("h-4 w-4", iconClassName ?? "text-muted-foreground")} />
       </div>
       <div className="mt-3">
         <div className="flex items-baseline gap-2">
           <p className="font-mono text-xl font-semibold tabular-nums text-foreground">{value}</p>
-          {trend && <TrendBadge {...trend} />}
+          {trend ? <TrendBadge {...trend} /> : null}
         </div>
-        <p className="mt-1 text-[12px] text-muted-foreground">{hint}</p>
+        <p className="mt-1 text-[14px] text-muted-foreground">{hint}</p>
       </div>
     </div>
   );
@@ -331,16 +294,16 @@ function ChartSection({
 }) {
   return (
     <section className={cn("flex flex-col", className)}>
-      <div className="mb-3">
-        <h2 className="text-[13px] font-semibold text-foreground">{title}</h2>
-        {subtitle && <p className="mt-0.5 text-[12px] text-muted-foreground">{subtitle}</p>}
+      <div className="mb-3.5">
+        <h2 className="text-[16px] font-semibold tracking-tight text-foreground">{title}</h2>
+        {subtitle && <p className="mt-1 text-[14px] text-muted-foreground">{subtitle}</p>}
       </div>
       {children}
     </section>
   );
 }
 
-const AXIS_TICK = { fill: "var(--color-muted-foreground)", fontSize: 11 };
+const AXIS_TICK = { fill: "var(--color-muted-foreground)", fontSize: 12 };
 const GRID_STROKE = "var(--color-border)";
 
 function LoadingState() {
@@ -374,17 +337,13 @@ export function AnalyticsOverview() {
     [sessions, rangeDays]
   );
   const rangeFocusMinutes = rangeSessions.reduce((sum, s) => sum + s.durationMinutes, 0);
-  const last7FocusMinutes = React.useMemo(
-    () => focusMinutesInRange(sessions, 6, 0),
-    [sessions]
+  const previousRangeFocusMinutes = React.useMemo(
+    () => focusMinutesInRange(sessions, rangeDays * 2 - 1, rangeDays),
+    [sessions, rangeDays]
   );
-  const previous7FocusMinutes = React.useMemo(
-    () => focusMinutesInRange(sessions, 13, 7),
-    [sessions]
-  );
-  const focusWeekTrend = React.useMemo(
-    () => percentTrend(last7FocusMinutes, previous7FocusMinutes),
-    [last7FocusMinutes, previous7FocusMinutes]
+  const focusRangeTrend = React.useMemo(
+    () => percentTrend(rangeFocusMinutes, previousRangeFocusMinutes),
+    [rangeFocusMinutes, previousRangeFocusMinutes]
   );
   const activeDays = React.useMemo(
     () => new Set(rangeSessions.map((s) => dayKey(new Date(s.date)))).size,
@@ -417,6 +376,10 @@ export function AnalyticsOverview() {
   const weekdays = React.useMemo(
     () => buildWeekdayDistribution(sessions, rangeDays),
     [sessions, rangeDays]
+  );
+  const weekdayPeakMinutes = React.useMemo(
+    () => Math.max(...weekdays.map((d) => d.minutes), 1),
+    [weekdays]
   );
   const subjects = React.useMemo(
     () => buildSubjectBreakdown(sessions, objectives, rangeDays),
@@ -475,7 +438,7 @@ export function AnalyticsOverview() {
       variants={container}
       initial={prefersReducedMotion ? false : "hidden"}
       animate="visible"
-      className="space-y-5"
+      className="space-y-6"
     >
       <motion.div
         variants={item}
@@ -496,8 +459,8 @@ export function AnalyticsOverview() {
             icon={Timer}
             label="Focus time"
             value={formatHours(rangeFocusMinutes)}
-            hint={`Last ${rangeDays} days · vs previous week`}
-            trend={focusWeekTrend}
+            hint={`Last ${rangeDays} days · vs prior period`}
+            trend={focusRangeTrend}
           />
           <StatCard
             icon={Clock}
@@ -520,6 +483,7 @@ export function AnalyticsOverview() {
             label="Completion rate"
             value={`${completionRate}%`}
             hint={`${objectivesDone} of ${objectivesTouched || 0} touched`}
+            iconClassName="text-danger"
           />
       </motion.div>
 
@@ -531,10 +495,11 @@ export function AnalyticsOverview() {
         >
           {rangeSessions.length === 0 ? (
             <EmptyState
-              icon={<Timer className="h-5 w-5 text-muted" />}
+              compact
+              icon={<Timer />}
               title="No focus sessions yet"
               description={`Start a Pomodoro in the last ${rangeDays} days to see your trend here.`}
-              className="min-h-[200px] border-0 bg-transparent p-6"
+              className="min-h-[200px] p-6"
             />
           ) : (
             <div className="h-60 w-full">
@@ -584,10 +549,11 @@ export function AnalyticsOverview() {
           >
             {donut.every((d) => d.value === 0) ? (
               <EmptyState
-                icon={<CheckCircle2 className="h-5 w-5 text-muted" />}
+                compact
+                icon={<CheckCircle2 />}
                 title="No completions yet"
                 description="Finish objectives to see the priority mix."
-                className="min-h-[180px] border-0 bg-transparent p-4"
+                className="min-h-[180px] p-4"
               />
             ) : (
               <>
@@ -623,7 +589,7 @@ export function AnalyticsOverview() {
                 </div>
                 <ul className="mt-3 space-y-1.5">
                   {donut.map((entry) => (
-                    <li key={entry.name} className="flex items-center gap-2 text-xs text-foreground">
+                    <li key={entry.name} className="flex items-center gap-2 text-[14px] text-foreground">
                       <span
                         className="h-2 w-2 rounded-full"
                         style={{ backgroundColor: entry.color }}
@@ -658,7 +624,7 @@ export function AnalyticsOverview() {
                 );
               })}
             </div>
-            <div className="mt-3 flex items-center gap-1.5 text-[10px] text-muted-foreground">
+            <div className="mt-3 flex items-center gap-1.5 text-[14px] text-muted-foreground">
               <span>Less</span>
               {HEAT_COLORS.map((c, i) => (
                 <span key={i} className={cn("h-2.5 w-2.5 rounded-[2px]", c)} />
@@ -709,7 +675,22 @@ export function AnalyticsOverview() {
                       <XAxis dataKey="label" tick={AXIS_TICK} axisLine={false} tickLine={false} />
                       <YAxis tick={AXIS_TICK} axisLine={false} tickLine={false} width={46} />
                       <Tooltip content={<ChartTooltip />} cursor={{ fill: "var(--color-card-hover)" }} />
-                      <Bar dataKey="minutes" fill="var(--color-foreground)" fillOpacity={0.55} radius={[3, 3, 0, 0]} isAnimationActive={!prefersReducedMotion} />
+                      <Bar
+                        dataKey="minutes"
+                        radius={[3, 3, 0, 0]}
+                        isAnimationActive={!prefersReducedMotion}
+                      >
+                        {weekdays.map((day) => {
+                          const intensity = 0.4 + 0.6 * (day.minutes / weekdayPeakMinutes);
+                          return (
+                            <Cell
+                              key={day.label}
+                              fill="var(--color-accent)"
+                              fillOpacity={day.minutes <= 0 ? 0.15 : intensity}
+                            />
+                          );
+                        })}
+                      </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -722,28 +703,29 @@ export function AnalyticsOverview() {
               <ChartSection title="Focus by subject" subtitle="Where your study time goes">
                 {subjects.length === 0 ? (
                   <EmptyState
-                    icon={<BookOpen className="h-5 w-5 text-muted" />}
+                    compact
+                    icon={<BookOpen />}
                     title="No subject data yet"
                     description="Link timers to objectives with subjects to break down focus time."
-                    className="min-h-[160px] border-0 bg-transparent p-4"
+                    className="min-h-[160px] p-4"
                   />
                 ) : (
-                  <ul className="space-y-3">
+                  <ul className="space-y-3.5">
                     {subjects.map((s, i) => {
                       const max = Math.max(1, subjects[0]?.minutes ?? 0);
                       return (
                         <li key={s.subject}>
-                          <div className="mb-1.5 flex items-center justify-between text-xs">
+                          <div className="mb-1.5 flex items-center justify-between text-[14px]">
                             <span className="truncate text-foreground">{s.subject}</span>
                             <span className="font-mono tabular-nums text-muted-foreground">{formatHours(s.minutes)}</span>
                           </div>
-                          <div className="h-1.5 overflow-hidden rounded-md bg-wash">
+                          <div className="h-2 overflow-hidden rounded-md bg-wash">
                             <motion.div
                               initial={prefersReducedMotion ? false : { width: 0 }}
                               animate={{ width: `${(s.minutes / max) * 100}%` }}
                               transition={{ duration: 0.7, ease: EASE, delay: i * 0.06 }}
                               className="h-full rounded-md"
-                              style={{ backgroundColor: SUBJECT_COLORS[i % SUBJECT_COLORS.length] }}
+                              style={{ backgroundColor: SUBJECT_BAR, opacity: 0.55 }}
                             />
                           </div>
                         </li>
@@ -757,18 +739,23 @@ export function AnalyticsOverview() {
               <ChartSection title="Flashcard performance" subtitle="All-time recall across your sets">
                 <div className="grid flex-1 grid-cols-2 gap-x-6 gap-y-4">
                   {[
-                    { icon: Target, label: "Accuracy", value: `${cardStats.accuracy}%`, hint: `${cardStats.attempts} total reviews` },
+                    { icon: Target, label: "Accuracy", value: `${cardStats.accuracy}%`, hint: `${cardStats.attempts} total reviews`, tint: true },
                     { icon: Sparkles, label: "Mastered", value: String(cardStats.mastered), hint: "80%+ with 3+ reviews" },
                     { icon: Layers, label: "Cards", value: String(totalCards), hint: `Across ${sets.length} set${sets.length === 1 ? "" : "s"}` },
                     { icon: BookOpen, label: "Sets", value: String(sets.length), hint: "Total created" },
                   ].map((entry) => (
                     <div key={entry.label} className="py-1">
                       <div className="flex items-center gap-2">
-                        <entry.icon className="h-3.5 w-3.5 text-muted-foreground" />
-                        <p className="text-[11px] font-medium text-muted-foreground">{entry.label}</p>
+                        <entry.icon
+                          className={cn(
+                            "h-4 w-4",
+                            entry.tint ? "text-danger" : "text-muted-foreground"
+                          )}
+                        />
+                        <p className="text-[14px] font-medium text-muted-foreground">{entry.label}</p>
                       </div>
                       <p className="mt-2 font-mono text-xl font-semibold tabular-nums text-foreground">{entry.value}</p>
-                      <p className="mt-0.5 text-[11px] text-muted-foreground">{entry.hint}</p>
+                      <p className="mt-0.5 text-[14px] text-muted-foreground">{entry.hint}</p>
                     </div>
                   ))}
                 </div>
@@ -780,7 +767,7 @@ export function AnalyticsOverview() {
             variants={item}
             className="border-t border-border/50 pt-5 light:border-border"
           >
-              <p className="text-[11px] font-medium text-muted-foreground">All time</p>
+              <p className="text-[14px] font-medium text-muted-foreground">All time</p>
               <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-4">
                 {(
                   [
@@ -805,10 +792,10 @@ export function AnalyticsOverview() {
                       {entry.icon}
                     </span>
                     <div>
-                      <p className="font-mono text-[13px] font-semibold tabular-nums text-foreground">
+                      <p className="font-mono text-[14px] font-semibold tabular-nums text-foreground">
                         <AnimatedCounter value={entry.value} suffix={entry.suffix} />
                       </p>
-                      <p className="text-[11px] text-muted-foreground">{entry.label}</p>
+                      <p className="text-[14px] text-muted-foreground">{entry.label}</p>
                     </div>
                   </div>
                 ))}

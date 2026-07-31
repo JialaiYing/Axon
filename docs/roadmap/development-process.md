@@ -9,7 +9,7 @@ Work in this order unless new evidence (real usage, user feedback) says otherwis
 ### M1 — Cheap, real, low-risk wins
 - [x] Pomodoro work/break interval cycling (`product-requirements.md` §9)
 - [x] Goals simplification: fixed "3 objectives/day" default (§5)
-- [ ] Dashboard trim (§9) — not started; the aesthetic pass attempted here didn't land and was reverted, page is still at its pre-M1 baseline
+- [x] Dashboard trim (§9) — agenda-only hero; Up next / Focus this week / Personal+Recent removed; Rank strip links to `/rank`
 - [x] Kanban copy rename (§9)
 - [x] Flashcards Home-rail/gallery-tab removal (§9)
 - [x] Calendar toolbar alignment (§9)

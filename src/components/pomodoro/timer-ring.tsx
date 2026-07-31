@@ -88,7 +88,7 @@ export function TimerRing({ remainingSeconds, totalSeconds, size }: TimerRingPro
         >
           {formatClock(remainingSeconds)}
         </motion.span>
-        <span className="mt-1.5 text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+        <span className="mt-1.5 text-[12px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
           {isLow ? "Almost up" : "Remaining"}
         </span>
       </div>

@@ -1,12 +1,11 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { CheckCircle2, Target, Timer } from "lucide-react";
+import { Target, Timer } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -49,13 +48,12 @@ export function SessionSummaryDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm">
-        <DialogHeader>
-          <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-md border border-border/50 text-muted-foreground light:border-border">
-            <CheckCircle2 className="h-4 w-4" />
-          </div>
-          <DialogTitle>Session complete</DialogTitle>
-          <DialogDescription>
-            You focused on &ldquo;{stats.label}&rdquo;. Here&apos;s what you earned.
+        <DialogHeader className="mb-3">
+          <DialogTitle className="text-xl font-semibold tracking-tight">
+            Session complete
+          </DialogTitle>
+          <DialogDescription className="text-[14px] text-muted-foreground">
+            You focused on &ldquo;{stats.label}&rdquo;.
           </DialogDescription>
         </DialogHeader>
 
@@ -66,7 +64,7 @@ export function SessionSummaryDialog({
             value={`${stats.focusedMinutes} min`}
           />
           <SummaryTile
-            icon={<span className="font-mono text-[10px] font-semibold">XP</span>}
+            icon={<span className="font-mono text-[12px] font-semibold">XP</span>}
             label="XP earned"
             value={`+${stats.sessionXp}`}
           />
@@ -82,13 +80,13 @@ export function SessionSummaryDialog({
           />
         </div>
 
-        <p className="text-xs leading-relaxed text-muted-foreground">{streakNudge}</p>
+        <p className="mt-3 text-[14px] leading-relaxed text-muted-foreground">{streakNudge}</p>
 
-        <DialogFooter>
-          <Button onClick={onContinue} className="w-full shadow-none sm:w-auto">
+        <div className="mt-4">
+          <Button onClick={onContinue} className="w-full shadow-none">
             Continue
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );
@@ -105,11 +103,13 @@ function SummaryTile({
 }) {
   return (
     <div className="rounded-md border border-border/50 px-3 py-2.5 light:border-border">
-      <p className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
+      <p className="flex items-center gap-1.5 text-[14px] font-medium text-muted-foreground">
         {icon}
         {label}
       </p>
-      <p className="mt-1 font-mono text-[13px] font-semibold tabular-nums text-foreground">{value}</p>
+      <p className="mt-1 font-mono text-[15px] font-semibold tabular-nums text-foreground">
+        {value}
+      </p>
     </div>
   );
 }

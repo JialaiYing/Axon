@@ -23,6 +23,7 @@ Update this file as items get resolved instead of letting it silently rot — se
 
 - **[Subsumed]** Hardcoded indigo glow (`rgba(94,106,210,…)`) — the dashboard page itself was already cleaned up; remnants live in Calendar/`xp-burst`/`tilt-card`/Tabs (see Calendar entry below).
 - **[Subsumed]** "Recent" column had no footer strip while Goals/Rank did (uneven baseline) — moot once Personal goals/Recent are removed from the dashboard per the new PRD scope.
+- **[Resolved — M1]** Dashboard trim (§9): removed Up next, Focus this week chart, Personal goals / Recent bottom trio, and agenda inline goal-progress bars. Stats strip + Rank preview remain; Rank strip now links to `/rank`.
 
 ## Kanban
 
@@ -30,6 +31,7 @@ Update this file as items get resolved instead of letting it silently rot — se
 - **[Independent]** Hardcoded indigo glow debt (same root cause as Calendar/Dashboard below) — one sweep still needed across `xp-burst`, `tilt-card`, Tabs regardless of the M2 color rework.
 - **[By design]** Objective form / recycle-bin dialog polish was intentionally deferred in the original audit; still not urgent.
 - **[Resolved — M1]** Page/copy still said "Kanban" throughout ("Kanban" title, empty-state icon/copy, Calendar's "Pick an existing Kanban objective" / "Add to Kanban board?" strings) — renamed the page to "Board" and swapped the leftover Calendar copy to match, since the feature is objective management, not a specific board-software brand.
+- **[Resolved — M1]** Dragging In Progress → Finished silently no-oped when the card still had unlogged estimate minutes or open subtasks (`canMarkObjectiveDone` hard-gate, no toast). Removed the gate so board/form can mark Finished freely; study-time progress still tracks independently.
 
 ## Calendar
 

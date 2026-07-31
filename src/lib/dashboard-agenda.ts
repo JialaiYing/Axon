@@ -24,21 +24,18 @@ export interface TodayAgendaBuckets {
   dueToday: Objective[];
   focusBlocks: ScheduledEvent[];
   calendarEvents: ScheduledEvent[];
-  /** In-progress Kanban cards not already listed above. */
+  /** In-progress board cards not already listed above. */
   inProgress: Objective[];
   /**
    * Open board work shown only when nothing is due/scheduled/in-progress today —
    * so undated todos still appear in the hero instead of a false "clear day".
    */
   onBoard: Objective[];
-  /** IDs already rendered in the agenda — Up next must exclude these. */
-  shownIds: Set<string>;
 }
 
 /**
- * Single source of truth for Dashboard Agenda + Up next partitioning.
- * Both surfaces read the same `axon:kanban:objectives` list; this helper
- * decides which bucket each active objective lands in so nothing duplicates.
+ * Single source of truth for the Dashboard Today agenda.
+ * Reads `axon:kanban:objectives` and buckets active work so nothing duplicates.
  */
 export function buildTodayAgenda(
   objectives: Objective[],
@@ -112,12 +109,6 @@ export function buildTodayAgenda(
         .sort(sortOpenQueue)
         .slice(0, 5);
 
-  const shownIds = new Set<string>([
-    ...timedIds,
-    ...inProgress.map((o) => o.id),
-    ...onBoard.map((o) => o.id),
-  ]);
-
   return {
     overdue,
     dueToday,
@@ -125,20 +116,5 @@ export function buildTodayAgenda(
     calendarEvents,
     inProgress,
     onBoard,
-    shownIds,
   };
-}
-
-/** Open Kanban objectives not already covered by the Today agenda buckets. */
-export function buildUpNextQueue(objectives: Objective[], now: Date = new Date()): Objective[] {
-  const { shownIds } = buildTodayAgenda(objectives, now);
-  return objectives
-    .filter(
-      (o) =>
-        (o.status === "todo" || o.status === "in-progress") &&
-        o.showOnKanban !== false &&
-        !shownIds.has(o.id)
-    )
-    .sort(sortOpenQueue)
-    .slice(0, 5);
 }

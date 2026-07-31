@@ -86,13 +86,13 @@ export function FolderCoverTile({
       <p
         className={cn(
           "w-full truncate text-foreground",
-          centered ? "mt-3 text-base font-semibold" : "mt-2 text-[13px] font-medium"
+          centered ? "mt-3 text-base font-semibold" : "mt-2 text-[15px] font-medium"
         )}
       >
         {title || "Untitled"}
       </p>
       {typeof setCount === "number" && (
-        <p className="mt-0.5 text-[11px] text-muted-foreground">
+        <p className="mt-0.5 text-[14px] text-muted-foreground">
           {setCount} set{setCount === 1 ? "" : "s"}
         </p>
       )}

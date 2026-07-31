@@ -7,20 +7,29 @@ import { EASE } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 interface EmptyStateProps {
-  /** Pass a rendered icon element, e.g. `<Inbox className="h-5.5 w-5.5 text-muted" />` —
-   *  keeps this usable from server-component call sites (a bare component
-   *  reference can't cross the server/client boundary, an element can). */
-  icon: ReactNode;
+  /** Soft icon drawn against the surface — no bordered tile. Pass e.g. `<Inbox className="h-8 w-8" />`. */
+  icon?: ReactNode;
   title: string;
   description?: string;
   actionLabel?: string;
   onAction?: () => void;
   className?: string;
+  titleClassName?: string;
+  descriptionClassName?: string;
+  /** Larger action button — used when the empty state is the primary surface. */
+  actionSize?: "sm" | "default" | "lg";
+  /** Nested chart/panel empties — smaller type and icon. */
+  compact?: boolean;
+  /**
+   * `integrated` (default) — bare icon + type on the page surface, no dashed frame.
+   * `framed` — dashed border for standalone empty panels that need a container.
+   */
+  variant?: "integrated" | "framed";
 }
 
 /**
- * One consistent "nothing here yet" surface — replaces the ad-hoc empty
- * blocks that used to be hand-rolled per section.
+ * Shared empty surface for “nothing here yet” moments.
+ * Title size matches Pomodoro idle (`18/20px`); icons sit bare on the background.
  */
 export function EmptyState({
   icon,
@@ -29,6 +38,11 @@ export function EmptyState({
   actionLabel,
   onAction,
   className,
+  titleClassName,
+  descriptionClassName,
+  actionSize = "sm",
+  compact = false,
+  variant = "integrated",
 }: EmptyStateProps) {
   const prefersReducedMotion = useReducedMotion();
 
@@ -38,21 +52,47 @@ export function EmptyState({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: EASE }}
       className={cn(
-        "flex min-h-[320px] flex-col items-center justify-center gap-4 rounded-md border border-dashed border-border/60 p-10 text-center light:border-border light:bg-card",
+        "flex flex-col items-center justify-center gap-3 text-center",
+        variant === "framed" &&
+          "rounded-md border border-dashed border-border/60 light:border-border light:bg-card",
+        compact ? "min-h-[160px] p-4" : "min-h-[320px] p-10",
         className
       )}
     >
-      <div className="flex h-11 w-11 items-center justify-center rounded-md border border-border/50 bg-wash light:border-border">
-        {icon}
-      </div>
+      {icon ? (
+        <div
+          className={cn(
+            "text-muted-foreground",
+            compact ? "[&_svg]:h-5 [&_svg]:w-5" : "[&_svg]:h-8 [&_svg]:w-8"
+          )}
+        >
+          {icon}
+        </div>
+      ) : null}
       <div className="max-w-sm">
-        <p className="text-[13px] font-medium text-foreground">{title}</p>
+        <p
+          className={cn(
+            compact
+              ? "text-[14px] font-medium text-foreground"
+              : "text-[18px] font-semibold tracking-tight text-foreground sm:text-[20px]",
+            titleClassName
+          )}
+        >
+          {title}
+        </p>
         {description && (
-          <p className="mt-1.5 text-[12px] leading-relaxed text-muted-foreground">{description}</p>
+          <p
+            className={cn(
+              "mt-1.5 text-[14px] leading-relaxed text-muted-foreground",
+              descriptionClassName
+            )}
+          >
+            {description}
+          </p>
         )}
       </div>
       {actionLabel && onAction && (
-        <Button size="sm" onClick={onAction} className="mt-1 shadow-none">
+        <Button size={actionSize} onClick={onAction} className="mt-1 shadow-none">
           {actionLabel}
         </Button>
       )}

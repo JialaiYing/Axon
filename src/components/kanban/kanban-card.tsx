@@ -126,7 +126,7 @@ function KanbanCardView({
   return (
     <div
       className={cn(
-        "group relative rounded-md border border-border/50 bg-card px-2.5 py-2 light:border-border",
+        "group relative rounded-md border border-border/50 bg-card px-3 py-2.5 light:border-border",
         "transition-colors duration-150 hover:bg-wash",
         !isOverlay && "cursor-grab active:cursor-grabbing",
         isOverlay && "border-border bg-card shadow-[var(--shadow-elevation-2)]",
@@ -136,7 +136,7 @@ function KanbanCardView({
       {objective.color && (
         <span
           aria-hidden
-          className="absolute left-0 top-2 h-[calc(100%-16px)] w-0.5 rounded-full"
+          className="absolute left-0 top-2.5 h-[calc(100%-20px)] w-0.5 rounded-full"
           style={{ backgroundColor: objective.color }}
         />
       )}
@@ -157,7 +157,7 @@ function KanbanCardView({
             )}
             title={objective.priority}
           />
-          <span className="text-[13px] font-medium leading-snug text-foreground">
+          <span className="text-[14px] font-medium leading-snug text-foreground">
             {objective.title}
           </span>
         </button>
@@ -208,12 +208,12 @@ function KanbanCardView({
       </div>
 
       {objective.description && (
-        <p className="mt-1 line-clamp-2 pl-4 text-[12px] text-muted-foreground">
+        <p className="mt-1.5 line-clamp-2 pl-4 text-[12px] text-muted-foreground">
           {objective.description}
         </p>
       )}
 
-      <div className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 pl-4 text-[11px] text-muted-foreground">
+      <div className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 pl-4 text-[12px] text-muted-foreground">
         <span className="capitalize">{objective.priority}</span>
         {objective.subject && (
           <>
@@ -230,7 +230,7 @@ function KanbanCardView({
       </div>
 
       {(hasSubtasks || (objective.recurrence && objective.recurrence !== "none") || dueLabel || timeLabel) && (
-        <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 pl-4 text-[11px] text-muted-foreground">
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 pl-4 text-[12px] text-muted-foreground">
           {hasSubtasks && (
             <span className="flex items-center gap-1">
               <ListChecks className="h-3 w-3" />
@@ -272,7 +272,7 @@ function KanbanCardView({
                   type="button"
                   onClick={toggle}
                   className={cn(
-                    "flex items-center gap-1.5 text-[11px] transition-colors duration-150",
+                    "flex items-center gap-1.5 text-[12px] transition-colors duration-150",
                     "text-muted-foreground hover:text-foreground",
                     open && "text-foreground"
                   )}
@@ -290,7 +290,7 @@ function KanbanCardView({
                   type="button"
                   onClick={toggle}
                   className={cn(
-                    "flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground transition-colors duration-150 hover:text-foreground",
+                    "flex items-center gap-1.5 text-[12px] font-medium text-muted-foreground transition-colors duration-150 hover:text-foreground",
                     open && "text-foreground"
                   )}
                 >
@@ -304,7 +304,7 @@ function KanbanCardView({
       )}
 
       {isDone && recycleCountdown !== null && (
-        <p className="mt-1.5 pl-4 text-[10px] text-muted-foreground">
+        <p className="mt-1.5 pl-4 text-[12px] text-muted-foreground">
           {recycleCountdown === 0
             ? "Moves to recycle bin today"
             : `Auto-recycles in ${recycleCountdown}d`}

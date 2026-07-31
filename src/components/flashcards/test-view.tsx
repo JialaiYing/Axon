@@ -233,7 +233,7 @@ export function TestView({ set, onBack, onRecordResult, onComplete }: TestViewPr
   if (cards.length === 0) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
-        <p className="text-sm text-muted-foreground">Add cards to this set before testing.</p>
+        <p className="text-[14px] text-muted-foreground">Add cards to this set before testing.</p>
         <Button size="sm" variant="outline" onClick={onBack} className="cursor-pointer">
           <ArrowLeft className="h-3.5 w-3.5" /> Back to study
         </Button>
@@ -252,7 +252,7 @@ export function TestView({ set, onBack, onRecordResult, onComplete }: TestViewPr
           <div className="min-w-0">
             <h2 className="truncate text-2xl font-medium tracking-tight text-foreground sm:text-[28px]">{set.title} · Test</h2>
             {phase === "running" && (
-              <p className="truncate text-xs text-muted-foreground">
+              <p className="truncate text-[14px] text-muted-foreground">
                 Question {current + 1} of {questions.length}
               </p>
             )}

@@ -45,7 +45,7 @@ function UnscheduledRow({
       ref={setNodeRef}
       style={{ transform: transform ? CSS.Translate.toString(transform) : undefined }}
       className={cn(
-        "flex items-center gap-2 px-1 py-1.5 transition-colors hover:bg-wash",
+        "flex items-center gap-2 px-1.5 py-2 transition-colors hover:bg-wash",
         isDragging && "opacity-40"
       )}
     >
@@ -62,7 +62,9 @@ function UnscheduledRow({
             objective.color ? { backgroundColor: objective.color } : undefined
           }
         />
-        <p className="min-w-0 flex-1 truncate text-[12px] font-medium text-foreground">{objective.title}</p>
+        <p className="min-w-0 flex-1 truncate text-[14px] font-medium text-foreground">
+          {objective.title}
+        </p>
       </button>
       <SchedulePopover
         objective={objective}
@@ -73,7 +75,7 @@ function UnscheduledRow({
           <button
             type="button"
             onClick={toggle}
-            className="shrink-0 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+            className="shrink-0 text-[12px] font-medium text-muted-foreground transition-colors hover:text-foreground"
           >
             Schedule
           </button>
@@ -101,16 +103,21 @@ export function UnscheduledRail({
   );
 
   return (
-    <div className={cn("overflow-hidden rounded-md border border-border/50 light:border-border light:bg-card", className)}>
+    <div
+      className={cn(
+        "overflow-hidden rounded-md border border-border/50 light:border-border light:bg-card",
+        className
+      )}
+    >
       <button
         type="button"
         onClick={() => setCollapsed((c) => !c)}
-        className="flex w-full items-center justify-between px-3 py-2.5"
+        className="flex w-full items-center justify-between px-3.5 py-3"
       >
-        <span className="flex items-center gap-1.5 text-[13px] font-semibold text-foreground">
+        <span className="flex items-center gap-1.5 text-[14px] font-semibold text-foreground">
           <Inbox className="h-3.5 w-3.5 text-muted-foreground" />
           Unscheduled
-          <span className="font-mono text-[11px] font-medium text-muted-foreground">
+          <span className="font-mono text-[12px] font-medium tabular-nums text-muted-foreground">
             · {unscheduled.length}
           </span>
         </span>
@@ -131,9 +138,9 @@ export function UnscheduledRail({
             transition={{ duration: prefersReducedMotion ? 0 : 0.2, ease: [0.21, 0.47, 0.32, 0.98] }}
             className="overflow-hidden border-t border-border/50 light:border-border"
           >
-            <div className="flex max-h-64 flex-col overflow-y-auto px-2 py-1">
+            <div className="flex max-h-72 flex-col overflow-y-auto px-2.5 py-1.5">
               {unscheduled.length === 0 ? (
-                <p className="px-1 py-3 text-center text-[12px] text-muted-foreground">
+                <p className="px-1 py-3.5 text-center text-[12px] text-muted-foreground">
                   Everything active is on the Calendar.
                 </p>
               ) : (
@@ -149,7 +156,7 @@ export function UnscheduledRail({
                 </div>
               )}
             </div>
-            <p className="border-t border-border/50 px-3 py-1.5 text-[10px] text-muted-foreground">
+            <p className="border-t border-border/50 px-3.5 py-2 text-[12px] text-muted-foreground">
               Drag onto a day to schedule, or use Schedule.
             </p>
           </motion.div>

@@ -29,7 +29,6 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { KanbanBoardSkeleton } from "@/components/ui/skeleton";
 import { ConfettiBurst } from "@/components/ui/confetti";
 import { KANBAN_COLUMNS } from "@/constants/kanban";
-import { canMarkObjectiveDone } from "@/lib/kanban-utils";
 import { useObjectives, isOnKanbanBoard, type ObjectiveInput } from "@/hooks/use-objectives";
 import type { Objective, KanbanStatus } from "@/types";
 
@@ -157,7 +156,6 @@ export function KanbanBoard() {
     const overColumn = KANBAN_COLUMNS.find((c) => c.id === over.id);
     if (overColumn) {
       if (activeObjective.status === overColumn.id) return;
-      if (overColumn.id === "done" && !canMarkObjectiveDone(activeObjective)) return;
       moveObjective(activeObjective.id, overColumn.id);
       if (overColumn.id === "done") setCelebrateKey((k) => k + 1);
       return;
@@ -167,7 +165,6 @@ export function KanbanBoard() {
     if (!overObjective || overObjective.id === activeObjective.id) return;
 
     if (overObjective.status !== activeObjective.status) {
-      if (overObjective.status === "done" && !canMarkObjectiveDone(activeObjective)) return;
       // Single write: change column and land next to the target card.
       moveObjective(activeObjective.id, overObjective.status);
       // queueMicrotask so reorder sees the post-move store (avoids a same-tick
@@ -185,11 +182,6 @@ export function KanbanBoard() {
   function handleFormSubmit(input: ObjectiveInput) {
     if (dialogState?.mode === "edit") {
       const wasDone = dialogState.objective.status === "done";
-      const merged = { ...dialogState.objective, ...input };
-      if (!wasDone && input.status === "done" && !canMarkObjectiveDone(merged)) {
-        updateObjective(dialogState.objective.id, { ...input, status: dialogState.objective.status });
-        return;
-      }
       updateObjective(dialogState.objective.id, input);
       if (!wasDone && input.status === "done") setCelebrateKey((k) => k + 1);
     } else {
@@ -205,12 +197,12 @@ export function KanbanBoard() {
         <button
           type="button"
           onClick={() => setRecycleBinOpen(true)}
-          className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-md px-2 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-wash hover:text-foreground"
+          className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-md px-2 text-[14px] font-medium text-muted-foreground transition-colors hover:bg-wash hover:text-foreground"
         >
           <RotateCcw className="h-3.5 w-3.5" />
           Recycle bin
           {recycledObjectives.length > 0 && (
-            <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
+            <span className="font-mono text-[14px] tabular-nums text-muted-foreground">
               {recycledObjectives.length}
             </span>
           )}
@@ -230,18 +222,21 @@ export function KanbanBoard() {
         <KanbanBoardSkeleton />
       ) : isBoardEmpty ? (
         <EmptyState
-          icon={<ListTodo className="h-5 w-5 text-muted-foreground" />}
+          icon={<ListTodo />}
           title="No objectives yet"
-          description="Add a study objective, then drag it across Queued → In progress → Done."
           actionLabel="New objective"
+          actionSize="lg"
+          className="min-h-[min(70vh,36rem)]"
           onAction={() => setDialogState({ mode: "create", status: "todo" })}
         />
       ) : isFilterEmpty ? (
         <EmptyState
-          icon={<SearchX className="h-5 w-5 text-muted-foreground" />}
+          icon={<SearchX />}
           title="No matches"
           description="Try a different search or clear the priority filter."
           actionLabel="Clear filters"
+          actionSize="lg"
+          className="min-h-[min(70vh,36rem)]"
           onAction={() => {
             setSearch("");
             setPriorityFilter("all");

@@ -216,7 +216,7 @@ export function CalendarPage() {
             initial={prefersReducedMotion ? undefined : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: prefersReducedMotion ? 0 : DURATION.section, ease: EASE }}
-            className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_260px]"
+            className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_300px]"
           >
             <div className="min-w-0">
               <AnimatePresence mode="wait">
@@ -279,9 +279,9 @@ export function CalendarPage() {
                 className="flex items-center justify-between rounded-md border border-border/50 px-3 py-2 text-left light:border-border light:bg-card lg:hidden"
                 aria-expanded={mobileRailOpen}
               >
-                <span className="text-[13px] font-medium text-foreground">
+                <span className="text-[14px] font-medium text-foreground">
                   Agenda
-                  <span className="ml-1.5 font-mono text-[11px] font-medium text-muted-foreground">
+                  <span className="ml-1.5 font-mono text-[12px] font-medium text-muted-foreground">
                     · {unscheduledCount} unscheduled
                   </span>
                 </span>

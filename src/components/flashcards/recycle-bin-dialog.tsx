@@ -107,7 +107,7 @@ export function FlashcardsRecycleBinDialog({
           {sorted.length === 0 ? (
             <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border py-10 text-center">
               <Inbox className="h-5 w-5 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">The recycle bin is empty.</p>
+              <p className="text-[14px] text-muted-foreground">The recycle bin is empty.</p>
             </div>
           ) : (
             <ul className="flex flex-col gap-2">
@@ -139,8 +139,8 @@ export function FlashcardsRecycleBinDialog({
                       className="flex w-full items-center justify-between gap-3 px-3.5 py-3 text-left transition-colors duration-150 hover:bg-card"
                     >
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-foreground">{title}</p>
-                        <p className="mt-0.5 text-[11px] text-muted-foreground">
+                        <p className="truncate text-[15px] font-medium text-foreground">{title}</p>
+                        <p className="mt-0.5 text-[14px] text-muted-foreground">
                           Recycled {formatCreatedDate(entry.item.recycledAt) ?? "recently"} ·{" "}
                           {daysLeft === 0 ? "deletes today" : `deletes in ${daysLeft}d`}
                         </p>
@@ -159,8 +159,8 @@ export function FlashcardsRecycleBinDialog({
                           transition={{ duration: 0.2, ease: [0.21, 0.47, 0.32, 0.98] }}
                           className={cn("border-t border-border px-3.5")}
                         >
-                          <div className="py-3 text-sm">
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <div className="py-3 text-[14px]">
+                            <div className="flex items-center gap-2 text-[14px] text-muted-foreground">
                               {entry.kind === "folder" ? (
                                 <Folder className="h-3.5 w-3.5" />
                               ) : (
@@ -171,7 +171,7 @@ export function FlashcardsRecycleBinDialog({
                             {entry.kind === "set" && entry.item.description ? (
                               <p className="mt-2 text-muted">{entry.item.description}</p>
                             ) : null}
-                            <p className="mt-2 text-[11px] text-muted-foreground">
+                            <p className="mt-2 text-[14px] text-muted-foreground">
                               Created {formatCreatedDate(entry.item.createdAt)}
                             </p>
 

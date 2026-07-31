@@ -189,7 +189,7 @@ export function FlashcardsGridLibrary({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-      <div className="flex items-center justify-between gap-2 border-b border-border/50 px-4 py-1.5 light:border-border">
+      <div className="flex items-center justify-between gap-2 border-b border-border/50 px-4 py-2.5 light:border-border">
         <div className="flex min-w-0 items-center gap-2">
           {folder ? (
             <>
@@ -202,7 +202,7 @@ export function FlashcardsGridLibrary({
               <p className="truncate text-2xl font-medium tracking-tight text-foreground sm:text-[28px]">{folder.title}</p>
             </>
           ) : (
-            <p className="text-[15px] font-medium text-muted-foreground">All items</p>
+            <p className="text-[14px] font-medium text-muted-foreground">All items</p>
           )}
         </div>
         <div className="flex shrink-0 items-center gap-1">
@@ -264,13 +264,13 @@ export function FlashcardsGridLibrary({
       >
         <div className="min-h-0 flex-1 overflow-y-auto p-4">
           {empty ? (
-            <div className="flex h-full min-h-[280px] flex-col items-center justify-center gap-2 text-center">
-              <Layers className="h-7 w-7 text-muted-foreground" />
+            <div className="flex h-full min-h-[280px] flex-col items-center justify-center gap-3 text-center">
+              <Layers className="h-8 w-8 text-muted-foreground" strokeWidth={1.5} />
               <div>
-                <p className="text-[15px] font-medium text-foreground">
+                <p className="text-[18px] font-semibold tracking-tight text-foreground sm:text-[20px]">
                   {folder ? "No sets in this folder" : "No folders or sets yet"}
                 </p>
-                <p className="mt-1 max-w-xs text-[14px] text-muted-foreground">
+                <p className="mt-1.5 max-w-xs text-[14px] leading-relaxed text-muted-foreground">
                   {folder
                     ? "Use Create below to add a set, or drag one here from another folder."
                     : "Use Create below to add a folder or an unfiled set."}
@@ -278,7 +278,7 @@ export function FlashcardsGridLibrary({
               </div>
             </div>
           ) : layout === "icons" ? (
-            <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+            <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
               {folder
                 ? sortedFolderSets.map((set) => (
                     <li key={set.id}>
@@ -371,7 +371,7 @@ export function FlashcardsGridLibrary({
           {activeSet ? (
             <div className="w-52 rounded-md border border-border bg-card px-3 py-2 shadow-[var(--shadow-elevation-1)]">
               <p className="truncate text-[15px] font-medium text-foreground">{activeSet.title}</p>
-              <p className="mt-0.5 text-[13px] text-muted-foreground">
+              <p className="mt-0.5 text-[14px] text-muted-foreground">
                 {activeSet.subject || "General"} · {activeSet.cards.length} card
                 {activeSet.cards.length === 1 ? "" : "s"}
               </p>
@@ -522,7 +522,7 @@ function FolderItem({
       <div
         ref={setNodeRef}
         className={cn(
-          "group grid grid-cols-[minmax(0,1fr)_7rem_6rem] items-center gap-2 border-b border-border/50 px-2 py-1.5 last:border-b-0 light:border-border",
+          "group grid grid-cols-[minmax(0,1fr)_7rem_6rem] items-center gap-2 border-b border-border/50 px-2 py-2 last:border-b-0 light:border-border",
           isOver && "bg-wash"
         )}
       >
@@ -612,7 +612,7 @@ function SetItem({
       <div
         ref={setNodeRef}
         style={style}
-        className="group grid grid-cols-[minmax(0,1fr)_7rem_6rem] items-center gap-2 border-b border-border/50 px-2 py-1.5 last:border-b-0 light:border-border"
+        className="group grid grid-cols-[minmax(0,1fr)_7rem_6rem] items-center gap-2 border-b border-border/50 px-2 py-2 last:border-b-0 light:border-border"
       >
         <div className="flex min-w-0 items-center gap-1">
           <button
@@ -652,11 +652,11 @@ function SetItem({
         className="flex h-full w-full cursor-grab flex-col rounded-md border border-border/50 bg-card p-3 text-left transition-colors hover:bg-wash active:cursor-grabbing light:border-border"
       >
         <p className="truncate pr-10 text-[15px] font-medium text-foreground">{set.title}</p>
-        <p className="mt-1 text-[13px] text-muted-foreground">
+        <p className="mt-1 text-[14px] text-muted-foreground">
           {set.subject || "General"} · {set.cards.length} card
           {set.cards.length === 1 ? "" : "s"}
         </p>
-        <span className="mt-2 inline-flex items-center gap-1 text-[13px] text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
+        <span className="mt-2 inline-flex items-center gap-1 text-[14px] text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
           Open <ArrowRight className="h-3 w-3" />
         </span>
       </button>

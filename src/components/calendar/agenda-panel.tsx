@@ -61,10 +61,8 @@ function AgendaRow({
       onMouseEnter={() => onHover(objective.id)}
       onMouseLeave={() => onHover(null)}
       className={cn(
-        "flex w-full items-start gap-2.5 px-1 py-1.5 text-left transition-colors duration-150",
-        hovered
-          ? "bg-wash"
-          : "hover:bg-wash"
+        "flex w-full items-start gap-2.5 px-1.5 py-2 text-left transition-colors duration-150",
+        hovered ? "bg-wash" : "hover:bg-wash"
       )}
     >
       <span
@@ -84,8 +82,8 @@ function AgendaRow({
         }
       />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[13px] font-medium text-foreground">{objective.title}</p>
-        <p className="mt-0.5 text-[11px] text-muted-foreground">{meta}</p>
+        <p className="truncate text-[14px] font-medium text-foreground">{objective.title}</p>
+        <p className="mt-0.5 text-[12px] text-muted-foreground">{meta}</p>
       </div>
     </button>
   );
@@ -94,10 +92,12 @@ function AgendaRow({
 function SectionHeading({ icon: Icon, label, count }: { icon: React.ElementType; label: string; count: number }) {
   if (count === 0) return null;
   return (
-    <div className="mb-1 mt-3 flex items-center gap-1.5 first:mt-0">
+    <div className="mb-1.5 mt-4 flex items-center gap-1.5 first:mt-0">
       <Icon className="h-3.5 w-3.5 text-muted-foreground" />
-      <p className="text-[11px] font-medium text-muted-foreground">{label}</p>
-      <span className="font-mono text-[10px] font-medium text-muted-foreground">· {count}</span>
+      <p className="text-[12px] font-medium text-muted-foreground">{label}</p>
+      <span className="font-mono text-[12px] font-medium tabular-nums text-muted-foreground">
+        · {count}
+      </span>
     </div>
   );
 }
@@ -178,16 +178,16 @@ export function AgendaPanel({
         className
       )}
     >
-      <div className="border-b border-border/50 px-3 py-2.5 light:border-border">
-        <p className="text-[13px] font-semibold text-foreground">Agenda</p>
-        <p className="mt-0.5 text-[11px] text-muted-foreground">What needs attention</p>
+      <div className="border-b border-border/50 px-3.5 py-3 light:border-border">
+        <p className="text-[14px] font-semibold text-foreground">Agenda</p>
+        <p className="mt-0.5 text-[12px] text-muted-foreground">What needs attention</p>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-2 py-2">
+      <div className="flex-1 overflow-y-auto px-2.5 py-2.5">
         {runningTimers.length > 0 && (
           <div className="mb-1">
             <SectionHeading icon={TimerIcon} label="Live now" count={runningTimers.length} />
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-2">
               {runningTimers.map((timer) => (
                 <motion.div
                   key={timer.id}
@@ -196,17 +196,17 @@ export function AgendaPanel({
                   animate={{ opacity: 1 }}
                   transition={{ duration: prefersReducedMotion ? 0 : 0.15 }}
                   className={cn(
-                    "rounded-md border border-border/50 px-2.5 py-2 light:border-border",
+                    "rounded-md border border-border/50 px-3 py-2.5 light:border-border",
                     timer.status === "running" && "border-accent/30 bg-accent-muted/15"
                   )}
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <p className="truncate text-[13px] font-medium text-foreground">{timer.label}</p>
-                    <span className="shrink-0 font-mono text-[13px] tabular-nums text-foreground">
+                    <p className="truncate text-[14px] font-medium text-foreground">{timer.label}</p>
+                    <span className="shrink-0 font-mono text-[14px] tabular-nums text-foreground">
                       {formatClock(remainingSecondsOf(timer))}
                     </span>
                   </div>
-                  <div className="mt-1.5">
+                  <div className="mt-2">
                     <TimerControls
                       status={timer.status}
                       onPause={() => onPauseTimer(timer.id)}
@@ -285,7 +285,7 @@ export function AgendaPanel({
         {isEmpty && (
           <div className="flex flex-col items-center gap-2 px-2 py-10 text-center">
             <CalendarClock className="h-5 w-5 text-muted-foreground" />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[12px] leading-relaxed text-muted-foreground">
               Nothing overdue, scheduled, or due soon. Schedule an objective to see it here.
             </p>
           </div>

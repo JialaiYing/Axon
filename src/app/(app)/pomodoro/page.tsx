@@ -426,7 +426,7 @@ export default function PomodoroPage() {
   const activeTimerView = activeTimer ? (
     <div className="flex w-full max-w-xl flex-col items-center gap-5 px-2">
       <div className="flex flex-wrap items-center justify-center gap-2">
-        <span className="inline-flex items-center gap-1.5 text-[13px] font-medium text-muted-foreground">
+        <span className="inline-flex items-center gap-1.5 text-[14px] font-medium text-muted-foreground">
           {activePhase === "work" ? (
             activeTimer.source === "objective" ? (
               <Target className="h-3.5 w-3.5" />
@@ -442,7 +442,7 @@ export default function PomodoroPage() {
           ) : null}
         </span>
         {isAwaitingPhaseTransition(activeTimer) && (
-          <span className="text-[12px] font-medium text-success">Ready</span>
+          <span className="text-[14px] font-medium text-success">Ready</span>
         )}
       </div>
 

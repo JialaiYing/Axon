@@ -33,7 +33,7 @@ export function KanbanToolbar({
   onAdd,
 }: KanbanToolbarProps) {
   return (
-    <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
         <div className="relative w-full sm:max-w-[220px]">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
@@ -41,12 +41,12 @@ export function KanbanToolbar({
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search…"
-            className="h-8 border-border/60 bg-transparent pl-8 text-[13px] shadow-none light:border-border"
+            className="h-8 border-border/60 bg-transparent pl-8 text-[14px] shadow-none light:border-border"
           />
         </div>
 
         <Select value={priorityFilter} onValueChange={onPriorityFilterChange}>
-          <SelectTrigger className="h-8 w-full border-border/60 bg-transparent text-[13px] shadow-none light:border-border sm:w-[140px]">
+          <SelectTrigger className="h-8 w-full border-border/60 bg-transparent text-[14px] shadow-none light:border-border sm:w-[140px]">
             <SelectValue placeholder="Priority" />
           </SelectTrigger>
           <SelectContent>

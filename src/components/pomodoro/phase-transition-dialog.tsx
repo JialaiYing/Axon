@@ -5,7 +5,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -42,45 +41,52 @@ export function PhaseTransitionDialog({
   onStopSession,
 }: PhaseTransitionDialogProps) {
   const isWork = phase === "work";
-  const breakLabel = nextBreakIsLong ? "long break" : "short break";
+  const breakKind = nextBreakIsLong ? "long" : "short";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm">
-        <DialogHeader>
-          <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-md border border-border/50 text-muted-foreground light:border-border">
-            <Coffee className="h-4 w-4" />
-          </div>
-          <DialogTitle>{isWork ? "Work interval complete" : "Break over"}</DialogTitle>
-          <DialogDescription>
+        <DialogHeader className="mb-3">
+          <DialogTitle className="text-xl font-semibold tracking-tight">
+            {isWork ? "Work interval complete" : "Break over"}
+          </DialogTitle>
+          <DialogDescription className="text-[14px] text-muted-foreground">
             {isWork
-              ? `"${label}" finished. Take a ${breakLabel}, skip ahead, or end this session.`
-              : `"${label}" break finished. Start the next work interval when you're ready.`}
+              ? "Take a break, skip ahead, or end this session."
+              : "Start the next work interval when you’re ready."}
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="flex-col gap-2 sm:flex-row sm:flex-wrap">
-          <Button variant="outline" onClick={onStopSession} className="shadow-none sm:mr-auto">
-            <Square className="h-3.5 w-3.5" />
-            Stop session
-          </Button>
+
+        <p
+          className="truncate rounded-md border border-border/50 bg-wash/40 px-3 py-2.5 text-[14px] font-medium text-foreground light:border-border"
+          title={label}
+        >
+          {label}
+        </p>
+
+        <div className="mt-4 flex flex-col gap-2">
           {isWork ? (
             <>
-              <Button variant="secondary" onClick={onSkipBreak} className="shadow-none">
+              <Button onClick={onStartBreak} className="w-full shadow-none">
+                <Coffee className="h-3.5 w-3.5" />
+                Start {breakKind} break
+              </Button>
+              <Button variant="secondary" onClick={onSkipBreak} className="w-full shadow-none">
                 <SkipForward className="h-3.5 w-3.5" />
                 Skip break
               </Button>
-              <Button onClick={onStartBreak} className="shadow-none">
-                <Coffee className="h-3.5 w-3.5" />
-                Start {nextBreakIsLong ? "long" : "short"} break
-              </Button>
             </>
           ) : (
-            <Button onClick={onStartWork} className="shadow-none">
+            <Button onClick={onStartWork} className="w-full shadow-none">
               <Play className="h-3.5 w-3.5" />
               Start next work
             </Button>
           )}
-        </DialogFooter>
+          <Button variant="outline" onClick={onStopSession} className="w-full shadow-none">
+            <Square className="h-3.5 w-3.5" />
+            Stop session
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );

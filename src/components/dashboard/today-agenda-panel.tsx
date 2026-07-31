@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 
 interface TodayAgendaPanelProps {
   objectives: Objective[];
+  className?: string;
 }
 
 /**
@@ -25,7 +26,7 @@ interface TodayAgendaPanelProps {
  * Linear-inspired: flat bordered module; light uses card on cool page canvas.
  * Backup: today-agenda-panel.pre-light-dashboard.bak
  */
-export function TodayAgendaPanel({ objectives }: TodayAgendaPanelProps) {
+export function TodayAgendaPanel({ objectives, className }: TodayAgendaPanelProps) {
   const now = React.useMemo(() => new Date(), []);
 
   const {
@@ -46,15 +47,20 @@ export function TodayAgendaPanel({ objectives }: TodayAgendaPanelProps) {
     onBoard.length === 0;
 
   return (
-    <section className="rounded-md border border-border/50 p-4 light:border-border light:bg-card">
-      <div className="mb-3">
+    <section
+      className={cn(
+        "flex flex-col rounded-md border border-border/50 p-5 light:border-border light:bg-card sm:p-6",
+        className
+      )}
+    >
+      <div className="mb-5">
         <p className="text-[14px] font-medium text-muted">Today</p>
         <h2 className="mt-0.5 text-2xl font-medium tracking-tight text-foreground sm:text-[28px]">
           Your agenda
         </h2>
       </div>
 
-      <div className="space-y-3">
+      <div className="flex min-h-0 flex-1 flex-col space-y-5">
         {overdue.length > 0 && (
           <AgendaSection icon={AlertTriangle} label="Overdue" count={overdue.length} tone="danger">
             {overdue.map((o) => (
@@ -147,10 +153,17 @@ export function TodayAgendaPanel({ objectives }: TodayAgendaPanelProps) {
         )}
 
         {isEmpty && (
-          <p className="flex items-center gap-2 border-y border-dashed border-border/50 py-3 text-[12px] text-muted-foreground light:border-border">
-            <Sun className="h-3.5 w-3.5 shrink-0" />
-            Clear day — add an objective on the board or schedule a focus block.
-          </p>
+          <div className="flex flex-1 flex-col items-center justify-center gap-3 py-12 text-center">
+            <Sun className="h-8 w-8 text-muted-foreground" strokeWidth={1.5} />
+            <div>
+              <p className="text-[18px] font-semibold tracking-tight text-foreground sm:text-[20px]">
+                Clear day
+              </p>
+              <p className="mt-1.5 max-w-xs text-[14px] leading-relaxed text-muted-foreground">
+                Add an objective on the board or schedule a focus block.
+              </p>
+            </div>
+          </div>
         )}
       </div>
     </section>
@@ -172,7 +185,7 @@ function AgendaSection({
 }) {
   return (
     <div>
-      <div className="mb-1 flex items-center gap-1.5">
+      <div className="mb-1.5 flex items-center gap-1.5">
         <Icon
           className={cn(
             "h-3.5 w-3.5",
@@ -181,13 +194,13 @@ function AgendaSection({
         />
         <p
           className={cn(
-            "text-[11px] font-medium",
+            "text-[14px] font-medium",
             tone === "danger" ? "text-danger" : "text-muted"
           )}
         >
           {label}
         </p>
-        <span className="font-mono text-[10px] font-medium text-muted">· {count}</span>
+        <span className="font-mono text-[14px] font-medium tabular-nums text-muted">· {count}</span>
       </div>
       {/* Negative horizontal margin so the hover wash and dividers reach the
           panel content width. */}
@@ -235,13 +248,13 @@ function AgendaLink({
       <div className="min-w-0 flex-1">
         <p
           className={cn(
-            "truncate text-[13px] font-medium text-foreground",
+            "truncate text-[14px] font-medium text-foreground",
             done && "text-foreground/70 line-through"
           )}
         >
           {title}
         </p>
-        <p className="mt-0.5 text-[11px] text-muted-foreground">{meta}</p>
+        <p className="mt-0.5 text-[14px] text-muted-foreground">{meta}</p>
       </div>
     </Link>
   );

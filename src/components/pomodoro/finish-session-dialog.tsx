@@ -1,13 +1,12 @@
 "use client";
 
-import { PartyPopper, Clock3 } from "lucide-react";
+import { Clock3 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
@@ -31,25 +30,38 @@ export function FinishSessionDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm">
-        <DialogHeader>
-          <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-md border border-border/50 text-muted-foreground light:border-border">
-            <PartyPopper className="h-4 w-4" />
-          </div>
-          <DialogTitle>Work interval done</DialogTitle>
-          <DialogDescription>
-            Are you finished with &ldquo;{objectiveTitle}&rdquo;?
+        <DialogHeader className="mb-3">
+          <DialogTitle className="text-xl font-semibold tracking-tight">
+            Work interval done
+          </DialogTitle>
+          <DialogDescription className="text-[14px] text-muted-foreground">
+            Decide what happens to this objective next.
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="flex-col gap-2 sm:flex-row">
-          <Button variant="outline" onClick={onNotYet} className="shadow-none sm:mr-auto">
-            Not yet, back to board
+
+        <p
+          className="truncate rounded-md border border-border/50 bg-wash/40 px-3 py-2.5 text-[14px] font-medium text-foreground light:border-border"
+          title={objectiveTitle}
+        >
+          {objectiveTitle}
+        </p>
+
+        <div className="mt-4 flex flex-col gap-2">
+          <Button onClick={onFinished} className="w-full shadow-none">
+            Yes, I&apos;m finished
           </Button>
-          <Button variant="secondary" onClick={() => onKeepWorking(10)} className="shadow-none">
+          <Button
+            variant="secondary"
+            onClick={() => onKeepWorking(10)}
+            className="w-full shadow-none"
+          >
             <Clock3 className="h-3.5 w-3.5" />
             Keep working (+10m)
           </Button>
-          <Button onClick={onFinished} className="shadow-none">Yes, I&apos;m finished</Button>
-        </DialogFooter>
+          <Button variant="outline" onClick={onNotYet} className="w-full shadow-none">
+            Not yet — leave on board
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );

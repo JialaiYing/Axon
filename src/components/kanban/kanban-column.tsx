@@ -45,10 +45,10 @@ export function KanbanColumn({
 
   return (
     <div className="flex h-full min-h-[min(70vh,36rem)] w-full min-w-0 flex-col">
-      <div className="mb-2 flex shrink-0 items-center justify-between gap-2 px-0.5">
+      <div className="mb-3 flex shrink-0 items-center justify-between gap-2 px-0.5">
         <div className="flex min-w-0 items-center gap-1.5">
-          <h2 className="truncate text-[15px] font-medium text-foreground">{column.title}</h2>
-          <span className="font-mono text-[13px] tabular-nums text-muted-foreground">
+          <h2 className="truncate text-[14px] font-medium text-foreground">{column.title}</h2>
+          <span className="font-mono text-[14px] tabular-nums text-muted-foreground">
             {objectives.length}
           </span>
         </div>
@@ -69,7 +69,7 @@ export function KanbanColumn({
           "transition-[border-color,background-color] duration-150",
           isEmpty
             ? "border-dashed bg-transparent"
-            : "bg-wash/30 p-1.5 light:bg-card/40",
+            : "bg-wash/30 p-2 light:bg-card/40",
           isOver && "border-border bg-wash light:border-border light:bg-wash"
         )}
       >
@@ -77,14 +77,14 @@ export function KanbanColumn({
           <button
             type="button"
             onClick={() => onAdd(column.id)}
-            className="flex h-full min-h-0 w-full flex-1 cursor-pointer flex-col items-center justify-center gap-1.5 rounded-md text-[13px] text-muted-foreground transition-colors duration-150 hover:bg-wash hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-border-strong"
+            className="flex h-full min-h-0 w-full flex-1 cursor-pointer flex-col items-center justify-center gap-1.5 rounded-md text-[14px] text-muted-foreground transition-colors duration-150 hover:bg-wash hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-border-strong"
           >
             <Plus className="h-4 w-4" />
             Add objective
           </button>
         ) : (
           <SortableContext items={ids} strategy={verticalListSortingStrategy}>
-            <div className="flex min-h-0 flex-1 flex-col justify-start gap-1.5 overflow-y-auto">
+            <div className="flex min-h-0 flex-1 flex-col justify-start gap-2 overflow-y-auto">
               {objectives.map((objective) => (
                 <KanbanCard
                   key={objective.id}

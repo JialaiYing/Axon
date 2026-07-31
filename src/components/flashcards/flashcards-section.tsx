@@ -205,7 +205,7 @@ export function FlashcardsSection() {
                       <RotateCcw className="h-3.5 w-3.5" />
                       Recycle bin
                       {recycledCount > 0 ? (
-                        <span className="rounded-md bg-wash px-1.5 py-0.5 font-mono text-[12px] font-medium text-muted-foreground">
+                        <span className="rounded-md bg-wash px-1.5 py-0.5 font-mono text-[14px] font-medium text-muted-foreground">
                           {recycledCount}
                         </span>
                       ) : null}
@@ -383,7 +383,7 @@ function LibraryCreateBar({
   onNewSet: (folderId?: string) => void;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 border-t border-border/50 px-4 py-2 light:border-border">
+    <div className="flex items-center justify-between gap-3 border-t border-border/50 px-4 py-2.5 light:border-border">
       <p className="min-w-0 truncate text-[14px] text-muted-foreground">
         {folder ? `Inside ${folder.title}` : "Folders and unfiled sets"}
       </p>

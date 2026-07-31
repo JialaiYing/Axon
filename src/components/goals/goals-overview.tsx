@@ -25,13 +25,14 @@ import { cn } from "@/lib/utils";
 
 function LoadingState() {
   return (
-    <div className="w-full space-y-10">
+    <div className="w-full space-y-8">
       <Skeleton className="h-10 w-64" />
-      <div className="space-y-8">
+      <div className="space-y-6">
         <Skeleton className="h-28 w-full" />
         <Skeleton className="h-28 w-full" />
       </div>
-      <Skeleton className="h-48 w-full" />
+      <Skeleton className="h-20 w-full" />
+      <Skeleton className="h-20 w-full" />
     </div>
   );
 }
@@ -67,7 +68,7 @@ function StudyGoalRow({
   const remaining = Math.max(0, goal.target - goal.progress);
 
   return (
-    <div className="py-8">
+    <div className="py-6">
       <div className="flex items-baseline justify-between gap-6">
         <div className="min-w-0">
           <p className="text-[15px] text-muted-foreground">
@@ -95,7 +96,7 @@ function StudyGoalRow({
       <ProgressBar
         value={percent}
         size="md"
-        className="mt-5"
+        className="mt-4"
         barClassName={progressBarClass(status)}
       />
 
@@ -130,7 +131,7 @@ function PersonalGoalRow({
   const streakLabel = goal.type === "weekly" ? "week" : "day";
 
   return (
-    <li className="group py-8">
+    <li className="group py-6">
       <div className="flex items-baseline justify-between gap-6">
         <div className="min-w-0">
           <p className="text-[15px] text-muted-foreground">
@@ -168,7 +169,7 @@ function PersonalGoalRow({
       <ProgressBar
         value={percent}
         size="md"
-        className="mt-5"
+        className="mt-4"
         barClassName={progressBarClass(status)}
       />
 
@@ -176,7 +177,11 @@ function PersonalGoalRow({
         {streakCount > 0 ? (
           <>
             <p className="inline-flex items-center gap-1.5 text-[14px]">
-              <StreakFlame days={streakCount} size="md" />
+              <StreakFlame
+                days={streakCount}
+                size="md"
+                unit={goal.type === "weekly" ? "week" : "day"}
+              />
               <span className="font-medium tabular-nums text-warning">
                 {streakCount} {streakLabel}
                 {streakCount === 1 ? "" : "s"} streak
@@ -228,7 +233,7 @@ function HistoryStrip({
 }) {
   return (
     <div>
-      <p className="mb-4 text-[15px] font-medium text-foreground">{label}</p>
+      <p className="mb-3 text-[15px] font-medium text-foreground">{label}</p>
       {entries.length === 0 ? (
         <p className="text-[15px] text-muted-foreground">{emptyHint}</p>
       ) : (
@@ -337,14 +342,16 @@ export function GoalsOverview() {
         <LoadingState />
       ) : (
         <div className="w-full">
-          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[15px]">
-            <span className={cn("font-medium", onTrackSummaryClass(onTrackCount, totalTracked))}>
+          <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xl font-medium">
+            <span className={cn(onTrackSummaryClass(onTrackCount, totalTracked))}>
               {onTrackCount} of {totalTracked} on track
             </span>
             {dailyStreak.current > 0 ? (
               <>
-                <span className="text-muted-foreground/40">·</span>
-                <span className="inline-flex items-center gap-1.5 font-medium text-warning">
+                <span className="translate-y-px text-foreground" aria-hidden>
+                  /
+                </span>
+                <span className="inline-flex items-center gap-1.5 text-warning">
                   <StreakFlame days={dailyStreak.current} size="md" />
                   {dailyStreak.current} day streak
                 </span>
@@ -369,7 +376,7 @@ export function GoalsOverview() {
             )}
           </div>
 
-          <div className="mt-3">
+          <div className="mt-4">
             <Link
               href="/kanban"
               className="inline-flex items-center gap-1.5 text-[15px] text-accent transition-colors hover:text-foreground"
@@ -379,8 +386,9 @@ export function GoalsOverview() {
             </Link>
           </div>
 
-          {(personalGoals.length > 0 || createOpen) && (
-            <section className="mt-14 border-t border-border/40 pt-10 light:border-border">
+          {/* Personal + History share one bottom rhythm so they sit as a pair. */}
+          <div className="mt-10 space-y-8">
+            <section className="border-t border-border/40 pt-8 light:border-border">
               <button
                 type="button"
                 aria-expanded={personalOpen}
@@ -404,7 +412,7 @@ export function GoalsOverview() {
               </button>
 
               {personalOpen && (
-                <div className="mt-6 space-y-8">
+                <div className="mt-6 space-y-6">
                   {createOpen && (
                     <div className="space-y-5">
                       <p className="text-[15px] font-medium text-foreground">New personal goal</p>
@@ -512,9 +520,8 @@ export function GoalsOverview() {
                 </div>
               )}
             </section>
-          )}
 
-          <section className="mt-16 border-t border-border/40 pt-10 light:border-border">
+            <section className="border-t border-border/40 pt-8 light:border-border">
               <button
                 type="button"
                 aria-expanded={historyOpen}
@@ -540,7 +547,7 @@ export function GoalsOverview() {
               </button>
 
               {historyOpen && (
-                <div className="mt-8 space-y-10">
+                <div className="mt-6 space-y-8">
                   <HistoryStrip
                     label="Daily"
                     entries={dailyHistory}
@@ -554,6 +561,7 @@ export function GoalsOverview() {
                 </div>
               )}
             </section>
+          </div>
         </div>
       )}
     </AppPage>

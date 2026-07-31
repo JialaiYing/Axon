@@ -1,6 +1,6 @@
 /**
  * Visual tiers for streak flames (Duolingo-style progression).
- * Size grows with diminishing returns; color/glow steps up at milestones.
+ * Always filled with color; heat, size, and glow intensify with streak length.
  */
 
 export type StreakFlameTierId =
@@ -28,20 +28,20 @@ export interface StreakFlameVisual {
 
 /**
  * Maps streak days → scale, color, and motion intensity.
- * Early days grow fast; later milestones feel more “legendary” than larger.
+ * Day 0 stays a dim filled ember so the icon is never a hollow outline.
  */
 export function getStreakFlameVisual(days: number): StreakFlameVisual {
   const d = Math.max(0, Math.floor(days));
 
-  // Continuous size curve — grows quickly early, then asymptotes (~1.55×).
+  // Continuous size curve — grows quickly early, then asymptotes (~1.75×).
   const scale =
-    d === 0 ? 0.82 : Math.min(1.55, 0.88 + Math.log2(d + 1) * 0.2);
+    d === 0 ? 0.85 : Math.min(1.75, 0.95 + Math.log2(d + 1) * 0.24);
 
   if (d === 0) {
     return {
       tier: "dormant",
       scale,
-      colorClass: "text-muted-foreground",
+      colorClass: "text-warning/45",
       glow: false,
       pulse: false,
       label: "No streak yet",
@@ -51,7 +51,7 @@ export function getStreakFlameVisual(days: number): StreakFlameVisual {
     return {
       tier: "spark",
       scale,
-      colorClass: "text-warning/65",
+      colorClass: "text-warning/75",
       glow: false,
       pulse: false,
       label: "Spark",
@@ -61,8 +61,8 @@ export function getStreakFlameVisual(days: number): StreakFlameVisual {
     return {
       tier: "ember",
       scale,
-      colorClass: "text-warning/85",
-      glow: false,
+      colorClass: "text-warning",
+      glow: true,
       pulse: false,
       label: "Ember",
     };

@@ -105,10 +105,10 @@ export function RecycleBinDialog({
                       className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left"
                     >
                       <div className="min-w-0">
-                        <p className="truncate text-[13px] font-medium text-foreground">
+                        <p className="truncate text-[14px] font-medium text-foreground">
                           {objective.title}
                         </p>
-                        <p className="mt-0.5 text-[11px] text-muted-foreground">
+                        <p className="mt-0.5 text-[12px] text-muted-foreground">
                           Recycled {formatCreatedDate(objective.recycledAt) ?? "recently"} ·{" "}
                           {daysLeft === 0 ? "deletes today" : `deletes in ${daysLeft}d`}
                         </p>
@@ -134,7 +134,7 @@ export function RecycleBinDialog({
                             {objective.description && (
                               <p className="text-muted">{objective.description}</p>
                             )}
-                            <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] text-muted-foreground">
+                            <div className="mt-2 flex flex-wrap gap-1.5 text-[12px] text-muted-foreground">
                               <Badge variant="outline">{objective.subject}</Badge>
                               {objective.labels.map((label) => (
                                 <Badge key={label} variant="default">
@@ -142,13 +142,13 @@ export function RecycleBinDialog({
                                 </Badge>
                               ))}
                             </div>
-                            <p className="mt-2 text-[11px] text-muted-foreground">
+                            <p className="mt-2 text-[12px] text-muted-foreground">
                               Created {formatCreatedDate(objective.createdAt)}
                               {objective.completedAt &&
                                 ` · Finished ${formatCreatedDate(objective.completedAt)}`}
                             </p>
                             {objective.notes && (
-                              <p className="mt-2 rounded-md bg-card p-2 text-xs text-muted">
+                              <p className="mt-2 rounded-md bg-card p-2 text-[12px] text-muted">
                                 {objective.notes}
                               </p>
                             )}

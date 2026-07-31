@@ -9,7 +9,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -191,11 +190,11 @@ export function TimerFullscreenOverlay({
                 {timer.label}
               </h2>
 
-              <span className="inline-flex items-center gap-1 text-[12px] font-medium text-muted-foreground">
+              <span className="inline-flex items-center gap-1 text-[14px] font-medium text-muted-foreground">
                 {timer.source === "objective" ? (
-                  <Target className="h-3 w-3" />
+                  <Target className="h-3.5 w-3.5" />
                 ) : (
-                  <Coffee className="h-3 w-3" />
+                  <Coffee className="h-3.5 w-3.5" />
                 )}
                 Focus Mode · {phaseLabel(timer.phase ?? "work")}
               </span>
@@ -219,7 +218,7 @@ export function TimerFullscreenOverlay({
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0 }}
-                    className="text-[12px] font-medium text-warning"
+                    className="text-[14px] font-medium text-warning"
                   >
                     Session paused — come back to keep focusing.
                   </motion.p>
@@ -237,21 +236,25 @@ export function TimerFullscreenOverlay({
         }}
       >
         <DialogContent className="z-[110] max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Welcome back</DialogTitle>
-            <DialogDescription>
+          <DialogHeader className="mb-3">
+            <DialogTitle className="text-xl font-semibold tracking-tight">Welcome back</DialogTitle>
+            <DialogDescription className="text-[14px] text-muted-foreground">
               You left Axon during Focus Mode, so the timer was paused. Resume when you&apos;re
-              ready to focus again.
+              ready.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="flex-col gap-2 sm:flex-row">
-            <Button variant="outline" onClick={() => setReturnOpen(false)} className="shadow-none sm:mr-auto">
-              Stay paused
-            </Button>
-            <Button onClick={resumeAfterReturn} className="shadow-none">
+          <div className="mt-1 flex flex-col gap-2">
+            <Button onClick={resumeAfterReturn} className="w-full shadow-none">
               Resume focus
             </Button>
-          </DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setReturnOpen(false)}
+              className="w-full shadow-none"
+            >
+              Stay paused
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </>,

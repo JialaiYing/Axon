@@ -134,7 +134,7 @@ export function StudyView({ set, onBack, onEdit, onStartTest, onCompletePass }: 
 
       {!card ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-          <p className="text-sm text-muted-foreground">This set has no cards yet</p>
+          <p className="text-[14px] text-muted-foreground">This set has no cards yet</p>
           <Button size="sm" className="cursor-pointer" onClick={onEdit}>
             <Plus className="h-3.5 w-3.5" /> Add your first card
           </Button>
