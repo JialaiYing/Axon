@@ -4,29 +4,32 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { useUserStats } from "@/hooks/use-user-stats";
 import { useNotifications } from "@/hooks/use-notifications";
-import { unlockedBackgrounds, type BackgroundId } from "@/lib/backgrounds/catalog";
+import {
+  unlockedUnlockablePalettes,
+  type PaletteId,
+} from "@/lib/palettes/catalog";
 import { showBrowserNotification } from "@/lib/notifications/browser";
 
-const SEEDED_KEY = "axon:notifications:backgroundUnlocks:seeded";
-const NOTIFIED_KEY = "axon:notifications:backgroundUnlocks:notified";
+const SEEDED_KEY = "axon:notifications:paletteUnlocks:seeded";
+const NOTIFIED_KEY = "axon:notifications:paletteUnlocks:notified";
 
-function readNotifiedIds(): Set<BackgroundId> {
+function readNotifiedIds(): Set<PaletteId> {
   try {
     const raw = window.localStorage.getItem(NOTIFIED_KEY);
     if (!raw) return new Set();
     const parsed = JSON.parse(raw) as unknown;
     if (!Array.isArray(parsed)) return new Set();
-    return new Set(parsed.filter((id): id is BackgroundId => typeof id === "string") as BackgroundId[]);
+    return new Set(parsed.filter((id): id is PaletteId => typeof id === "string"));
   } catch {
     return new Set();
   }
 }
 
-function writeNotifiedIds(ids: Set<BackgroundId>) {
+function writeNotifiedIds(ids: Set<PaletteId>) {
   try {
     window.localStorage.setItem(NOTIFIED_KEY, JSON.stringify([...ids]));
   } catch {
-    /* ignore quota / private mode */
+    /* ignore */
   }
 }
 
@@ -47,11 +50,10 @@ function markSeeded() {
 }
 
 /**
- * Watches level progression and notifies when a new dashboard background
- * unlocks. Never auto-applies a background — the user must pick it in Settings.
- * Seeds quietly on first run so existing unlocks don't spam returning users.
+ * Watches level progression and notifies when a new dark palette unlocks.
+ * Never auto-equips — the user must pick it in Settings → Appearance.
  */
-export function BackgroundUnlockWatcher() {
+export function PaletteUnlockWatcher() {
   const router = useRouter();
   const { stats, hydrated: statsHydrated } = useUserStats();
   const { addNotification, notifications, hydrated: notifHydrated } = useNotifications();
@@ -60,8 +62,8 @@ export function BackgroundUnlockWatcher() {
   React.useEffect(() => {
     if (!statsHydrated || !notifHydrated) return;
 
-    const unlockable = unlockedBackgrounds(level).filter((bg) => bg.id !== "solid");
-    const unlockedIds = unlockable.map((bg) => bg.id);
+    const unlockable = unlockedUnlockablePalettes(level);
+    const unlockedIds = unlockable.map((p) => p.id);
 
     if (!isSeeded()) {
       writeNotifiedIds(new Set(unlockedIds));
@@ -70,23 +72,23 @@ export function BackgroundUnlockWatcher() {
     }
 
     const notified = readNotifiedIds();
-    const newlyUnlocked = unlockable.filter((bg) => !notified.has(bg.id));
+    const newlyUnlocked = unlockable.filter((p) => !notified.has(p.id));
     if (newlyUnlocked.length === 0) return;
 
-    for (const bg of newlyUnlocked) {
-      const dedupeId = `bg-unlock-${bg.id}`;
+    for (const palette of newlyUnlocked) {
+      const dedupeId = `palette-unlock-${palette.id}`;
       if (notifications.some((n) => n.timerId === dedupeId)) {
-        notified.add(bg.id);
+        notified.add(palette.id);
         continue;
       }
 
-      const title = "Background unlocked";
-      const message = `"${bg.name}" is available — open Settings to apply it.`;
+      const title = "Palette unlocked";
+      const message = `"${palette.name}" is available — open Appearance in Settings to equip it.`;
 
       addNotification({
         timerId: dedupeId,
-        kind: "background-unlock",
-        href: "/settings",
+        kind: "palette-unlock",
+        href: "/settings#appearance",
         title,
         message,
       });
@@ -98,12 +100,12 @@ export function BackgroundUnlockWatcher() {
       if (browserNote) {
         browserNote.onclick = () => {
           window.focus();
-          router.push("/settings");
+          router.push("/settings#appearance");
           browserNote.close();
         };
       }
 
-      notified.add(bg.id);
+      notified.add(palette.id);
     }
 
     writeNotifiedIds(notified);

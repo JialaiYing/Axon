@@ -43,10 +43,18 @@
   --color-danger: #e05555;
   --color-danger-muted: #331515;
 
-  /* Soft fills for hover/active chrome — theme-safe so components don't need
-     light:bg-black/[…] forks next to bg-foreground/[…]. */
-  --color-wash: rgba(255, 255, 255, 0.08);
-  --color-wash-strong: rgba(255, 255, 255, 0.12);
+  /* Soft fills for hover/active chrome — accent-tinted so active states
+     follow the palette signature (see theme-palettes.md). */
+  --color-wash: rgba(91, 141, 239, 0.1);
+  --color-wash-strong: rgba(91, 141, 239, 0.16);
+
+  /* Rank trophy metals — frozen across data-palette (never remapped). */
+  --color-trophy-iron: #6e6e73;
+  --color-trophy-pewter: #8a8a8f;
+  --color-trophy-silver: #c8c8cc;
+  --color-trophy-steel: #5b8def;
+  --color-trophy-sapphire: #4a7ae0;
+  --color-trophy-amethyst: #8b7ec8;
 
   /* Radii */
   --radius-sm: 0.5rem;
@@ -129,6 +137,12 @@
     --color-danger-muted: #fee2e2;
     --color-wash: rgba(0, 0, 0, 0.06);
     --color-wash-strong: rgba(0, 0, 0, 0.1);
+    --color-trophy-iron: #6b6b6b;
+    --color-trophy-pewter: #525252;
+    --color-trophy-silver: #404040;
+    --color-trophy-steel: #3d74d4;
+    --color-trophy-sapphire: #2f5fb8;
+    --color-trophy-amethyst: #6d5fad;
     --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.05), 0 8px 24px -8px rgba(0, 0, 0, 0.1);
     --shadow-elevation-1: 0 1px 3px rgba(0, 0, 0, 0.06);
     --shadow-elevation-2: 0 4px 10px -2px rgba(0, 0, 0, 0.08);
@@ -163,8 +177,14 @@
     --color-warning-muted: #33260e;
     --color-danger: #e05555;
     --color-danger-muted: #331515;
-    --color-wash: rgba(255, 255, 255, 0.08);
-    --color-wash-strong: rgba(255, 255, 255, 0.12);
+    --color-wash: rgba(91, 141, 239, 0.1);
+    --color-wash-strong: rgba(91, 141, 239, 0.16);
+    --color-trophy-iron: #6e6e73;
+    --color-trophy-pewter: #8a8a8f;
+    --color-trophy-silver: #c8c8cc;
+    --color-trophy-steel: #5b8def;
+    --color-trophy-sapphire: #4a7ae0;
+    --color-trophy-amethyst: #8b7ec8;
     --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 16px -8px rgba(0, 0, 0, 0.4);
     --shadow-elevation-1: 0 1px 2px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.025);
     --shadow-elevation-2: 0 2px 8px -2px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.035);
@@ -172,6 +192,111 @@
     --shadow-elevation-4: 0 14px 32px -10px rgba(0, 0, 0, 0.45);
     --shadow-overlay: 0 1px 2px rgba(0, 0, 0, 0.35), 0 16px 40px -16px rgba(0, 0, 0, 0.55);
     --shadow-overlay-strong: 0 1px 2px rgba(0, 0, 0, 0.4), 0 28px 56px -18px rgba(0, 0, 0, 0.65);
+  }
+
+  /*
+   * Unlockable dark palettes — source of truth: docs/roadmap/theme-palettes.md
+   * Only apply when dark. Semantics (success/warning/danger) + trophy metals stay Axon-stable.
+   * Axon (`data-palette="axon"` or unset) uses the [data-theme="dark"] block above.
+   */
+  html[data-theme="dark"][data-palette="tokyo-night"] {
+    --color-background: #16161e;
+    --color-surface: #1a1b26;
+    --color-card: #24283b;
+    --color-card-hover: #2f3549;
+    --color-border: #3b4261;
+    --color-border-strong: #565f89;
+    --color-foreground: #c0caf5;
+    --color-muted: #a9b1d6;
+    --color-muted-foreground: #787c99;
+    --color-accent: #7aa2f7;
+    --color-accent-foreground: #16161e;
+    --color-accent-muted: #1e2438;
+    --color-secondary: #bb9af7;
+    --color-secondary-foreground: #16161e;
+    --color-secondary-muted: #2a2038;
+    --color-wash: rgba(122, 162, 247, 0.12);
+    --color-wash-strong: rgba(122, 162, 247, 0.2);
+  }
+
+  html[data-theme="dark"][data-palette="nord"] {
+    --color-background: #2e3440;
+    --color-surface: #3b4252;
+    --color-card: #434c5e;
+    --color-card-hover: #4c566a;
+    --color-border: #4c566a;
+    --color-border-strong: #81a1c1;
+    --color-foreground: #eceff4;
+    --color-muted: #d8dee9;
+    --color-muted-foreground: #88c0d0;
+    --color-accent: #88c0d0;
+    --color-accent-foreground: #2e3440;
+    --color-accent-muted: #3a4a55;
+    --color-secondary: #b48ead;
+    --color-secondary-foreground: #2e3440;
+    --color-secondary-muted: #3f3548;
+    --color-wash: rgba(136, 192, 208, 0.14);
+    --color-wash-strong: rgba(136, 192, 208, 0.22);
+  }
+
+  html[data-theme="dark"][data-palette="everforest"] {
+    --color-background: #232a2e;
+    --color-surface: #2d353b;
+    --color-card: #343f44;
+    --color-card-hover: #3d484d;
+    --color-border: #475258;
+    --color-border-strong: #4f585e;
+    --color-foreground: #d3c6aa;
+    --color-muted: #9da9a0;
+    --color-muted-foreground: #859289;
+    --color-accent: #a7c080;
+    --color-accent-foreground: #232a2e;
+    --color-accent-muted: #2f3d34;
+    --color-secondary: #d699b6;
+    --color-secondary-foreground: #232a2e;
+    --color-secondary-muted: #3a3038;
+    --color-wash: rgba(167, 192, 128, 0.14);
+    --color-wash-strong: rgba(167, 192, 128, 0.22);
+  }
+
+  html[data-theme="dark"][data-palette="gruvbox"] {
+    --color-background: #1d2021;
+    --color-surface: #282828;
+    --color-card: #3c3836;
+    --color-card-hover: #504945;
+    --color-border: #665c54;
+    --color-border-strong: #7c6f64;
+    --color-foreground: #ebdbb2;
+    --color-muted: #a89984;
+    --color-muted-foreground: #928374;
+    --color-accent: #fe8019;
+    --color-accent-foreground: #1d2021;
+    --color-accent-muted: #3a2a1a;
+    --color-secondary: #8ec07c;
+    --color-secondary-foreground: #1d2021;
+    --color-secondary-muted: #2a3328;
+    --color-wash: rgba(254, 128, 25, 0.14);
+    --color-wash-strong: rgba(254, 128, 25, 0.22);
+  }
+
+  html[data-theme="dark"][data-palette="catppuccin-mocha"] {
+    --color-background: #11111b;
+    --color-surface: #181825;
+    --color-card: #1e1e2e;
+    --color-card-hover: #313244;
+    --color-border: #45475a;
+    --color-border-strong: #585b70;
+    --color-foreground: #cdd6f4;
+    --color-muted: #a6adc8;
+    --color-muted-foreground: #7f849c;
+    --color-accent: #89b4fa;
+    --color-accent-foreground: #11111b;
+    --color-accent-muted: #1a2238;
+    --color-secondary: #cba6f7;
+    --color-secondary-foreground: #11111b;
+    --color-secondary-muted: #2a2139;
+    --color-wash: rgba(137, 180, 250, 0.14);
+    --color-wash-strong: rgba(137, 180, 250, 0.22);
   }
 
   /* Dashboard-only design scope — set on <html> (see app/layout.tsx's inline

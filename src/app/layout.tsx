@@ -84,6 +84,7 @@ export default function RootLayout({
     <html
       lang="en"
       data-theme="dark"
+      data-palette="axon"
       suppressHydrationWarning
       className={`${instrumentSans.variable} ${sansation.variable} ${fragmentMono.variable} ${inter.variable} ${jetbrainsMono.variable}`}
     >
@@ -94,7 +95,7 @@ export default function RootLayout({
             // dashboard-only — marketing/auth routes always render dark with
             // the marketing typeface. Keep in sync with ThemeProvider's
             // ALWAYS_DARK_ROUTES / isThemeableRoute check.
-            __html: `(function(){try{var p=window.location.pathname;var marketing=(p==='/'||p==='/login'||p==='/privacy'||p==='/terms'||p==='/faq');if(!marketing){document.documentElement.setAttribute('data-scope','dashboard');}if(marketing){return;}var t=localStorage.getItem('axon:theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);document.documentElement.style.colorScheme=t;}}catch(e){}})();`,
+            __html: `(function(){try{var p=window.location.pathname;var marketing=(p==='/'||p==='/login'||p==='/privacy'||p==='/terms'||p==='/faq');if(!marketing){document.documentElement.setAttribute('data-scope','dashboard');}if(marketing){document.documentElement.setAttribute('data-palette','axon');return;}var t=localStorage.getItem('axon:theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);document.documentElement.style.colorScheme=t;}var pal=localStorage.getItem('axon:palette');var ok=pal==='axon'||pal==='tokyo-night'||pal==='nord'||pal==='everforest'||pal==='gruvbox'||pal==='catppuccin-mocha';document.documentElement.setAttribute('data-palette',ok?pal:'axon');}catch(e){}})();`,
           }}
         />
       </head>

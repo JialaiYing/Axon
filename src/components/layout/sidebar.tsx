@@ -25,7 +25,7 @@ function navItemClass(active: boolean, expanded: boolean) {
     "flex items-center rounded-md text-[13px] font-medium transition-colors duration-150",
     expanded ? "h-8 gap-2.5 px-2" : "h-8 w-8 justify-center px-0",
     active
-      ? "bg-wash-strong text-foreground"
+      ? "bg-accent-muted text-accent"
       : "text-muted-foreground hover:bg-wash hover:text-foreground"
   );
 }
@@ -33,7 +33,7 @@ function navItemClass(active: boolean, expanded: boolean) {
 function navIconClass(active: boolean) {
   return cn(
     "h-4 w-4 shrink-0",
-    active ? "text-foreground" : "text-muted-foreground"
+    active ? "text-accent" : "text-muted-foreground"
   );
 }
 
@@ -76,7 +76,7 @@ export function Sidebar({ open, onOpenChange }: SidebarProps) {
               className={cn(
                 navItemClass(isActive, open),
                 item.href === "/dashboard" &&
-                  "data-[xp-pulse=true]:bg-wash-strong data-[xp-pulse=true]:scale-[1.02]"
+                  "data-[xp-pulse=true]:bg-accent-muted data-[xp-pulse=true]:scale-[1.02]"
               )}
             >
               <Icon className={navIconClass(isActive)} />

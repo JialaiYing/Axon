@@ -20,18 +20,19 @@ export const RANK_NAMES = [
 
 /**
  * Trophy metal per rank (0-indexed) — iron → emerald.
- * Uses design tokens only; locked ranks dim via opacity in UI.
+ * Uses frozen trophy / semantic tokens only — never remapped accent/secondary
+ * so metals stay stable across data-palette swaps.
  */
 export const RANK_TROPHY_CLASS = [
-  "text-muted-foreground", // Novice — iron
-  "text-muted", // Apprentice — pewter
+  "text-trophy-iron", // Novice — iron
+  "text-trophy-pewter", // Apprentice — pewter
   "text-warning/55", // Scholar — copper
   "text-warning/80", // Adept — bronze
-  "text-foreground/70", // Fellow — silver
-  "text-accent/85", // Mentor — steel
+  "text-trophy-silver", // Fellow — silver
+  "text-trophy-steel", // Mentor — steel
   "text-warning", // Sage — gold
-  "text-accent", // Luminary — sapphire
-  "text-secondary", // Magister — amethyst
+  "text-trophy-sapphire", // Luminary — sapphire
+  "text-trophy-amethyst", // Magister — amethyst
   "text-success", // Polymath — emerald
 ] as const;
 

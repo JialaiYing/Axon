@@ -88,7 +88,7 @@ Visit [http://localhost:3000](http://localhost:3000). Use **Sign up** / **Login*
 - `src/components` — UI, layout, landing, features, auth
 - `src/hooks` — domain hooks on `use-local-storage`
 - `src/lib/security` — rate limit + sanitize helpers
-- `src/lib/backgrounds` — unlock catalog
+- `src/lib/palettes` — unlockable dark palette catalog
 - `docs/security-audit.md` — latest security review
 
 App routes under `(app)` are gated by `RequireAuth` — unauthenticated visitors are redirected to `/login`.

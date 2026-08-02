@@ -146,6 +146,10 @@ export interface Flashcard {
   correctCount: number;
   incorrectCount: number;
   masteryPercent: number;
+  /** Leitner box 1–5. New cards start in box 1. */
+  box: number;
+  /** ISO timestamp — card is due when dueAt <= now. */
+  dueAt: string;
 }
 
 export interface PomodoroSession {
@@ -210,6 +214,8 @@ export interface PomodoroTimerInstance {
 export type AppNotificationKind =
   | "timer"
   | "due-soon"
+  | "palette-unlock"
+  /** @deprecated Legacy ambient backgrounds; treated like palette-unlock in the bell. */
   | "background-unlock"
   | "missed-schedule";
 

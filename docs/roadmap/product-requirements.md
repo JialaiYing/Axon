@@ -1,8 +1,8 @@
 # Axon — Product Requirements Document (v2, differentiation-led)
 
-**Status:** Draft for review
+**Status:** Draft for review (revised Aug 2026 — City dropped; unlockable dark palettes replace ambient backgrounds)
 **Supersedes:** the earlier `docs/product-requirements.md` (stabilization-only framing)
-**Prepared:** July 27, 2026
+**Prepared:** July 27, 2026; gamification §4 revised August 2, 2026
 **Read `current-state.md` first** — this document assumes you know what already exists.
 
 ---
@@ -38,39 +38,40 @@ This comparison is a draft to validate, not a finished claim — see `opinions.m
 
 **New non-goal, explicit after this pass:** AI features of any kind remain off the table — the FAQ already proactively differentiates on *not* using AI, and gamification/spaced-repetition mechanics below are deliberately deterministic/rule-based, not AI-generated.
 
-## 4. Gamification rework — the City
+## 4. Gamification rework — unlockable dark palettes
 
-Current state (see `current-state.md` §6): a rank ladder (10 ranks × 3 tiers, Novice→Polymath) is the primary progress visual, plus level-gated ambient dashboard backgrounds (Aurora, Floating Lines, Liquid Ether, Lightfall, Mesh — CSS/WebGL effects, not AI images, but not tied to any specific action either).
+Current state (see `current-state.md` §6): a rank ladder (10 ranks × 3 tiers, Novice→Polymath) is the primary progress visual, plus dark-only app palettes — starters (Axon, Tokyo Night, Nord) available from day one; Everforest, Gruvbox, and Catppuccin Mocha gated by level and equipped manually in Settings → Appearance.
 
-**Confirmed decisions from this round:**
-- The rank ladder is **replaced** as the primary progress visualization, not supplemented.
-- The new growth-metaphor visual gets **its own dedicated page/section** — not an ambient background. Backgrounds-as-reward was explicitly rejected because an always-on visual is the same category of distraction as the AI-generated ambient backgrounds it would have replaced.
-- The metaphor must be original — not a Forest-app tree clone — while still mapping cleanly to "goals = objectives completed."
+**City / skyline dropped.** An earlier draft proposed replacing the rank page with a growing night-skyline ("City") metaphor. That was cut before implementation: too much art/production cost for a solo build, and a new visual metaphor does not by itself make the reward loop more motivating (see `opinions.md`). Rank stays.
 
-**Proposed metaphor: a growing night skyline ("City"), living on its own page.**
+**Confirmed decisions:**
+- Keep the existing **rank ladder on `/rank`** as the primary progress surface — do not replace it with a growth-metaphor page.
+- Replace the ambient Dashboard-background catalog with **unlockable, dark-only, app-wide color palettes** — quiet IDE-style themes (readable, low drama), not neon "reward skins" and not WebGL wallpaper.
+- **Unlock ≠ equip.** Ranking up unlocks a palette; it never auto-applies mid-session. The user equips deliberately from Appearance (Settings), same mental model as installing then selecting a VS Code theme.
+- **Dark-only for unlockable palettes.** Light mode stays the single neutral alternate (existing Appearance toggle). Do not ship light variants of each unlock in this phase.
+- **Dashboard stays a command surface.** No theme carousel, unlock banners, or ambient effects in the first viewport. Progression cosmetics live in Rank + Settings; same-session dopamine stays brief (completion / daily-goal feedback), not a palette swap.
 
-The most natural home is to repurpose the existing `/rank` route (nav label changes from "Rank" to "City" or similar — exact copy is a later detail). Visiting the page shows a skyline that has visibly grown from the user's real activity: more buildings, more lit windows, more density, over time. This is proposed, not locked — confirm the concrete visual direction before investing in art/asset production (see `opinions.md` on sequencing this).
+**Palette set (cosmetic progression track):**
+- **Theme zero (default):** current Axon dark — always available, never locked.
+- **Unlock candidates** (ship default + starters immediately; gate ~3 more by level): **Tokyo Night + Nord** (starters at L1), then **Everforest Dark**, **Gruvbox Dark**, **Catppuccin Mocha**. Optional later: Rosé Pine.
+- Implementation constraint: each palette remaps the **same CSS variables** (surfaces, borders, muted text, primary accent). Semantic success/warning/danger and **subject-owned board colors** stay independent of the palette so Kanban/Analytics accents do not fight the theme.
 
-**Action → reward mapping (explicit, as requested — no more "do stuff, get an abstract number"):**
+**Action → reward split (keep this honest):**
 
 | Action | Reward |
 |---|---|
-| Complete an objective | Lights a window / adds a small building piece; size scaled by the objective's priority (reuses the existing priority-weighted XP values already in `xp-rules.ts` — no new math needed, just a new rendering of the same numbers). |
-| Finish a full focus session | A streetlight/ambient glow increment — smaller, more frequent payoff than an objective. |
-| Hit the daily goal (see §5) | A building segment finishes construction — a bigger, discrete payoff distinct from the small per-action increments. |
-| Maintain a streak | The skyline stays lit/glowing. |
-| Break a streak | The skyline visibly dims — a loss-aversion signal the user can *see*, not just a broken number in a corner. |
-| Level/rank-up (existing XP curve stays as the internal math) | Unlocks a new City theme skin and/or district. |
+| Complete an objective / finish a focus session | Existing XP into the rank ladder + brief same-session feedback (toast / short motion) — not a theme change. |
+| Hit the daily goal (see §5) | A discrete "clear" moment (e.g. stronger toast or Rank pulse) — still not a palette swap. |
+| Level / rank-up (existing XP curve stays as the internal math) | Unlocks the next dark palette in Appearance (manual equip only). |
+| Maintain / break streak | Keep on Rank (numbers + any muted/loss treatment there) — do not dim the whole Dashboard. |
 
-**Curated theme skins, replacing the ambient ombient background catalog:** retire the current `Aurora/Floating Lines/Liquid Ether/Lightfall/Mesh` catalog entirely — it was never actually reward-mapped to anything a user did, just a level gate. Replace with real curated dark palettes as City page skins, unlocked by tier: **Tokyo Night, Nord, Catppuccin (Mocha), Everforest**, plus one or two more to fill the same number of unlock tiers (Gruvbox and/or Rosé Pine are reasonable candidates). These are visual themes for the City page specifically — not a return to an app-wide ambient dashboard background.
-
-**Settings implication:** the current "Dashboard backgrounds" block goes away; theme selection for the City page happens on the City page itself, not buried in Settings.
+**Settings implication:** retire the "Dashboard backgrounds" block entirely when palettes land. Appearance owns light/dark + unlocked palette picker; Rank can preview what's locked/unlocked and deep-link to Appearance to equip.
 
 ## 5. Goals, simplified
 
 Current state: users configure their own daily/weekly targets, and target types include both objectives-completed and focus-minutes.
 
-**Change:** retire focus-minutes as a goal type — "focus time shouldn't be a goal," per direct feedback; the honest reasoning given was that external, fixed instructions work better than self-set ones for this audience. Replace the user-configurable daily goal with a **fixed system default: "Complete 3 objectives today."** Weekly becomes a fixed multiple of that, not a user-tunable slider. This also directly feeds the City reward mapping in §4 (a fixed, predictable trigger for the "building segment finishes" reward).
+**Change:** retire focus-minutes as a goal type — "focus time shouldn't be a goal," per direct feedback; the honest reasoning given was that external, fixed instructions work better than self-set ones for this audience. Replace the user-configurable daily goal with a **fixed system default: "Complete 3 objectives today."** Weekly becomes a fixed multiple of that, not a user-tunable slider. Hitting that fixed daily clear is the trigger for the discrete "bigger" same-session reward in §4 — not a theme unlock (themes stay rank-gated).
 
 ## 6. Insights and metric transparency
 
@@ -91,7 +92,7 @@ Current state: users configure their own daily/weekly targets, and target types 
 
 ## 9. Per-page simplification scope
 
-- **Dashboard** (`dashboard-overview.tsx`): keep the agenda's actual to-do list, strip the inline goal-progress bar out of it. Remove "Up next" entirely — it's a second queue duplicating the agenda. Remove the "Focus this week" weekly chart — "Focus today" already exists in the stats strip; a quick-scan dashboard doesn't need a second, weekly view of the same metric. From the bottom trio (Personal goals / Rank / Recent), drop Personal goals and Recent (Goals has its own page already); the Rank slot becomes a link/preview into the new City page.
+- **Dashboard** (`dashboard-overview.tsx`): keep the agenda's actual to-do list, strip the inline goal-progress bar out of it. Remove "Up next" entirely — it's a second queue duplicating the agenda. Remove the "Focus this week" weekly chart — "Focus today" already exists in the stats strip; a quick-scan dashboard doesn't need a second, weekly view of the same metric. From the bottom trio (Personal goals / Rank / Recent), drop Personal goals and Recent (Goals has its own page already); keep Rank as a link/preview into `/rank` (progress + unlock previews — not a theme gallery on the Dashboard itself).
 - **Kanban → drop the word "Kanban" from user-facing copy.** Call it a to-do list / board in the UI (title, description, nav label) — keep the underlying drag-and-drop board mechanic, just stop calling it "Kanban" in copy the user sees. Replace the independent per-objective color swatch with a **subject-owned color**: each distinct subject gets one persistent color, and the card's left accent bar renders that color instead of an arbitrary independent choice — this is also the fix for "what is the point of the color bar" (today it doesn't correlate with anything scannable across cards). Unify with Analytics' separate subject-color list so the board and charts agree on the same colors.
 - **Calendar:** fix the toolbar alignment (title `text-xl` vs. `h-7`/`h-8` controls, loosely centered). Independent of, and unblocked by, the calendar-sync candidate in §7.
 - **Flashcards:** remove the left "Home" rail — its content duplicates the main Library panel's own create bar and navigation. Remove the "Visual gallery" (Dome) tab as a primary navigation option.
@@ -111,7 +112,7 @@ Full detail on these carries over unchanged from the git history of this documen
 
 See `development-process.md` for the executable version of this. At a high level:
 1. Cheap, real, low-risk: Pomodoro work/break cycling, goals simplification, per-page decluttering, Settings copy cuts.
-2. Positioning-dependent: City page (v1 scope only — see `opinions.md` on not over-building this before real usage exists), Flashcards spaced repetition.
+2. Positioning-dependent: unlockable dark-only app palettes (§4 — replace ambient Dashboard backgrounds; no City), Flashcards spaced repetition, Kanban subject-owned colors.
 3. Trust pass: rewritten landing copy (now reflecting the new positioning, not just the auth correction), mobile nav fix, How It Works mobile fix.
 4. Infra + launch: deploy checklist, rate limiting, account deletion, data export, accessibility pass.
 5. Evidence-gated, not scheduled yet: calendar sync, any real third-party audio integration — revisit based on actual usage once there is any.
@@ -127,6 +128,6 @@ Same launch-readiness framing as the first draft — pre-launch, so these are ga
 
 ## 13. Open questions
 
-- How much of the City page's visual production (custom skyline art across multiple theme skins) is worth investing before there is a single real user? (See `opinions.md` — my answer is "much less than the full scope above.")
+- Exact rank/tier gates for each unlockable palette (and whether Rank shows a locked preview vs. name-only until unlocked).
 - Is "3 objectives/day, fixed" the right default number, or does it need to flex by how many objectives a user typically creates per day? Worth a quick sanity check against a few real usage days before hardcoding.
-- Confirm final naming/route for the City page (`/rank` repurposed vs. a new route) before implementation starts.
+- How much same-session completion / daily-goal feedback is enough once City is gone — toast only, or also a Rank-surface pulse? Keep it brief either way.

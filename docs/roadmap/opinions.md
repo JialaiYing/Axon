@@ -6,17 +6,21 @@ You asked for this to be direct and told me disagreement is fine. So: here's wha
 
 Look at the git log. Dozens of commits over what reads like months: theme sweeps, aesthetics passes, "locked in for 5 hours," "soft launch ready," "deployment-ready aesthetically-wise," and then — nothing deployed. No URL exists. The pattern is not "this project is missing one key feature." The pattern is **a solo dev iterating on a fully-built product in a vacuum, indefinitely, without ever putting it in front of a stranger.**
 
-Now the plan for this round adds: a spaced-repetition engine, a full gamification rebuild with a new page and an art-production requirement (skyline + 4-6 theme skins), a Pomodoro rebuild, a Kanban color-system rebuild, and (in my own first draft, before you corrected me) two OAuth calendar integrations. That is not a "fix the beta" pass. That is another multi-week internal build cycle with the exact same failure mode as everything before it: more scope, still zero users, still no evidence any of it matters.
+Now the plan for this round still adds: a spaced-repetition engine, unlockable app-wide palettes (replacing ambient backgrounds), a Kanban color-system rebuild, and (in my own first draft, before you corrected me) two OAuth calendar integrations. Dropping the City/skyline cut a real art sink — good — but M2 is still a multi-feature build cycle with the same failure mode risk: more scope, still zero users, still no evidence any of it matters.
 
-**My actual recommendation:** ship M1 from `development-process.md` (the cheap stuff — Pomodoro phases, goals default, decluttering, copy cuts) and the trust-pass copy fixes, deploy it, and get five real people using it before you touch the City page or spaced repetition. You will learn more from one week of a stranger actually using this than from another month of solo design iteration. I put City/spaced-repetition in M2 in the process doc because you clearly want them built, but if you asked me "should this ship before v1 goes live," my honest answer is no.
+**My actual recommendation:** M1 from `development-process.md` is largely done — take the trust-pass copy fixes, deploy, and get five real people using it before you treat palette unlocks or spaced repetition as launch blockers. You will learn more from one week of a stranger actually using this than from another month of solo design iteration. I left palettes + spaced-repetition in M2 because you want them built, but if you asked me "should this ship before v1 goes live," my honest answer is still no.
 
 ## On "is it differentiated enough" — I don't think that question has a documentation answer
 
 You asked a real question: why not just use Google Tasks + Calendar + Quizlet + Notion + a phone clock. I wrote you a positioning statement and a competitive comparison table because that's what a PRD is supposed to have. But I want to be straight with you: **no amount of feature-checklist reasoning actually answers that question.** The real answer, for the first handful of users, is going to be some combination of "someone I trust told me to try it" and "it was less annoying to start using than configuring Notion from scratch" — not "I did a side-by-side comparison and Axon won on features." You cannot out-plan this. You can only find out by putting it in front of people. I'd treat the positioning section I wrote as a sanity check on messaging, not as proof the differentiation problem is solved.
 
-## On the City/gamification rework specifically
+## On gamification — City dropped, palettes instead
 
-I like the constraint you added (own page, not a background) — that was the right call, ambient gamification chrome is genuinely a bad idea for a focus tool. But I want to push back on the underlying premise a little: **swapping the rank ladder's skin for a skyline does not, by itself, make gamification more motivating.** The actual behavioral levers are the ones you already specified correctly — an explicit action-to-reward mapping, a visible loss (dimming on a broken streak), and a fixed external goal instead of a self-set one. Those would work about as well bolted onto the existing rank ladder as they would onto a new skyline. The skyline is a genuinely fresher visual than a numeric rank, and I don't think it's a bad idea — but be honest with yourself that you're choosing it for freshness/differentiation, not because it's mechanically more motivating than what's there. And gamification wears off. A brand-new visual gets attention for a week or two regardless of the underlying mechanic; the mechanic is what determines whether it's still doing anything a month in. Build the smallest version that proves the mechanic works before spending real time on skyline art across five theme skins nobody's asked for yet.
+Dropping the City/skyline was the right call. A growth-metaphor page with custom art was high cost for a weak causal claim: **a fresher visual does not, by itself, make gamification more motivating.** The useful levers were always the boring ones — XP tied to real completions, a fixed external daily goal, brief same-session feedback, streak visibility on Rank — not a new metaphor.
+
+Unlockable **dark-only, quiet IDE-style, app-wide palettes** (manual equip, never auto-apply) are a sane replacement for the ambient Dashboard-background catalog: same "progress unlocks cosmetics" fantasy, far less production risk, and aligned with how students already think about editor themes. Constraints that matter: tokenized swaps only, subject colors stay independent, Dashboard does not become a theme gallery, ship default + ~3 unlocks before a long catalog.
+
+Be honest about what this is: **retention sugar, not differentiation.** "Unlock Nord" will not answer "why not four other apps." Spaced repetition on Flashcards is still the stronger positioning bet in M2; palettes should not crowd it out or multiply into six skins before contrast is proven.
 
 ## On calendar sync — I was wrong to call it P1 in my first draft
 
@@ -36,11 +40,12 @@ Small thing, but I agree with it and want to flag the tradeoff you're implicitly
 
 ## Where I think you're right and I have no pushback
 
-- Pomodoro not actually doing work/break cycling is a real, slightly embarrassing gap for an app centered on a Pomodoro timer. Fix this regardless of anything else in this document.
-- The dashboard is genuinely cluttered — Up Next duplicating the agenda and a weekly chart on a "quick glance" page were both real mistakes, not stylistic nitpicks.
-- The Settings-page AI-text-artifact copy is a real, cheap, obviously-correct fix. There's no version of this where keeping "Appearance, profile, privacy, and study preferences." under a page literally titled Settings is the right call.
+- Pomodoro not actually doing work/break cycling was a real, slightly embarrassing gap for an app centered on a Pomodoro timer — fixing it in M1 was correct regardless of everything else.
+- The dashboard was genuinely cluttered — Up Next duplicating the agenda and a weekly chart on a "quick glance" page were both real mistakes, not stylistic nitpicks.
+- The Settings-page AI-text-artifact copy was a real, cheap, obviously-correct fix.
 - Fixed external goals over self-configured ones is good behavioral instinct for this specific audience, and it's also just less UI to build and maintain.
+- Dark-only unlockable palettes, quiet like IDE themes, unlock ≠ equip — that's a coherent, buildable cosmetic track. Don't let it sprawl.
 
 ## Bottom line
 
-If you want my one-sentence, no-hedging recommendation: **do M1 and the trust-copy fixes, deploy it, get real people on it, and let their behavior — not another planning pass — decide whether the City page and spaced repetition are worth building next.** Everything else in `product-requirements.md` is worth having written down so nothing gets lost, but I don't think it's the right order of operations if the actual goal is "move on from beta" soon rather than "keep making the beta more elaborate."
+If you want my one-sentence, no-hedging recommendation: **deploy what M1 already shipped, run the trust-copy fixes, get real people on it, and let their behavior — not another planning pass — decide how deep palette unlocks and spaced repetition need to go.** Everything in `product-requirements.md` is worth having written down so nothing gets lost, but I don't think M2 has to be "complete" before a public URL exists if the actual goal is "move on from beta" soon rather than "keep making the beta more elaborate."

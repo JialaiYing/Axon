@@ -25,6 +25,8 @@ import {
   RANK_NAMES,
   rankTrophyClass,
 } from "@/lib/progress/ranks";
+import { isPaletteUnlocked, PALETTES } from "@/lib/palettes/catalog";
+import { useDevUnlockAll } from "@/hooks/use-dev-unlock-all";
 import { DURATION, EASE } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
@@ -159,6 +161,7 @@ function RankLadder({ level }: { level: number }) {
 export function RankOverview() {
   const prefersReducedMotion = useReducedMotion();
   const { stats, progression, rank, todayXp, hydrated } = useUserStats();
+  useDevUnlockAll(); // re-render when developer unlock-all flips
   const [xpOpen, setXpOpen] = React.useState(false);
   const trophyMetal = rankTrophyClass(rank.rankIndex);
 
@@ -223,15 +226,55 @@ export function RankOverview() {
           </div>
 
           <p className="mt-3 text-[14px] text-muted-foreground">
-            {stats.xp.toLocaleString()} lifetime XP · unlock dashboard backgrounds as you rank up in{" "}
+            {stats.xp.toLocaleString()} lifetime XP · unlock dark palettes as you rank up in{" "}
             <Link
-              href="/settings"
+              href="/settings#appearance"
               className="text-muted-foreground underline decoration-border underline-offset-2 transition-colors hover:text-foreground hover:decoration-foreground"
             >
               Settings
             </Link>
             .
           </p>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            {PALETTES.map((palette) => {
+              const unlocked = isPaletteUnlocked(palette.id, progression.level);
+              return (
+                <div
+                  key={palette.id}
+                  title={
+                    unlocked
+                      ? palette.name
+                      : `${palette.name} · unlocks at level ${palette.unlockLevel}`
+                  }
+                  className={cn(
+                    "flex items-center gap-2 rounded-md border border-border/50 px-2.5 py-1.5 light:border-border",
+                    !unlocked && "opacity-45"
+                  )}
+                >
+                  <span
+                    className="flex h-4 w-6 shrink-0 overflow-hidden rounded-sm border border-border/50"
+                    aria-hidden
+                  >
+                    <span
+                      className="h-full w-2/3"
+                      style={{ backgroundColor: palette.preview.background }}
+                    />
+                    <span
+                      className="h-full w-1/3"
+                      style={{ backgroundColor: palette.preview.accent }}
+                    />
+                  </span>
+                  <span className="text-[12px] text-foreground">{palette.name}</span>
+                  {!unlocked && (
+                    <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
+                      L{palette.unlockLevel}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </section>
 
         {/* Stats strip — same chrome as Dashboard */}
@@ -321,14 +364,14 @@ export function RankOverview() {
                       aria-hidden
                     />
                   </span>
-                  Ranks and dashboard backgrounds unlocked as your level climbs
+                  Ranks and dark palettes unlocked as your level climbs
                 </li>
               </ul>
               <Link
-                href="/settings"
+                href="/settings#appearance"
                 className="mt-4 inline-flex items-center gap-1 text-[14px] text-muted-foreground transition-colors hover:text-foreground"
               >
-                Manage backgrounds in Settings <ArrowRight className="h-3 w-3" />
+                Manage palettes in Settings <ArrowRight className="h-3 w-3" />
               </Link>
             </div>
           )}

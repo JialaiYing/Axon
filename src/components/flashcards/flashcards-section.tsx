@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { FolderPlus, Layers, Plus, RotateCcw } from "lucide-react";
+import { BookOpen, FolderPlus, Layers, Plus, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -12,7 +12,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { AppPage } from "@/components/layout/app-page";
 import { useFlashcards } from "@/hooks/use-flashcards";
+import { collectDueCards, formatRelativeDue, getNextDueAt, type DueCardRef } from "@/lib/flashcards/leitner";
 import { FolderDialog } from "@/components/flashcards/folder-dialog";
 import { CreateSetDialog } from "@/components/flashcards/create-set-dialog";
 import {
@@ -25,13 +27,33 @@ import { SetOverviewDialog } from "@/components/flashcards/set-overview-dialog";
 import { StudyView } from "@/components/flashcards/study-view";
 import { TestView } from "@/components/flashcards/test-view";
 import type { FlashcardFolder, FlashcardSet } from "@/types";
-import { DURATION, EASE } from "@/lib/motion";
+import { EASE } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 type LibraryMode =
   | { type: "library" }
-  | { type: "study"; setId: string }
+  | { type: "study-due" }
   | { type: "test"; setId: string };
+
+function createSessionId() {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return `due-${Date.now()}`;
+}
+
+function buildDueStudySet(sessionId: string, refs: DueCardRef[], scopedSet?: FlashcardSet | null): FlashcardSet {
+  const now = new Date().toISOString();
+  return {
+    id: sessionId,
+    title: scopedSet ? scopedSet.title : "Due today",
+    subject: scopedSet ? scopedSet.subject : "Review",
+    folderId: scopedSet?.folderId,
+    createdAt: now,
+    updatedAt: now,
+    cards: refs.map((r) => r.card),
+  };
+}
 
 export function FlashcardsSection() {
   const prefersReducedMotion = useReducedMotion();
@@ -55,8 +77,10 @@ export function FlashcardsSection() {
     clearRecycleBin,
     touchSet,
     addCard,
+    updateCard,
     deleteCard,
     recordCardResult,
+    dueCount,
     completeSet,
     setsInFolder,
     toggleFolderPinned,
@@ -77,15 +101,55 @@ export function FlashcardsSection() {
   const [editSetId, setEditSetId] = React.useState<string | null>(null);
   const [overviewSetId, setOverviewSetId] = React.useState<string | null>(null);
   const [mode, setMode] = React.useState<LibraryMode>({ type: "library" });
+  const [dueSession, setDueSession] = React.useState<{
+    id: string;
+    setId?: string;
+    refs: DueCardRef[];
+    practice?: boolean;
+  } | null>(null);
 
   const gridFolder = folders.find((f) => f.id === gridFolderId) ?? null;
   const editFolder = folders.find((f) => f.id === editFolderId) ?? null;
   const editSet = sets.find((s) => s.id === editSetId) ?? null;
   const overviewSet = sets.find((s) => s.id === overviewSetId) ?? null;
-  const studySet =
-    mode.type === "study" || mode.type === "test"
-      ? sets.find((s) => s.id === mode.setId) ?? null
+  const testSet =
+    mode.type === "test" ? sets.find((s) => s.id === mode.setId) ?? null : null;
+
+  const dueStudySet = React.useMemo(() => {
+    if (!dueSession) return null;
+    const scoped = dueSession.setId
+      ? sets.find((s) => s.id === dueSession.setId) ?? null
       : null;
+    return buildDueStudySet(dueSession.id, dueSession.refs, scoped);
+  }, [dueSession, sets]);
+
+  const dueCardSetMap = React.useMemo(() => {
+    const map = new Map<string, string>();
+    if (!dueSession) return map;
+    for (const ref of dueSession.refs) map.set(ref.card.id, ref.setId);
+    return map;
+  }, [dueSession]);
+
+  const cardContextById = React.useMemo(() => {
+    const map: Record<string, { setTitle: string; subject: string }> = {};
+    if (!dueSession) return map;
+    for (const ref of dueSession.refs) {
+      map[ref.card.id] = { setTitle: ref.setTitle, subject: ref.subject };
+    }
+    return map;
+  }, [dueSession]);
+
+  const nextDueAt = React.useMemo(() => getNextDueAt(sets), [sets]);
+  const summaryNextHint = React.useMemo(() => {
+    const remaining = collectDueCards(sets).length;
+    if (remaining > 0) {
+      return `${remaining} still due — Study again when you're ready.`;
+    }
+    if (nextDueAt) {
+      return `Caught up for now · next review ${formatRelativeDue(nextDueAt)}.`;
+    }
+    return "Caught up for now.";
+  }, [sets, nextDueAt]);
 
   const unfiledSets = React.useMemo(
     () => sets.filter((set) => !set.folderId || !folders.some((f) => f.id === set.folderId)),
@@ -129,12 +193,39 @@ export function FlashcardsSection() {
     [touchFolder]
   );
 
-  const openSetForStudy = React.useCallback(
+  const openDueStudy = React.useCallback(
+    (setId?: string) => {
+      const refs = collectDueCards(sets, new Date(), setId);
+      if (refs.length === 0) return;
+      if (setId) touchSet(setId);
+      setDueSession({ id: createSessionId(), setId, refs, practice: false });
+      setMode({ type: "study-due" });
+    },
+    [sets, touchSet]
+  );
+
+  /** Explicit full-set practice — still grades / schedules; never labeled Study. */
+  const openPractice = React.useCallback(
     (set: FlashcardSet) => {
+      if (set.cards.length === 0) return;
+      const refs: DueCardRef[] = set.cards.map((card) => ({
+        setId: set.id,
+        setTitle: set.title,
+        subject: set.subject,
+        card,
+      }));
       touchSet(set.id);
-      setMode({ type: "study", setId: set.id });
+      setDueSession({ id: createSessionId(), setId: set.id, refs, practice: true });
+      setMode({ type: "study-due" });
     },
     [touchSet]
+  );
+
+  const openSetForStudy = React.useCallback(
+    (set: FlashcardSet) => {
+      openDueStudy(set.id);
+    },
+    [openDueStudy]
   );
 
   const openSetOverview = React.useCallback((set: FlashcardSet) => {
@@ -150,72 +241,113 @@ export function FlashcardsSection() {
   );
 
   const backToLibrary = React.useCallback(() => {
+    setDueSession(null);
     setMode({ type: "library" });
   }, []);
 
   React.useEffect(() => {
-    if ((mode.type === "study" || mode.type === "test") && !studySet) {
-      backToLibrary();
+    if (mode.type === "test" && !testSet) {
+      setMode({ type: "library" });
     }
-  }, [mode.type, studySet, backToLibrary]);
+  }, [mode.type, testSet]);
 
-  const backToStudy = React.useCallback((setId: string) => {
-    setMode({ type: "study", setId });
-  }, []);
+  const handleDueReview = React.useCallback(
+    (cardId: string, knew: boolean) => {
+      const setId = dueCardSetMap.get(cardId);
+      if (!setId) return;
+      recordCardResult(setId, cardId, knew);
+    },
+    [dueCardSetMap, recordCardResult]
+  );
 
   if (!hydrated) {
-    return <Skeleton className="h-[calc(100dvh-16rem)] min-h-[480px] w-full rounded-md" />;
+    return (
+      <AppPage title="Flashcards" feature="flashcards">
+        <Skeleton className="h-[calc(100dvh-16rem)] min-h-[420px] w-full rounded-md" />
+      </AppPage>
+    );
   }
+
+  const inSession = mode.type === "study-due" || mode.type === "test";
 
   return (
     <>
-      <motion.div
-        initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: prefersReducedMotion ? 0 : DURATION.section, ease: EASE }}
+      <AppPage
+        title="Flashcards"
+        feature="flashcards"
+        hideHeader={inSession}
+        actions={
+          !inSession ? (
+            <div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2">
+              {dueCount > 0 ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  className="h-8 cursor-pointer gap-1.5 px-2.5 shadow-none"
+                  onClick={() => openDueStudy()}
+                >
+                  <BookOpen className="h-3.5 w-3.5" />
+                  Study
+                  <span className="rounded-md bg-accent-foreground/15 px-1.5 py-0.5 font-mono text-[12px] font-medium tabular-nums">
+                    {dueCount}
+                  </span>
+                </Button>
+              ) : (
+                <span
+                  className="inline-flex h-8 items-center gap-1.5 px-2 text-[13px] text-muted-foreground"
+                  title={
+                    nextDueAt
+                      ? `Caught up · next review ${formatRelativeDue(nextDueAt)}`
+                      : "Caught up — nothing due"
+                  }
+                >
+                  <BookOpen className="h-3.5 w-3.5" />
+                  Caught up
+                  {nextDueAt ? (
+                    <span className="hidden font-mono text-[12px] tabular-nums sm:inline">
+                      · {formatRelativeDue(nextDueAt)}
+                    </span>
+                  ) : null}
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={() => setRecycleBinOpen(true)}
+                className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-md px-2 text-[14px] font-medium text-muted-foreground transition-colors hover:bg-wash hover:text-foreground"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                Recycle bin
+                {recycledCount > 0 ? (
+                  <span className="font-mono text-[14px] tabular-nums text-muted-foreground">
+                    {recycledCount}
+                  </span>
+                ) : null}
+              </button>
+              <span className="hidden font-mono text-[14px] tabular-nums text-muted-foreground sm:inline">
+                {sets.length} set{sets.length === 1 ? "" : "s"}
+              </span>
+            </div>
+          ) : undefined
+        }
       >
         <div
           className={cn(
-            "relative h-[calc(100dvh-16rem)] min-h-[420px] rounded-md border border-border/50 bg-transparent shadow-none light:border-border light:bg-card",
-            mode.type === "study" ? "overflow-y-auto p-5 md:p-6" : "overflow-hidden"
+            "relative min-h-[calc(100dvh-16rem)]",
+            mode.type === "study-due" || mode.type === "test"
+              ? "overflow-y-auto"
+              : "flex flex-col overflow-hidden"
           )}
         >
           <AnimatePresence mode="wait">
             {mode.type === "library" && (
               <motion.div
                 key="library"
-                className="flex h-full flex-col"
-                initial={prefersReducedMotion ? false : { opacity: 0, scale: 1.02 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.98 }}
+                className="flex min-h-[calc(100dvh-16rem)] flex-col"
+                initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -4 }}
                 transition={{ duration: 0.25, ease: EASE }}
               >
-                <div className="flex items-center justify-between gap-2 border-b border-border/50 px-4 py-3 light:border-border">
-                  <h2 className="text-2xl font-medium tracking-tight text-foreground sm:text-[28px]">
-                    Library
-                  </h2>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 cursor-pointer gap-1.5 px-2.5 text-[14px] text-muted-foreground hover:text-foreground"
-                      onClick={() => setRecycleBinOpen(true)}
-                    >
-                      <RotateCcw className="h-3.5 w-3.5" />
-                      Recycle bin
-                      {recycledCount > 0 ? (
-                        <span className="rounded-md bg-wash px-1.5 py-0.5 font-mono text-[14px] font-medium text-muted-foreground">
-                          {recycledCount}
-                        </span>
-                      ) : null}
-                    </Button>
-                    <span className="font-mono text-[14px] tabular-nums text-muted-foreground">
-                      {sets.length} set{sets.length === 1 ? "" : "s"}
-                    </span>
-                  </div>
-                </div>
-
                 <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
                   <FlashcardsGridLibrary
                     folders={folders}
@@ -250,45 +382,69 @@ export function FlashcardsSection() {
               </motion.div>
             )}
 
-            {mode.type === "study" && studySet && (
+            {mode.type === "study-due" && dueStudySet && (
               <motion.div
-                key={`study-${studySet.id}`}
-                className="h-full"
-                initial={prefersReducedMotion ? false : { opacity: 0, y: 24, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
+                key={`study-due-${dueStudySet.id}`}
+                className="min-h-[calc(100dvh-14rem)]"
+                initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.45, ease: EASE }}
+                transition={{ duration: 0.35, ease: EASE }}
               >
                 <StudyView
-                  set={studySet}
+                  set={dueStudySet}
+                  title={
+                    dueSession?.practice
+                      ? `Practice · ${dueStudySet.title}`
+                      : dueSession?.setId
+                        ? dueStudySet.title
+                        : "Due today"
+                  }
+                  subtitle={
+                    dueSession?.practice
+                      ? `${dueStudySet.subject} · grades still schedule reviews`
+                      : dueSession?.setId
+                        ? `${dueStudySet.subject} · ${dueSession.refs.length} due`
+                        : `${dueSession?.refs.length ?? 0} card${
+                            (dueSession?.refs.length ?? 0) === 1 ? "" : "s"
+                          } due`
+                  }
+                  reviewMode
+                  cardContextById={cardContextById}
+                  summaryNextHint={summaryNextHint}
                   onBack={backToLibrary}
-                  onEdit={() => setEditSetId(studySet.id)}
-                  onStartTest={() => setMode({ type: "test", setId: studySet.id })}
-                  onCompletePass={() => completeSet(studySet.id)}
+                  onReview={handleDueReview}
+                  onEdit={
+                    dueSession?.setId
+                      ? () => setEditSetId(dueSession.setId!)
+                      : undefined
+                  }
                 />
               </motion.div>
             )}
 
-            {mode.type === "test" && studySet && (
+            {mode.type === "test" && testSet && (
               <motion.div
-                key={`test-${studySet.id}`}
-                className="h-full"
-                initial={prefersReducedMotion ? false : { opacity: 0, y: 24, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
+                key={`test-${testSet.id}`}
+                className="min-h-[calc(100dvh-14rem)]"
+                initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.45, ease: EASE }}
+                transition={{ duration: 0.35, ease: EASE }}
               >
                 <TestView
-                  set={studySet}
-                  onBack={() => backToStudy(studySet.id)}
-                  onRecordResult={(cardId, correct) => recordCardResult(studySet.id, cardId, correct)}
-                  onComplete={(result) => completeSet(studySet.id, result)}
+                  set={testSet}
+                  onBack={backToLibrary}
+                  onRecordResult={(cardId, correct) =>
+                    recordCardResult(testSet.id, cardId, correct)
+                  }
+                  onComplete={(result) => completeSet(testSet.id, result)}
                 />
               </motion.div>
             )}
           </AnimatePresence>
         </div>
-      </motion.div>
+      </AppPage>
 
       <FolderDialog
         open={createFolderOpen}
@@ -316,6 +472,7 @@ export function FlashcardsSection() {
           if (!open) setOverviewSetId(null);
         }}
         onStudy={openSetForStudy}
+        onPractice={openPractice}
         onEdit={(set) => setEditSetId(set.id)}
         onTest={startTestForSet}
       />
@@ -366,7 +523,9 @@ export function FlashcardsSection() {
           if (!open) setEditSetId(null);
         }}
         onAddCard={addCard}
+        onUpdateCard={updateCard}
         onDeleteCard={deleteCard}
+        onUpdateSet={(id, patch) => updateSet(id, patch)}
         onDeleteSet={sendSetToRecycleBin}
       />
     </>
@@ -383,7 +542,7 @@ function LibraryCreateBar({
   onNewSet: (folderId?: string) => void;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 border-t border-border/50 px-4 py-2.5 light:border-border">
+    <div className="flex items-center justify-between gap-3 border-t border-border/40 px-0 py-3 light:border-border">
       <p className="min-w-0 truncate text-[14px] text-muted-foreground">
         {folder ? `Inside ${folder.title}` : "Folders and unfiled sets"}
       </p>

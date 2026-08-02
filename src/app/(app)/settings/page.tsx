@@ -32,11 +32,16 @@ import {
 import { useOnboarding } from "@/hooks/use-onboarding";
 import { useFocusPreferences } from "@/hooks/use-focus-preferences";
 import { useDisplayName } from "@/hooks/use-display-name";
-import { useDashboardBackground } from "@/hooks/use-dashboard-background";
+import { useUserStats } from "@/hooks/use-user-stats";
+import { useDevUnlockAll } from "@/hooks/use-dev-unlock-all";
 import { useTheme } from "@/components/providers/theme-provider";
 import { useAuth } from "@/components/auth/auth-provider";
 import { useSync } from "@/components/sync/sync-provider";
-import { isBackgroundUnlocked } from "@/lib/backgrounds/catalog";
+import { isPaletteUnlocked, PALETTES } from "@/lib/palettes/catalog";
+import {
+  isDevUnlockAllForcedByEnv,
+  setDevUnlockAll,
+} from "@/lib/dev/unlocks";
 import { clearLocalSyncedData } from "@/lib/sync/local-data";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
@@ -92,17 +97,25 @@ function ToggleRow({
   label,
   checked,
   onChange,
+  disabled,
 }: {
   label: string;
   checked: boolean;
   onChange: (next: boolean) => void;
+  disabled?: boolean;
 }) {
   return (
-    <label className="flex cursor-pointer items-center justify-between gap-3 rounded-md border border-border/50 px-3 py-2.5 text-[13px] light:border-border">
+    <label
+      className={cn(
+        "flex items-center justify-between gap-3 rounded-md border border-border/50 px-3 py-2.5 text-[13px] light:border-border",
+        disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"
+      )}
+    >
       <span className="text-foreground">{label}</span>
       <input
         type="checkbox"
         checked={checked}
+        disabled={disabled}
         onChange={(e) => onChange(e.target.checked)}
         className="h-4 w-4 accent-accent"
       />
@@ -115,8 +128,12 @@ export default function SettingsPage() {
   const { preferences: focusPreferences, updatePreferences: updateFocusPreferences } =
     useFocusPreferences();
   const { displayName, setDisplayName } = useDisplayName();
-  const { theme, setTheme } = useTheme();
-  const { backgroundId, setBackgroundId, catalog, level } = useDashboardBackground();
+  const { theme, setTheme, paletteId, setPaletteId } = useTheme();
+  const { stats } = useUserStats();
+  const level = stats.level || 1;
+  const unlockAll = useDevUnlockAll();
+  const unlockAllForced = isDevUnlockAllForcedByEnv();
+  const showDevUnlock = process.env.NODE_ENV === "development" || unlockAllForced;
   const { user, session, configured, signOut } = useAuth();
   const { status, syncNow } = useSync();
   const router = useRouter();
@@ -271,76 +288,116 @@ export default function SettingsPage() {
               </SettingBlock>
 
               <SettingBlock icon={Palette} title="Appearance">
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant={theme === "dark" ? "default" : "outline"}
-                    className="shadow-none"
-                    onClick={() => setTheme("dark")}
-                  >
-                    <Moon className="h-3.5 w-3.5" />
-                    Dark
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant={theme === "light" ? "default" : "outline"}
-                    className="shadow-none"
-                    onClick={() => setTheme("light")}
-                  >
-                    <Sun className="h-3.5 w-3.5" />
-                    Light
-                  </Button>
+                <div id="appearance" className="scroll-mt-24 space-y-4">
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={theme === "dark" ? "default" : "outline"}
+                      className="shadow-none"
+                      onClick={() => setTheme("dark")}
+                    >
+                      <Moon className="h-3.5 w-3.5" />
+                      Dark
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={theme === "light" ? "default" : "outline"}
+                      className="shadow-none"
+                      onClick={() => setTheme("light")}
+                    >
+                      <Sun className="h-3.5 w-3.5" />
+                      Light
+                    </Button>
+                  </div>
+
+                  <div className={cn(theme === "light" && "opacity-60")}>
+                    <p className="mb-2 text-[13px] text-muted-foreground">
+                      Dark palette · Level {level}
+                      {theme === "light" ? " · switch to Dark to preview" : ""}
+                    </p>
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      {PALETTES.map((palette) => {
+                        const unlocked = isPaletteUnlocked(palette.id, level);
+                        const selected = paletteId === palette.id;
+                        return (
+                          <button
+                            key={palette.id}
+                            type="button"
+                            disabled={!unlocked || theme === "light"}
+                            onClick={() => setPaletteId(palette.id)}
+                            className={cn(
+                              "rounded-md border p-3 text-left transition-colors",
+                              selected
+                                ? "border-border/60 bg-wash-strong light:border-border"
+                                : "border-border/50 hover:bg-wash light:border-border",
+                              (!unlocked || theme === "light") &&
+                                "cursor-not-allowed opacity-50 hover:bg-transparent"
+                            )}
+                          >
+                            <div className="mb-2 flex items-center gap-2">
+                              <span
+                                className="flex h-7 w-10 shrink-0 overflow-hidden rounded-sm border border-border/50"
+                                aria-hidden
+                              >
+                                <span
+                                  className="h-full w-2/3"
+                                  style={{ backgroundColor: palette.preview.background }}
+                                />
+                                <span
+                                  className="h-full w-1/3"
+                                  style={{ backgroundColor: palette.preview.accent }}
+                                />
+                              </span>
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center justify-between gap-2">
+                                  <p className="truncate text-[13px] font-medium text-foreground">
+                                    {palette.name}
+                                  </p>
+                                  {unlocked ? (
+                                    selected ? (
+                                      <span className="shrink-0 text-[11px] font-medium text-foreground">
+                                        Active
+                                      </span>
+                                    ) : (
+                                      <span className="shrink-0 text-[11px] text-muted-foreground">
+                                        Unlocked
+                                      </span>
+                                    )
+                                  ) : (
+                                    <span className="shrink-0 font-mono text-[11px] tabular-nums text-muted-foreground">
+                                      Lvl {palette.unlockLevel}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <p className="text-[12px] text-muted-foreground">{palette.description}</p>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {showDevUnlock && (
+                    <ToggleRow
+                      label={
+                        unlockAllForced
+                          ? "Unlock all cosmetics (forced by NEXT_PUBLIC_DEV_UNLOCK_ALL)"
+                          : "Unlock all cosmetics (developer)"
+                      }
+                      checked={unlockAll}
+                      disabled={unlockAllForced}
+                      onChange={(checked) => {
+                        if (unlockAllForced) return;
+                        setDevUnlockAll(checked);
+                      }}
+                    />
+                  )}
                 </div>
               </SettingBlock>
             </div>
-          </section>
-
-          <section className="space-y-4">
-            <SectionHeading>Atmosphere</SectionHeading>
-            <SettingBlock icon={Sparkles} title="Dashboard backgrounds">
-              <p className="mb-4 text-[13px] text-muted-foreground">
-                Level {level} · unlock more as you rank up
-              </p>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                {catalog.map((bg) => {
-                  const unlocked = isBackgroundUnlocked(bg.id, level);
-                  const selected = backgroundId === bg.id;
-                  return (
-                    <button
-                      key={bg.id}
-                      type="button"
-                      disabled={!unlocked}
-                      onClick={() => setBackgroundId(bg.id)}
-                      className={cn(
-                        "rounded-md border p-3 text-left transition-colors",
-                        selected
-                          ? "border-border/60 bg-wash-strong light:border-border"
-                          : "border-border/50 hover:bg-wash light:border-border",
-                        !unlocked && "cursor-not-allowed opacity-50 hover:bg-transparent"
-                      )}
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="text-[13px] font-medium text-foreground">{bg.name}</p>
-                        {unlocked ? (
-                          selected ? (
-                            <span className="text-[11px] font-medium text-foreground">Active</span>
-                          ) : (
-                            <span className="text-[11px] text-muted-foreground">Unlocked</span>
-                          )
-                        ) : (
-                          <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
-                            Lvl {bg.unlockLevel}
-                          </span>
-                        )}
-                      </div>
-                      <p className="mt-1 text-[12px] text-muted-foreground">{bg.description}</p>
-                    </button>
-                  );
-                })}
-              </div>
-            </SettingBlock>
           </section>
 
           <section className="space-y-4">

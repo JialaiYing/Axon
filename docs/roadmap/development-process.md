@@ -20,13 +20,14 @@ Work in this order unless new evidence (real usage, user feedback) says otherwis
 **Definition of done:** every item above is implemented, `npm run lint` is clean, no new axe-core violations introduced on the touched pages, and the corresponding entry in `known-issues.md` is updated to "resolved."
 
 ### M2 — Positioning-dependent features
-- Kanban subject-owned color system (§9) — do this alongside the Kanban rename since both touch the same card component.
-- Flashcards spaced repetition scheduler (§7) — scope to Flashcards only, Leitner-box style.
-- City page v1 (§4) — **build the smallest version that proves the mechanic** (objective completion visibly changes the page) before investing in multiple theme skins or elaborate skyline art. See `opinions.md` before over-building this.
+- [x] Flashcards spaced repetition scheduler (§7) — Flashcards-only Leitner boxes; Library Study surfaces due cards without set pick first.
+- Flashcards UX follow-through — `flashcards-improvements.md` (schedule-visible UI, caught-up Study, set context in due Study, edit cards/set metadata, session end summary). Do after Leitner; do not expand into SM-2 or card media.
+- Kanban subject-owned color system (§9) — card accent + Analytics subject colors share one mapping (Kanban copy rename already shipped in M1).
+- [x] Unlockable dark-only app palettes (§4) — ambient Dashboard backgrounds retired; starters at L1 (Axon / Tokyo Night / Nord); gated Everforest L3 / Gruvbox L7 / Catppuccin Mocha L13; **never auto-equip**; Appearance is the picker; chrome follows accent so swaps are visible. Specs: `theme-palettes.md`.
 
-**Skills to use:** `.cursor/skills/motion-design/SKILL.md` for the City page's growth animation; `.cursor/skills/design-system/SKILL.md` if new tokens are needed for the curated theme skins (Tokyo Night/Nord/Catppuccin/Everforest).
+**Skills to use:** `.cursor/skills/design-system/SKILL.md` for tokenized palette swaps (same CSS variables per theme); `.cursor/skills/premium-frontend/SKILL.md` to keep unlocked palettes quiet and non-distracting; `.cursor/skills/nextjs-react-patterns/SKILL.md` for Flashcards scheduler state.
 
-**Definition of done:** completing an objective visibly changes the City page in the same session (no page reload needed), the fixed daily goal from M1 triggers the "bigger" reward tier, and Flashcards "Study" surfaces due cards without the user picking a set first.
+**Definition of done:** ambient Dashboard backgrounds are gone; at least three unlockable dark palettes can be unlocked by rank and manually equipped app-wide without auto-apply on level-up; Flashcards "Study" surfaces due cards without the user picking a set first; subject colors on the board match Analytics.
 
 ### M3 — Trust pass (do after M1/M2, not before)
 - Rewrite landing page copy to reflect the *new* positioning from `product-requirements.md` §2 — not just an auth-accuracy fix, since the product story itself changed.

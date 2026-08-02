@@ -189,7 +189,7 @@ export function FlashcardsGridLibrary({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-      <div className="flex items-center justify-between gap-2 border-b border-border/50 px-4 py-2.5 light:border-border">
+      <div className="flex items-center justify-between gap-2 border-b border-border/40 px-0 py-2.5 light:border-border">
         <div className="flex min-w-0 items-center gap-2">
           {folder ? (
             <>
@@ -262,7 +262,7 @@ export function FlashcardsGridLibrary({
         onDragEnd={handleDragEnd}
         onDragCancel={() => setActiveSetId(null)}
       >
-        <div className="min-h-0 flex-1 overflow-y-auto p-4">
+        <div className="min-h-0 flex-1 overflow-y-auto py-4">
           {empty ? (
             <div className="flex h-full min-h-[280px] flex-col items-center justify-center gap-3 text-center">
               <Layers className="h-8 w-8 text-muted-foreground" strokeWidth={1.5} />

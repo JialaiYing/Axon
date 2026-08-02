@@ -7,9 +7,8 @@ import { PageTransition } from "@/components/layout/page-transition";
 import { TimerNotificationsWatcher } from "@/components/layout/timer-notifications-watcher";
 import { DueSoonWatcher } from "@/components/layout/due-soon-watcher";
 import { MissedScheduleWatcher } from "@/components/layout/missed-schedule-watcher";
-import { BackgroundUnlockWatcher } from "@/components/layout/background-unlock-watcher";
+import { PaletteUnlockWatcher } from "@/components/layout/palette-unlock-watcher";
 import { StorageFailureBanner } from "@/components/layout/storage-failure-banner";
-import { DashboardBackground } from "@/components/layout/dashboard-background";
 import { GrainOverlay } from "@/components/ui/grain-overlay";
 import { XpBurstOverlay } from "@/components/layout/xp-burst-overlay";
 import { ShellChromeProvider } from "@/components/layout/shell-chrome";
@@ -22,8 +21,6 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   const hideSidebar = immersive || focusLock;
 
-  // Esc exits immersive chrome, but never fights Pomodoro Focus Mode (which
-  // owns Escape while its overlay is up).
   React.useEffect(() => {
     if (!immersive || focusLock) return;
     function onKeyDown(e: KeyboardEvent) {
@@ -40,8 +37,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       focusLock={focusLock}
       setFocusLock={setFocusLock}
     >
-      <div className="relative h-screen w-full overflow-hidden text-foreground">
-        <DashboardBackground />
+      <div className="relative h-screen w-full overflow-hidden bg-background text-foreground">
         <GrainOverlay />
         {!hideSidebar && <Sidebar open={sidebarOpen} onOpenChange={setSidebarOpen} />}
         <div
@@ -65,7 +61,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         <TimerNotificationsWatcher />
         <DueSoonWatcher />
         <MissedScheduleWatcher />
-        <BackgroundUnlockWatcher />
+        <PaletteUnlockWatcher />
         <StorageFailureBanner />
         <XpBurstOverlay />
       </div>

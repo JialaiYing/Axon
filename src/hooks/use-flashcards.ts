@@ -5,6 +5,13 @@ import { RECYCLE_BIN_RETENTION_DAYS } from "@/constants/kanban";
 import { asArray, dedupeById, useLocalStorage } from "@/hooks/use-local-storage";
 import { daysSince } from "@/lib/kanban-utils";
 import { recordTombstone } from "@/lib/sync/tombstones";
+import {
+  applyLeitnerReview,
+  clampLeitnerBox,
+  collectDueCards,
+  countDueCards,
+  defaultLeitnerFields,
+} from "@/lib/flashcards/leitner";
 import type { Flashcard, FlashcardFolder, FlashcardSet } from "@/types";
 
 const FOLDERS_KEY = "axon:flashcards:folders";
@@ -57,6 +64,8 @@ function normalizeCard(value: Flashcard): Flashcard | null {
   const correct = typeof value.correctCount === "number" ? Math.max(0, value.correctCount) : 0;
   const incorrect = typeof value.incorrectCount === "number" ? Math.max(0, value.incorrectCount) : 0;
   const attempts = correct + incorrect;
+  const leitner = defaultLeitnerFields();
+  const dueAt = validIso(value.dueAt) ?? leitner.dueAt;
   return {
     id: value.id,
     front: typeof value.front === "string" ? value.front : "",
@@ -64,6 +73,8 @@ function normalizeCard(value: Flashcard): Flashcard | null {
     correctCount: correct,
     incorrectCount: incorrect,
     masteryPercent: attempts > 0 ? Math.round((correct / attempts) * 100) : 0,
+    box: clampLeitnerBox(value.box),
+    dueAt,
   };
 }
 
@@ -439,6 +450,7 @@ export function useFlashcards() {
 
   const addCard = React.useCallback(
     (setId: string, input: { front: string; back: string }) => {
+      const leitner = defaultLeitnerFields();
       const card: Flashcard = {
         id: createId(),
         front: input.front,
@@ -446,6 +458,8 @@ export function useFlashcards() {
         correctCount: 0,
         incorrectCount: 0,
         masteryPercent: 0,
+        box: leitner.box,
+        dueAt: leitner.dueAt,
       };
       setSets((prev) =>
         prev.map((set) =>
@@ -476,7 +490,35 @@ export function useFlashcards() {
     [setSets]
   );
 
-  /** Records one study/test answer against a card — feeds correctCount/incorrectCount → masteryPercent. */
+  /** Edits card text only — preserves Leitner box / dueAt / mastery counters. */
+  const updateCard = React.useCallback(
+    (setId: string, cardId: string, patch: { front?: string; back?: string }) => {
+      setSets((prev) =>
+        prev.map((set) => {
+          if (set.id !== setId) return set;
+          return {
+            ...set,
+            updatedAt: new Date().toISOString(),
+            cards: set.cards.map((card) => {
+              if (card.id !== cardId) return card;
+              return {
+                ...card,
+                front:
+                  typeof patch.front === "string" ? patch.front : card.front,
+                back: typeof patch.back === "string" ? patch.back : card.back,
+              };
+            }),
+          };
+        })
+      );
+    },
+    [setSets]
+  );
+
+  /**
+   * Records a graded answer: updates Leitner box/dueAt and mastery counters.
+   * Used by due Study and Test mode.
+   */
   const recordCardResult = React.useCallback(
     (setId: string, cardId: string, correct: boolean) => {
       setSets((prev) =>
@@ -486,13 +528,7 @@ export function useFlashcards() {
             ...set,
             updatedAt: new Date().toISOString(),
             cards: set.cards.map((card) =>
-              card.id === cardId
-                ? {
-                    ...card,
-                    correctCount: card.correctCount + (correct ? 1 : 0),
-                    incorrectCount: card.incorrectCount + (correct ? 0 : 1),
-                  }
-                : card
+              card.id === cardId ? applyLeitnerReview(card, correct) : card
             ),
           };
         })
@@ -500,6 +536,9 @@ export function useFlashcards() {
     },
     [setSets]
   );
+
+  const dueCards = React.useMemo(() => collectDueCards(sets), [sets]);
+  const dueCount = React.useMemo(() => countDueCards(sets), [sets]);
 
   /** Marks a set as completed — a full study pass or a finished test run. */
   const completeSet = React.useCallback(
@@ -649,8 +688,11 @@ export function useFlashcards() {
     clearRecycleBin,
     touchSet,
     addCard,
+    updateCard,
     deleteCard,
     recordCardResult,
+    dueCards,
+    dueCount,
     completeSet,
     setsInFolder,
     recents,

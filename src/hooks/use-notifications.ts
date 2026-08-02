@@ -29,11 +29,13 @@ function normalizeNotification(value: TimerNotification): TimerNotification | nu
   const kind: TimerNotification["kind"] =
     value.kind === "due-soon"
       ? "due-soon"
-      : value.kind === "background-unlock"
-        ? "background-unlock"
-        : value.kind === "missed-schedule"
-          ? "missed-schedule"
-          : "timer";
+      : value.kind === "palette-unlock"
+        ? "palette-unlock"
+        : value.kind === "background-unlock"
+          ? "background-unlock"
+          : value.kind === "missed-schedule"
+            ? "missed-schedule"
+            : "timer";
   return {
     ...value,
     timerId: typeof value.timerId === "string" ? value.timerId : "",

@@ -52,13 +52,19 @@ Update this file as items get resolved instead of letting it silently rot — se
 
 ## Flashcards
 
+- **[Resolved — M2]** Leitner spaced repetition shipped — cards carry `box` / `dueAt`; Library **Study** queues due cards across sets; Know/Forgot (and Test) advance the schedule. Specs live in code (`src/lib/flashcards/leitner.ts`).
+- **[Resolved — M2]** Flashcards review UX polish (`flashcards-improvements.md`): schedule-visible overview, honest caught-up Study, set context in due Study, edit cards/set metadata without resetting schedule, session end summary.
 - **[Independent]** Legacy folders may still store old purple hex colors in `localStorage` from before the token migration — self-healing (users can recolor via Edit), low priority.
-- **[Subsumed]** "Spaced repetition / scheduled review still deferred" — this was logged as deferred product work in the old audit; it is now a committed differentiation feature in `product-requirements.md`, not deferred.
 - **[Resolved — M1]** Home left-rail duplication ("Continue studying" / "Recent folders" sections) and the "Visual gallery" tab (lazy-loaded Three.js dome view) removed — the plain grid library is now the only view, cutting the duplicate entry points and the extra bundle weight the dome pulled in on every page load.
 
 ## Settings
 
 - **[Resolved — M1]** Every setting block carried a full explanatory paragraph (Profile, Appearance, Dashboard backgrounds, Data & privacy, Focus Mode, Notifications, Feature tips, Homepage) — cut down to essentials or removed outright where the control was self-explanatory; section/block headings bumped up a size for scannability now that the body copy is gone.
+- **[Resolved — M2]** Level-gated ambient Dashboard backgrounds retired; replaced by unlockable dark-only app-wide palettes (starters: Axon / Tokyo Night / Nord; gated: Everforest / Gruvbox / Catppuccin Mocha). Specs in `theme-palettes.md`. City/skyline page was considered and **dropped** (not scheduled).
+
+## Rank / progress
+
+- **[Subsumed]** "Primary progress visual needs a growth metaphor / City page" — withdrawn. Rank ladder stays; cosmetic progression is unlockable palettes, not a new route or skyline.
 
 ## Not previously audited (found during this pass)
 
