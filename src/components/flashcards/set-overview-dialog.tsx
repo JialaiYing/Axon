@@ -14,6 +14,7 @@ import {
   countDueCards,
   formatRelativeDue,
   getNextDueAt,
+  LEITNER_INTERVAL_DAYS,
   type LeitnerBox,
 } from "@/lib/flashcards/leitner";
 import type { FlashcardSet } from "@/types";
@@ -96,23 +97,22 @@ export function SetOverviewDialog({
 
         {set.cards.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
-            {BOXES.map((box) => (
-              <span
-                key={box}
-                className="inline-flex items-center gap-1 rounded-md border border-border/50 px-2 py-1 font-mono text-[11px] tabular-nums text-muted-foreground light:border-border"
-                title={`Box ${box}`}
-              >
-                B{box}
-                <span className="text-foreground">{boxes[box]}</span>
-              </span>
-            ))}
+            {BOXES.map((box) => {
+              const days = LEITNER_INTERVAL_DAYS[box] ?? 0;
+              const interval =
+                days === 0 ? "due soon" : days === 1 ? "1 day" : `${days} days`;
+              return (
+                <span
+                  key={box}
+                  className="inline-flex items-center gap-1 rounded-md border border-border/50 px-2 py-1 font-mono text-[11px] tabular-nums text-muted-foreground light:border-border"
+                  title={`Box ${box} · ${interval}`}
+                >
+                  B{box}
+                  <span className="text-foreground">{boxes[box]}</span>
+                </span>
+              );
+            })}
           </div>
-        )}
-
-        {set.description?.trim() && (
-          <p className="text-[15px] leading-relaxed text-muted-foreground">
-            {set.description.trim()}
-          </p>
         )}
 
         <div className="flex flex-col gap-2 pt-1">
@@ -138,9 +138,6 @@ export function SetOverviewDialog({
             >
               <RotateCw className="h-4 w-4" />
               Practice all
-              <span className="ml-auto text-[12px] font-normal text-muted-foreground">
-                still schedules
-              </span>
             </Button>
           )}
           <Button

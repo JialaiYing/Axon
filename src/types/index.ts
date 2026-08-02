@@ -280,5 +280,4 @@ export interface UserStats {
   currentStreak: number;
   longestStreak: number;
   intervalsCompleted: number;
-  productivityIndex: number;
 }

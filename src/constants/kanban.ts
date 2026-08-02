@@ -44,13 +44,5 @@ export const SUBJECT_SUGGESTIONS = [
   "Economics",
 ];
 
-export const OBJECTIVE_COLORS = [
-  "#3b82f6", // accent blue
-  "#a855f7", // secondary purple
-  "#22c55e", // success green
-  "#f59e0b", // warning amber
-  "#ef4444", // danger red
-  "#06b6d4", // cyan
-  "#ec4899", // pink
-  "#6b7185", // neutral
-];
+/** @deprecated Use SUBJECT_COLOR_PALETTE / colorForSubject from `@/lib/subject-colors`. */
+export { OBJECTIVE_COLORS, SUBJECT_COLOR_PALETTE } from "@/lib/subject-colors";

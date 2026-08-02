@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useSearchParams } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { BookOpen, FolderPlus, Layers, Plus, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -143,7 +144,7 @@ export function FlashcardsSection() {
   const summaryNextHint = React.useMemo(() => {
     const remaining = collectDueCards(sets).length;
     if (remaining > 0) {
-      return `${remaining} still due — Study again when you're ready.`;
+      return `${remaining} need another pass — Study again when you're ready.`;
     }
     if (nextDueAt) {
       return `Caught up for now · next review ${formatRelativeDue(nextDueAt)}.`;
@@ -203,6 +204,20 @@ export function FlashcardsSection() {
     },
     [sets, touchSet]
   );
+
+  const searchParams = useSearchParams();
+  const openedDueFromQuery = React.useRef(false);
+  React.useEffect(() => {
+    if (!hydrated || openedDueFromQuery.current) return;
+    if (searchParams.get("study") !== "due") return;
+    if (dueCount <= 0) return;
+    openedDueFromQuery.current = true;
+    openDueStudy();
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("study");
+    const next = `${window.location.pathname}${params.toString() ? `?${params}` : ""}`;
+    window.history.replaceState(null, "", next);
+  }, [hydrated, searchParams, dueCount, openDueStudy]);
 
   /** Explicit full-set practice — still grades / schedules; never labeled Study. */
   const openPractice = React.useCallback(

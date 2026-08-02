@@ -4,9 +4,8 @@ import * as React from "react";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import {
-  Gauge,
+  ListTodo,
   Plus,
-  Repeat,
   Sparkles,
   Timer,
   Trophy,
@@ -23,10 +22,18 @@ import { useObjectives } from "@/hooks/use-objectives";
 import { usePomodoroSessions } from "@/hooks/use-pomodoro-sessions";
 import { useUserStats } from "@/hooks/use-user-stats";
 import { useDisplayName } from "@/hooks/use-display-name";
+import { useFlashcards } from "@/hooks/use-flashcards";
+import { useGoals, DAILY_OBJECTIVES_TARGET } from "@/hooks/use-goals";
+import {
+  remainingSecondsOf,
+  usePomodoroTimers,
+} from "@/hooks/use-pomodoro-timers";
 import { DURATION, EASE } from "@/lib/motion";
 import { percentTrend, type Trend } from "@/lib/percent-trend";
 import { computeCurrentStreak } from "@/lib/progress/streak";
 import { rankTrophyClass } from "@/lib/progress/ranks";
+import { buildTodayAgenda } from "@/lib/dashboard-agenda";
+import { formatClock } from "@/lib/pomodoro-utils";
 import type { PomodoroSession } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -59,14 +66,10 @@ function focusMinutesInRange(sessions: PomodoroSession[], startDaysAgo: number, 
     .reduce((sum, s) => sum + s.durationMinutes, 0);
 }
 
-/** Border classes for one cell in the 4-up stats strip — a 2x2 grid on
- *  mobile that collapses to a single divided row of 4 at `md`. */
+/** Border classes for one cell in the 3-up stats strip — single divided row. */
 function statCellBorderClass(index: number) {
   return cn(
-    index % 2 === 1 && "border-l border-border/60 light:border-border",
-    index >= 2 && "border-t border-border/60 light:border-border",
-    "md:border-t-0",
-    index > 0 && "md:border-l md:border-border/60 light:md:border-border"
+    index > 0 && "border-l border-border/60 light:border-border"
   );
 }
 
@@ -112,7 +115,7 @@ const StatCell = React.memo(function StatCell({
   );
 });
 
-/** Rank band — spans the full page width; links through to Rank & Progress. */
+/** Rank band + daily goal glance. Separate links — Rank → /rank, Daily → /goals. */
 function RankStrip({
   rankLabel,
   rankIndex,
@@ -122,6 +125,8 @@ function RankStrip({
   progressPercent,
   isMaxLevel,
   todayXp,
+  dailyProgress,
+  dailyTarget,
 }: {
   rankLabel: string;
   rankIndex: number;
@@ -131,54 +136,77 @@ function RankStrip({
   progressPercent: number;
   isMaxLevel: boolean;
   todayXp: number;
+  dailyProgress: number;
+  dailyTarget: number;
 }) {
   const metal = rankTrophyClass(rankIndex);
+  const dailyDone = dailyProgress >= dailyTarget;
   return (
-    <Link
-      href="/rank"
-      className="block rounded-md border border-border/50 p-5 transition-colors hover:border-border hover:bg-wash/40 light:border-border light:bg-card light:hover:bg-card sm:p-6"
-    >
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-8">
-        <div className="flex shrink-0 items-center gap-3">
-          <span
-            className={cn(
-              "flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-wash",
-              metal
-            )}
-          >
-            <Trophy className="h-4 w-4 fill-current" aria-hidden />
-          </span>
-          <div>
-            <p className="text-[14px] font-medium text-muted">Rank</p>
-            <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5">
-              <p className="text-2xl font-medium tracking-tight text-foreground sm:text-[28px]">{rankLabel}</p>
-              <span className="font-mono text-[14px] tabular-nums text-muted-foreground">
-                Level {level}
-              </span>
+    <div className="flex overflow-hidden rounded-md border border-border/50 light:border-border light:bg-card">
+      <Link
+        href="/rank"
+        className="min-w-0 flex-1 p-5 transition-colors hover:bg-wash/40 sm:p-6"
+      >
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-8">
+          <div className="flex shrink-0 items-center gap-3">
+            <span
+              className={cn(
+                "flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-wash",
+                metal
+              )}
+            >
+              <Trophy className="h-4 w-4 fill-current" aria-hidden />
+            </span>
+            <div>
+              <p className="text-[14px] font-medium text-muted">Rank</p>
+              <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                <p className="text-2xl font-medium tracking-tight text-foreground sm:text-[28px]">
+                  {rankLabel}
+                </p>
+                <span className="font-mono text-[14px] tabular-nums text-muted-foreground">
+                  Level {level}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="mb-1.5 flex items-center justify-between gap-3 text-[14px] text-muted-foreground">
-            <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
-              <span>{isMaxLevel ? "Max level" : "XP to next level"}</span>
-              {todayXp > 0 && (
-                <span className="inline-flex items-center gap-1 font-medium text-foreground">
-                  <Sparkles className="h-3.5 w-3.5" />
-                  +{todayXp} today
+          <div className="min-w-0 flex-1">
+            <div className="mb-1.5 flex items-center justify-between gap-3 text-[14px] text-muted-foreground">
+              <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
+                <span>{isMaxLevel ? "Max level" : "XP to next level"}</span>
+                {todayXp > 0 && (
+                  <span className="inline-flex items-center gap-1 font-medium text-foreground">
+                    <Sparkles className="h-3.5 w-3.5" />
+                    +{todayXp} today
+                  </span>
+                )}
+              </span>
+              {!isMaxLevel && (
+                <span className="shrink-0 font-mono tabular-nums text-foreground/70">
+                  {xpIntoLevel.toLocaleString()} / {xpForNextLevel?.toLocaleString()}
                 </span>
               )}
-            </span>
-            {!isMaxLevel && (
-              <span className="shrink-0 font-mono tabular-nums text-foreground/70">
-                {xpIntoLevel.toLocaleString()} / {xpForNextLevel?.toLocaleString()}
-              </span>
-            )}
+            </div>
+            <ProgressBar value={progressPercent} size="sm" />
           </div>
-          <ProgressBar value={progressPercent} size="sm" />
         </div>
-      </div>
-    </Link>
+      </Link>
+      <Link
+        href="/goals"
+        className="flex w-[5.5rem] shrink-0 flex-col justify-center border-l border-border/50 px-3 py-4 text-center transition-colors hover:bg-wash/40 light:border-border sm:w-28 sm:px-4"
+        aria-label={`Daily goal ${dailyProgress} of ${dailyTarget} objectives`}
+      >
+        <p className="text-[12px] font-medium text-muted sm:text-[14px]">Daily</p>
+        <p
+          className={cn(
+            "mt-1 font-mono text-xl font-medium tabular-nums tracking-tight sm:text-2xl",
+            dailyDone ? "text-success" : "text-foreground"
+          )}
+        >
+          {dailyProgress}
+          <span className="text-muted-foreground">/{dailyTarget}</span>
+        </p>
+      </Link>
+    </div>
   );
 }
 
@@ -202,10 +230,39 @@ export function DashboardOverview() {
   const { objectives, hydrated: objectivesHydrated } = useObjectives();
   const { sessions, todaySessions, todayFocusMinutes, hydrated: sessionsHydrated } =
     usePomodoroSessions();
-  const { stats, progression, rank, todayXp, hydrated: statsHydrated } = useUserStats();
+  const { progression, rank, todayXp, hydrated: statsHydrated } = useUserStats();
   const { displayName } = useDisplayName();
+  const { dueCount, hydrated: flashcardsHydrated } = useFlashcards();
+  const { dailyGoal } = useGoals();
+  const { timers } = usePomodoroTimers();
 
   const hydrated = objectivesHydrated && sessionsHydrated && statsHydrated;
+
+  const activeTimer = React.useMemo(
+    () => timers.find((t) => t.status === "running" || t.status === "paused") ?? null,
+    [timers]
+  );
+
+  const [, setTick] = React.useState(0);
+  React.useEffect(() => {
+    if (!activeTimer || activeTimer.status !== "running") return;
+    const id = window.setInterval(() => setTick((n) => n + 1), 1000);
+    return () => window.clearInterval(id);
+  }, [activeTimer]);
+
+  const [dayKey, setDayKey] = React.useState(() => new Date().toDateString());
+  React.useEffect(() => {
+    const refreshDay = () => setDayKey(new Date().toDateString());
+    const id = window.setInterval(refreshDay, 60_000);
+    const onVis = () => {
+      if (document.visibilityState === "visible") refreshDay();
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, []);
 
   const streak = React.useMemo(() => computeCurrentStreak(sessions), [sessions]);
   const yesterdayFocusMinutes = React.useMemo(
@@ -217,6 +274,11 @@ export function DashboardOverview() {
     [todayFocusMinutes, yesterdayFocusMinutes]
   );
 
+  const openTodayCount = React.useMemo(() => {
+    void dayKey; // refresh buckets after midnight while the tab stays open
+    return buildTodayAgenda(objectives, new Date()).openTodayCount;
+  }, [objectives, dayKey]);
+
   const greetingBase =
     new Date().getHours() < 12
       ? "Good morning"
@@ -224,6 +286,9 @@ export function DashboardOverview() {
         ? "Good afternoon"
         : "Good evening";
   const greeting = displayName ? `${greetingBase}, ${displayName}` : greetingBase;
+
+  const timerRemaining = activeTimer ? remainingSecondsOf(activeTimer) : 0;
+  const timerLabel = activeTimer?.label?.trim() || "Focus";
 
   if (!hydrated) return <LoadingState />;
 
@@ -249,24 +314,53 @@ export function DashboardOverview() {
               {greeting}
             </h1>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <Link
-              href="/kanban"
+              href="/kanban?new=1"
               className="inline-flex cursor-pointer items-center gap-1 text-[14px] font-medium text-foreground transition-colors hover:text-muted"
             >
               <Plus className="h-3.5 w-3.5" /> New objective
             </Link>
             <Button asChild size="sm" className="cursor-pointer shadow-none">
               <Link href="/pomodoro" className="inline-flex items-center gap-1.5">
-                <Timer className="h-3.5 w-3.5" /> Start focus
+                <Timer className="h-3.5 w-3.5" />
+                {activeTimer ? "Open timer" : "Start focus"}
               </Link>
             </Button>
           </div>
         </div>
 
-        <TodayAgendaPanel objectives={objectives} className="min-h-0 flex-1" />
+        {activeTimer && (
+          <Link
+            href="/pomodoro"
+            aria-label={`${activeTimer.status === "paused" ? "Paused" : "Running"} timer: ${timerLabel}, ${formatClock(timerRemaining)} remaining`}
+            className="inline-flex max-w-full items-center gap-2.5 self-start rounded-md border border-border/50 bg-wash/40 px-3 py-2 text-[14px] transition-colors hover:border-border hover:bg-wash light:border-border light:bg-card"
+          >
+            <span
+              className={cn(
+                "h-1.5 w-1.5 shrink-0 rounded-full",
+                activeTimer.status === "running" ? "bg-success" : "bg-warning"
+              )}
+              aria-hidden
+            />
+            <span className="min-w-0 truncate font-medium text-foreground">{timerLabel}</span>
+            <span className="shrink-0 font-mono tabular-nums text-muted-foreground">
+              {formatClock(timerRemaining)}
+            </span>
+            {activeTimer.status === "paused" && (
+              <span className="shrink-0 text-muted-foreground">Paused</span>
+            )}
+          </Link>
+        )}
 
-        <div className="grid grid-cols-2 border-y border-border/50 md:grid-cols-4 light:border-border">
+        <TodayAgendaPanel
+          objectives={objectives}
+          dueCount={flashcardsHydrated ? dueCount : 0}
+          timerActive={Boolean(activeTimer)}
+          className="min-h-0 flex-1"
+        />
+
+        <div className="grid grid-cols-3 border-y border-border/50 light:border-border">
           {[
             {
               label: "Streak",
@@ -285,18 +379,13 @@ export function DashboardOverview() {
               trend: focusTrend,
             },
             {
-              icon: Repeat,
-              label: "Intervals",
-              value: stats.intervalsCompleted,
-              hint: "All-time completed",
-              iconClassName: "text-muted",
-            },
-            {
-              icon: Gauge,
-              label: "Productivity",
-              value: stats.productivityIndex,
-              suffix: "%",
-              hint: "Last 7 days",
+              icon: ListTodo,
+              label: "Open today",
+              value: openTodayCount,
+              hint:
+                openTodayCount === 0
+                  ? "Nothing overdue or due"
+                  : "Overdue + due today",
               iconClassName: "text-muted",
             },
           ].map((cell, index) => (
@@ -314,6 +403,8 @@ export function DashboardOverview() {
           progressPercent={progression.progressPercent}
           isMaxLevel={progression.isMaxLevel}
           todayXp={todayXp}
+          dailyProgress={dailyGoal?.progress ?? 0}
+          dailyTarget={dailyGoal?.target ?? DAILY_OBJECTIVES_TARGET}
         />
       </motion.div>
     </>

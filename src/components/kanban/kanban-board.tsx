@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useSearchParams } from "next/navigation";
 import {
   DndContext,
   DragOverlay,
@@ -75,18 +76,17 @@ export function KanbanBoard() {
 
   const [dialogState, setDialogState] = React.useState<DialogState>(null);
   const [deleteTarget, setDeleteTarget] = React.useState<Objective | null>(null);
+  const searchParams = useSearchParams();
 
-  // Command palette "Add objective" lands here with ?new=1
+  // Dashboard / command palette land here with ?new=1
   React.useEffect(() => {
-    if (typeof window === "undefined") return;
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("new") === "1") {
-      setDialogState({ mode: "create", status: "todo" });
-      params.delete("new");
-      const next = `${window.location.pathname}${params.toString() ? `?${params}` : ""}`;
-      window.history.replaceState(null, "", next);
-    }
-  }, []);
+    if (searchParams.get("new") !== "1") return;
+    setDialogState({ mode: "create", status: "todo" });
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("new");
+    const next = `${window.location.pathname}${params.toString() ? `?${params}` : ""}`;
+    window.history.replaceState(null, "", next);
+  }, [searchParams]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),

@@ -29,7 +29,6 @@ import { cn } from "@/lib/utils";
 import {
   KANBAN_COLUMNS,
   PRIORITY_OPTIONS,
-  OBJECTIVE_COLORS,
 } from "@/constants/kanban";
 import { progressFromSubtasks, type ObjectiveInput } from "@/hooks/use-objectives";
 import type { Attachment, KanbanStatus, Objective, Recurrence, Subtask } from "@/types";
@@ -47,7 +46,6 @@ const objectiveSchema = z.object({
     .transform((v) => (Number.isNaN(v) ? undefined : v)),
   progress: z.coerce.number().int().min(0).max(100),
   labels: z.string().max(200).optional(),
-  color: z.string().optional(),
   notes: z.string().max(1000).optional(),
   location: z.string().max(200).optional(),
   recurrence: z.enum(["none", "daily", "weekly"]),
@@ -109,7 +107,6 @@ export function ObjectiveForm({
       estimatedStudyTime: initialValues?.estimatedStudyTime,
       progress: initialValues?.progress ?? 0,
       labels: initialValues?.labels?.join(", ") ?? "",
-      color: initialValues?.color ?? OBJECTIVE_COLORS[0],
       notes: initialValues?.notes ?? "",
       location: initialValues?.location ?? "",
       recurrence: (initialValues?.recurrence as Recurrence | undefined) ?? "none",
@@ -117,7 +114,6 @@ export function ObjectiveForm({
   });
 
   const isCalendarOnly = initialValues?.showOnKanban === false;
-  const selectedColor = watch("color");
   const progress = watch("progress");
 
   React.useEffect(() => {
@@ -139,7 +135,6 @@ export function ObjectiveForm({
       labels: values.labels
         ? values.labels.split(",").map((l: string) => l.trim()).filter(Boolean)
         : [],
-      color: values.color,
       notes: values.notes?.trim() || undefined,
       location: isCalendarOnly ? values.location?.trim() || undefined : initialValues?.location,
       subtasks,
@@ -263,27 +258,6 @@ export function ObjectiveForm({
       <div className="space-y-1.5">
         <Label htmlFor="labels">Labels (comma separated)</Label>
         <Input id="labels" placeholder="reading, quiz-prep" {...register("labels")} />
-      </div>
-
-      <div className="space-y-1.5">
-        <Label>Color</Label>
-        <div className="flex flex-wrap gap-2">
-          {OBJECTIVE_COLORS.map((color) => (
-            <button
-              key={color}
-              type="button"
-              onClick={() => setValue("color", color)}
-              aria-label={`Select color ${color}`}
-              className={cn(
-                "h-6 w-6 rounded-full border-2 transition-transform",
-                selectedColor === color
-                  ? "scale-110 border-foreground"
-                  : "border-transparent hover:scale-105"
-              )}
-              style={{ backgroundColor: color }}
-            />
-          ))}
-        </div>
       </div>
 
       <SubtaskEditor subtasks={subtasks} onChange={setSubtasks} />

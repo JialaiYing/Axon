@@ -357,7 +357,6 @@ export function CalendarPage() {
               scheduledStart: input.start?.toISOString(),
               scheduledDurationMinutes: input.start ? input.durationMinutes : undefined,
               showOnKanban: input.showOnKanban,
-              color: input.color,
               notes: input.notes,
               location: input.location,
               recurrence: input.recurrence,

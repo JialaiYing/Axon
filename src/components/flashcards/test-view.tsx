@@ -235,7 +235,7 @@ export function TestView({ set, onBack, onRecordResult, onComplete }: TestViewPr
       <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
         <p className="text-[14px] text-muted-foreground">Add cards to this set before testing.</p>
         <Button size="sm" variant="outline" onClick={onBack} className="cursor-pointer">
-          <ArrowLeft className="h-3.5 w-3.5" /> Back to study
+          <ArrowLeft className="h-3.5 w-3.5" /> Back to library
         </Button>
       </div>
     );
@@ -247,7 +247,7 @@ export function TestView({ set, onBack, onRecordResult, onComplete }: TestViewPr
       <div className="mb-4 flex shrink-0 items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <Button variant="ghost" size="sm" className="shrink-0 cursor-pointer" onClick={onBack}>
-            <ArrowLeft className="h-3.5 w-3.5" /> Study
+            <ArrowLeft className="h-3.5 w-3.5" /> Library
           </Button>
           <div className="min-w-0">
             <h2 className="truncate text-2xl font-medium tracking-tight text-foreground sm:text-[28px]">{set.title} · Test</h2>
@@ -536,7 +536,7 @@ export function TestView({ set, onBack, onRecordResult, onComplete }: TestViewPr
                 <RotateCcw className="h-3.5 w-3.5" /> Retake test
               </Button>
               <Button variant="outline" onClick={onBack} className="cursor-pointer">
-                Back to study
+                Back to library
               </Button>
             </div>
           </motion.div>

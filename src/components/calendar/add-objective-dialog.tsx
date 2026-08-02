@@ -36,7 +36,6 @@ import {
   toDateInputValue,
   toTimeInputValue,
 } from "@/lib/calendar-utils";
-import { OBJECTIVE_COLORS } from "@/constants/kanban";
 import { Textarea } from "@/components/ui/textarea";
 import type { Objective, Priority, Recurrence } from "@/types";
 
@@ -53,7 +52,6 @@ interface AddObjectiveDialogProps {
     priority: Priority;
     durationMinutes: number;
     showOnKanban: boolean;
-    color?: string;
     notes?: string;
     location?: string;
     recurrence?: Recurrence;
@@ -84,7 +82,6 @@ export function AddObjectiveDialog({
   const [priority, setPriority] = React.useState<Priority>("medium");
   const [durationMinutes, setDurationMinutes] = React.useState(30);
   const [addToKanban, setAddToKanban] = React.useState(false);
-  const [color, setColor] = React.useState(OBJECTIVE_COLORS[0]!);
   const [notes, setNotes] = React.useState("");
   const [location, setLocation] = React.useState("");
   const [recurrence, setRecurrence] = React.useState<Recurrence>("none");
@@ -104,7 +101,6 @@ export function AddObjectiveDialog({
     setPriority("medium");
     setDurationMinutes(30);
     setAddToKanban(false);
-    setColor(OBJECTIVE_COLORS[Math.floor(Math.random() * OBJECTIVE_COLORS.length)]!);
     setNotes("");
     setLocation("");
     setRecurrence("none");
@@ -185,7 +181,6 @@ export function AddObjectiveDialog({
       priority,
       durationMinutes: Math.max(5, Math.round(durationMinutes) || 30),
       showOnKanban: addToKanban,
-      color,
       notes: notes.trim() || undefined,
       location: !addToKanban && location.trim() ? location.trim() : undefined,
       recurrence,
@@ -443,27 +438,6 @@ export function AddObjectiveDialog({
                   onChange={(e) => setDurationMinutes(Number(e.target.value) || 30)}
                   className="font-mono tabular-nums"
                 />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label>Color</Label>
-                <div className="flex flex-wrap gap-2">
-                  {OBJECTIVE_COLORS.map((swatch) => (
-                    <button
-                      key={swatch}
-                      type="button"
-                      aria-label={`Color ${swatch}`}
-                      onClick={() => setColor(swatch)}
-                      className={cn(
-                        "h-6 w-6 rounded-full border-2 transition-transform",
-                        color === swatch
-                          ? "scale-110 border-foreground"
-                          : "border-transparent opacity-80 hover:opacity-100"
-                      )}
-                      style={{ backgroundColor: swatch }}
-                    />
-                  ))}
-                </div>
               </div>
 
               <div className="space-y-1.5">

@@ -7,7 +7,6 @@ import {
   ArrowRight,
   ChevronRight,
   Flame,
-  Gauge,
   Repeat,
   Star,
   Trophy,
@@ -27,19 +26,15 @@ import {
 } from "@/lib/progress/ranks";
 import { isPaletteUnlocked, PALETTES } from "@/lib/palettes/catalog";
 import { useDevUnlockAll } from "@/hooks/use-dev-unlock-all";
+import { useTheme } from "@/components/providers/theme-provider";
 import { DURATION, EASE } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 const TIER_LABELS = ["I", "II", "III"] as const;
 
-/** Matches Dashboard `statCellBorderClass` — 2×2 on mobile, single row at `md`. */
+/** Matches Dashboard `statCellBorderClass` — single divided row of 3. */
 function statCellBorderClass(index: number) {
-  return cn(
-    index % 2 === 1 && "border-l border-border/60 light:border-border",
-    index >= 2 && "border-t border-border/60 light:border-border",
-    "md:border-t-0",
-    index > 0 && "md:border-l md:border-border/60 light:md:border-border"
-  );
+  return cn(index > 0 && "border-l border-border/60 light:border-border");
 }
 
 /** Matches Dashboard `StatCell` so Rank’s strip reads the same. */
@@ -162,6 +157,7 @@ export function RankOverview() {
   const prefersReducedMotion = useReducedMotion();
   const { stats, progression, rank, todayXp, hydrated } = useUserStats();
   useDevUnlockAll(); // re-render when developer unlock-all flips
+  const { paletteId } = useTheme();
   const [xpOpen, setXpOpen] = React.useState(false);
   const trophyMetal = rankTrophyClass(rank.rankIndex);
 
@@ -239,16 +235,22 @@ export function RankOverview() {
           <div className="mt-4 flex flex-wrap gap-2">
             {PALETTES.map((palette) => {
               const unlocked = isPaletteUnlocked(palette.id, progression.level);
+              const equipped = palette.id === paletteId;
               return (
                 <div
                   key={palette.id}
                   title={
                     unlocked
-                      ? palette.name
+                      ? equipped
+                        ? `${palette.name} · equipped`
+                        : palette.name
                       : `${palette.name} · unlocks at level ${palette.unlockLevel}`
                   }
                   className={cn(
-                    "flex items-center gap-2 rounded-md border border-border/50 px-2.5 py-1.5 light:border-border",
+                    "flex items-center gap-2 rounded-md border px-2.5 py-1.5",
+                    equipped
+                      ? "border-foreground/40 light:border-foreground/30"
+                      : "border-border/50 light:border-border",
                     !unlocked && "opacity-45"
                   )}
                 >
@@ -266,11 +268,13 @@ export function RankOverview() {
                     />
                   </span>
                   <span className="text-[12px] text-foreground">{palette.name}</span>
-                  {!unlocked && (
+                  {equipped ? (
+                    <span className="text-[11px] text-muted-foreground">Active</span>
+                  ) : !unlocked ? (
                     <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
                       L{palette.unlockLevel}
                     </span>
-                  )}
+                  ) : null}
                 </div>
               );
             })}
@@ -278,7 +282,7 @@ export function RankOverview() {
         </section>
 
         {/* Stats strip — same chrome as Dashboard */}
-        <div className="grid grid-cols-2 border-y border-border/50 md:grid-cols-4 light:border-border">
+        <div className="grid grid-cols-3 border-y border-border/50 light:border-border">
           {[
             {
               label: "Current streak",
@@ -301,14 +305,6 @@ export function RankOverview() {
               label: "Intervals",
               value: stats.intervalsCompleted,
               hint: "All-time completed",
-              iconClassName: "text-muted",
-            },
-            {
-              icon: Gauge,
-              label: "Productivity",
-              value: stats.productivityIndex,
-              suffix: "%",
-              hint: "Last 7 days",
               iconClassName: "text-muted",
             },
           ].map((cell, index) => (

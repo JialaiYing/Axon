@@ -225,7 +225,6 @@ export function useObjectives() {
         createdAt: now,
         updatedAt: now,
         completedAt: input.status === "done" ? now : undefined,
-        color: input.color,
         notes: input.notes,
         location: input.location?.trim() || undefined,
         scheduledStart: validIso(input.scheduledStart),

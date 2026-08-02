@@ -15,6 +15,8 @@ export type ThemeMode = "dark" | "light";
 
 const THEME_STORAGE_KEY = "axon:theme";
 const PALETTE_STORAGE_KEY = "axon:palette";
+/** Last resolved equippable palette — FOUC script prefers this over raw storage. */
+const PALETTE_EFFECTIVE_KEY = "axon:paletteEffective";
 
 // Light mode is a dashboard-only preference. Marketing + auth surfaces
 // always force dark regardless of the stored preference.
@@ -144,10 +146,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setHydrated(true);
   }, []);
 
-  // If the stored palette is locked for this account's level, fall back to Axon
-  // without rewriting storage until the user picks something else.
+  // Until stats hydrate, don't paint a possibly-locked stored id (FOUC uses
+  // axon:paletteEffective / starters). After hydrate, fall back to Axon when locked.
   const effectivePaletteId = React.useMemo(() => {
-    if (!statsHydrated) return paletteId;
+    if (!statsHydrated) return DEFAULT_PALETTE_ID;
     return isPaletteUnlocked(paletteId, level) ? paletteId : DEFAULT_PALETTE_ID;
   }, [paletteId, level, statsHydrated, unlockAll]);
 
@@ -166,6 +168,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     // Marketing always Axon; light mode keeps data-palette set but CSS ignores it.
     const nextPalette = onThemeable ? effectivePaletteId : DEFAULT_PALETTE_ID;
     applyPalette(nextPalette, { animate });
+    try {
+      window.localStorage.setItem(PALETTE_EFFECTIVE_KEY, nextPalette);
+    } catch {
+      /* ignore */
+    }
   }, [effectivePaletteId, pathname]);
 
   const setTheme = React.useCallback((next: ThemeMode) => {

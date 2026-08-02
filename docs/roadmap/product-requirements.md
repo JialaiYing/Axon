@@ -76,7 +76,7 @@ Current state: users configure their own daily/weekly targets, and target types 
 ## 6. Insights and metric transparency
 
 - The existing `buildInsight()` text on the Goals page (`goals-overview.tsx:266`) is deterministic, not AI — but reads as generic filler prose ("Keep logging focus sessions..."). Requirement: only keep it if it can be rewritten as a concrete, number-backed statement (e.g., "You complete objectives most often on Tuesdays"); otherwise cut it rather than ship vague encouragement text.
-- Requirement: XP/streak/productivity numbers should be able to show their own arithmetic on hover/tap (e.g., "50 (objective) + 30 (focus) + 15 (daily bonus) = 95") instead of being an opaque total — this directly answers "it's not clear how the metrics are calculated."
+- Requirement: XP/streak numbers should be able to show their own arithmetic on hover/tap (e.g., "50 (objective) + 30 (focus) + 15 (daily bonus) = 95") instead of being an opaque total — this directly answers "it's not clear how the metrics are calculated."
 
 ## 7. Study-system differentiators
 

@@ -22,7 +22,7 @@ export const FAQS = [
     id: "ai",
     question: "Does Axon use AI to make recommendations?",
     answer:
-      "No. Every insight (streaks, productivity index, mastery percentages) comes from statistics and rules applied to your own activity, not a model.",
+      "No. Every insight (streaks, mastery percentages) comes from statistics and rules applied to your own activity, not a model.",
   },
   {
     id: "clear-data",

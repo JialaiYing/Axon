@@ -38,6 +38,7 @@ import { useUserStats } from "@/hooks/use-user-stats";
 import { DURATION, EASE, STAGGER, enterVariants, staggerContainer } from "@/lib/motion";
 import { percentTrend, type Trend } from "@/lib/percent-trend";
 import type { Objective, PomodoroSession } from "@/types";
+import { colorForSubject, normalizeSubjectKey } from "@/lib/subject-colors";
 import { cn } from "@/lib/utils";
 
 const container = { hidden: {}, visible: { transition: staggerContainer(STAGGER.base) } };
@@ -59,12 +60,6 @@ const PRIORITY_COLORS: Record<Objective["priority"], string> = {
   medium: "var(--color-accent)",
   low: "var(--color-success)",
 };
-
-/**
- * Subject bars stay monochrome so the page accent lives on chrome/targets,
- * not categorical paint.
- */
-const SUBJECT_BAR = "var(--color-foreground)";
 
 function dayKey(d: Date) {
   return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
@@ -153,17 +148,29 @@ function buildSubjectBreakdown(
   days: number
 ) {
   const subjectById = new Map(objectives.map((o) => [o.id, o.subject]));
-  const knownSubjects = [...new Set(objectives.map((o) => o.subject).filter(Boolean))];
+  /** Normalized key → display label (first-seen casing). */
+  const labelByKey = new Map<string, string>();
+  for (const raw of objectives.map((o) => o.subject).filter(Boolean)) {
+    const key = normalizeSubjectKey(raw);
+    if (!labelByKey.has(key)) labelByKey.set(key, raw.trim() || "Personal");
+  }
+  if (labelByKey.size === 0) labelByKey.set(normalizeSubjectKey("Personal"), "Personal");
+
   const bySubject = new Map<string, number>(
-    (knownSubjects.length > 0 ? knownSubjects : ["Personal"]).map((subject) => [subject, 0])
+    [...labelByKey.keys()].map((key) => [key, 0])
   );
   for (const s of workSessions(sessions)) {
     if (!inRange(s.date, days)) continue;
-    const subject = (s.objectiveId && subjectById.get(s.objectiveId)) || "Personal";
-    bySubject.set(subject, (bySubject.get(subject) ?? 0) + s.durationMinutes);
+    const raw = (s.objectiveId && subjectById.get(s.objectiveId)) || "Personal";
+    const key = normalizeSubjectKey(raw);
+    if (!labelByKey.has(key)) labelByKey.set(key, raw.trim() || "Personal");
+    bySubject.set(key, (bySubject.get(key) ?? 0) + s.durationMinutes);
   }
   return [...bySubject.entries()]
-    .map(([subject, minutes]) => ({ subject, minutes }))
+    .map(([key, minutes]) => ({
+      subject: labelByKey.get(key) ?? key,
+      minutes,
+    }))
     .filter((row) => row.minutes > 0)
     .sort((a, b) => b.minutes - a.minutes)
     .slice(0, 6);
@@ -725,7 +732,7 @@ export function AnalyticsOverview() {
                               animate={{ width: `${(s.minutes / max) * 100}%` }}
                               transition={{ duration: 0.7, ease: EASE, delay: i * 0.06 }}
                               className="h-full rounded-md"
-                              style={{ backgroundColor: SUBJECT_BAR, opacity: 0.55 }}
+                              style={{ backgroundColor: colorForSubject(s.subject) }}
                             />
                           </div>
                         </li>

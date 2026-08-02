@@ -2,7 +2,6 @@
 
 import {
   Circle,
-  Gauge,
   Plus,
   Repeat,
   Target,
@@ -129,7 +128,7 @@ function PreviewBody() {
         </ul>
       </div>
 
-      <div className="grid grid-cols-2 border-y border-border/50 md:grid-cols-4">
+      <div className="grid grid-cols-3 border-y border-border/50">
         {[
           {
             label: "Streak",
@@ -149,20 +148,12 @@ function PreviewBody() {
             suffix: "",
             icon: <Repeat className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />,
           },
-          {
-            label: "Productivity",
-            value: "82",
-            suffix: "%",
-            icon: <Gauge className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />,
-          },
         ].map((stat, i) => (
           <div
             key={stat.label}
             className={cn(
               "flex flex-col gap-1.5 p-3",
-              i % 2 === 1 && "border-l border-border/50",
-              i >= 2 && "border-t border-border/50 md:border-t-0",
-              i === 2 && "md:border-l"
+              i > 0 && "border-l border-border/50"
             )}
           >
             <div className="flex items-center justify-between gap-1">

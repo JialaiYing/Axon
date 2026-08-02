@@ -29,6 +29,7 @@ import {
   isOverdue,
   isScheduleOverdue,
 } from "@/lib/kanban-utils";
+import { colorForSubject } from "@/lib/subject-colors";
 import { SchedulePopover, type ScheduleInput } from "@/components/calendar/schedule-popover";
 import type { Objective } from "@/types";
 
@@ -133,13 +134,11 @@ function KanbanCardView({
         isDragging && !isOverlay && "pointer-events-none"
       )}
     >
-      {objective.color && (
-        <span
-          aria-hidden
-          className="absolute left-0 top-2.5 h-[calc(100%-20px)] w-0.5 rounded-full"
-          style={{ backgroundColor: objective.color }}
-        />
-      )}
+      <span
+        aria-hidden
+        className="absolute left-0 top-2.5 h-[calc(100%-20px)] w-0.5 rounded-full"
+        style={{ backgroundColor: colorForSubject(objective.subject) }}
+      />
 
       <div className="flex items-start justify-between gap-2 pl-1.5">
         <button

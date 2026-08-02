@@ -7,17 +7,24 @@ import {
   CalendarClock,
   CheckCircle2,
   ListTodo,
+  Plus,
   Sun,
   Timer,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { formatDueDate } from "@/lib/kanban-utils";
 import { formatTimeLabel } from "@/lib/calendar-utils";
 import { buildTodayAgenda } from "@/lib/dashboard-agenda";
+import { colorForSubject } from "@/lib/subject-colors";
 import type { Objective } from "@/types";
 import { cn } from "@/lib/utils";
 
 interface TodayAgendaPanelProps {
   objectives: Objective[];
+  /** Due Leitner cards — cue only when > 0; omit or 0 hides it. */
+  dueCount?: number;
+  /** When a Pomodoro is active, empty-state CTA mirrors header ("Open timer"). */
+  timerActive?: boolean;
   className?: string;
 }
 
@@ -26,8 +33,25 @@ interface TodayAgendaPanelProps {
  * Linear-inspired: flat bordered module; light uses card on cool page canvas.
  * Backup: today-agenda-panel.pre-light-dashboard.bak
  */
-export function TodayAgendaPanel({ objectives, className }: TodayAgendaPanelProps) {
-  const now = React.useMemo(() => new Date(), []);
+export function TodayAgendaPanel({
+  objectives,
+  dueCount = 0,
+  timerActive = false,
+  className,
+}: TodayAgendaPanelProps) {
+  const [now, setNow] = React.useState(() => new Date());
+  React.useEffect(() => {
+    const tick = () => setNow(new Date());
+    const id = window.setInterval(tick, 60_000);
+    const onVis = () => {
+      if (document.visibilityState === "visible") tick();
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, []);
 
   const {
     overdue,
@@ -36,6 +60,7 @@ export function TodayAgendaPanel({ objectives, className }: TodayAgendaPanelProp
     calendarEvents,
     inProgress,
     onBoard,
+    more,
   } = React.useMemo(() => buildTodayAgenda(objectives, now), [objectives, now]);
 
   const isEmpty =
@@ -53,16 +78,31 @@ export function TodayAgendaPanel({ objectives, className }: TodayAgendaPanelProp
         className
       )}
     >
-      <div className="mb-5">
-        <p className="text-[14px] font-medium text-muted">Today</p>
-        <h2 className="mt-0.5 text-2xl font-medium tracking-tight text-foreground sm:text-[28px]">
-          Your agenda
-        </h2>
+      <div className="mb-5 flex items-start justify-between gap-4">
+        <div>
+          <p className="text-[14px] font-medium text-muted">Today</p>
+          <h2 className="mt-0.5 text-2xl font-medium tracking-tight text-foreground sm:text-[28px]">
+            Your agenda
+          </h2>
+        </div>
+        {dueCount > 0 && (
+          <Link
+            href="/flashcards?study=due"
+            className="mt-1 shrink-0 text-[14px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            {dueCount === 1 ? "1 card due" : `${dueCount} cards due`}
+          </Link>
+        )}
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col space-y-5">
         {overdue.length > 0 && (
-          <AgendaSection icon={AlertTriangle} label="Overdue" count={overdue.length} tone="danger">
+          <AgendaSection
+            icon={AlertTriangle}
+            label="Overdue"
+            count={overdue.length + more.overdue}
+            tone="danger"
+          >
             {overdue.map((o) => (
               <AgendaLink
                 key={o.id}
@@ -73,100 +113,152 @@ export function TodayAgendaPanel({ objectives, className }: TodayAgendaPanelProp
                     ? `Missed block · ${formatDueDate(o.scheduledStart)}`
                     : `Due ${formatDueDate(o.dueDate)}`
                 }
-                color={o.color}
+                color={colorForSubject(o.subject)}
                 tone="danger"
               />
             ))}
+            <MoreLink count={more.overdue} href="/kanban" />
           </AgendaSection>
         )}
 
         {dueToday.length > 0 && (
-          <AgendaSection icon={ListTodo} label="Due today" count={dueToday.length}>
+          <AgendaSection
+            icon={ListTodo}
+            label="Due today"
+            count={dueToday.length + more.dueToday}
+          >
             {dueToday.map((o) => (
               <AgendaLink
                 key={o.id}
                 href="/kanban"
                 title={o.title}
                 meta="Due today"
-                color={o.color}
+                color={colorForSubject(o.subject)}
               />
             ))}
+            <MoreLink count={more.dueToday} href="/kanban" />
           </AgendaSection>
         )}
 
-        {focusBlocks.length > 0 && (
-          <AgendaSection icon={Timer} label="Scheduled focus" count={focusBlocks.length}>
+        {focusBlocks.length > 0 || more.focusBlocks > 0 ? (
+          <AgendaSection
+            icon={Timer}
+            label="Scheduled focus"
+            count={focusBlocks.length + more.focusBlocks}
+          >
             {focusBlocks.map(({ objective, start, durationMinutes }) => (
               <AgendaLink
                 key={objective.id}
                 href="/pomodoro"
                 title={objective.title}
                 meta={`${formatTimeLabel(start.getHours() * 60 + start.getMinutes())} · ${durationMinutes}m`}
-                color={objective.color}
+                color={colorForSubject(objective.subject)}
                 done={objective.status === "done"}
               />
             ))}
+            <MoreLink count={more.focusBlocks} href="/calendar" />
           </AgendaSection>
-        )}
+        ) : null}
 
-        {calendarEvents.length > 0 && (
-          <AgendaSection icon={CalendarClock} label="Calendar events" count={calendarEvents.length}>
+        {calendarEvents.length > 0 || more.calendarEvents > 0 ? (
+          <AgendaSection
+            icon={CalendarClock}
+            label="Calendar events"
+            count={calendarEvents.length + more.calendarEvents}
+          >
             {calendarEvents.map(({ objective, start, durationMinutes }) => (
               <AgendaLink
                 key={objective.id}
                 href="/calendar"
                 title={objective.title}
                 meta={`${formatTimeLabel(start.getHours() * 60 + start.getMinutes())} · ${durationMinutes}m`}
-                color={objective.color}
+                color={colorForSubject(objective.subject)}
                 done={objective.status === "done"}
               />
             ))}
+            <MoreLink count={more.calendarEvents} href="/calendar" />
           </AgendaSection>
-        )}
+        ) : null}
 
         {inProgress.length > 0 && (
-          <AgendaSection icon={ListTodo} label="In progress" count={inProgress.length}>
+          <AgendaSection
+            icon={ListTodo}
+            label="In progress"
+            count={inProgress.length + more.inProgress}
+          >
             {inProgress.map((o) => (
               <AgendaLink
                 key={o.id}
                 href="/kanban"
                 title={o.title}
                 meta="On the board"
-                color={o.color}
+                color={colorForSubject(o.subject)}
               />
             ))}
+            <MoreLink count={more.inProgress} href="/kanban" />
           </AgendaSection>
         )}
 
         {onBoard.length > 0 && (
-          <AgendaSection icon={ListTodo} label="On the board" count={onBoard.length}>
+          <AgendaSection
+            icon={ListTodo}
+            label="On the board"
+            count={onBoard.length + more.onBoard}
+          >
             {onBoard.map((o) => (
               <AgendaLink
                 key={o.id}
                 href="/kanban"
                 title={o.title}
                 meta={o.status === "in-progress" ? "In progress" : "To do"}
-                color={o.color}
+                color={colorForSubject(o.subject)}
               />
             ))}
+            <MoreLink count={more.onBoard} href="/kanban" />
           </AgendaSection>
         )}
 
         {isEmpty && (
-          <div className="flex flex-1 flex-col items-center justify-center gap-3 py-12 text-center">
+          <div className="flex flex-1 flex-col items-center justify-center gap-4 py-12 text-center">
             <Sun className="h-8 w-8 text-muted-foreground" strokeWidth={1.5} />
             <div>
               <p className="text-[18px] font-semibold tracking-tight text-foreground sm:text-[20px]">
                 Clear day
               </p>
               <p className="mt-1.5 max-w-xs text-[14px] leading-relaxed text-muted-foreground">
-                Add an objective on the board or schedule a focus block.
+                Add an objective on the board or start a focus block.
               </p>
+            </div>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <Link
+                href="/kanban?new=1"
+                className="inline-flex cursor-pointer items-center gap-1 text-[14px] font-medium text-foreground transition-colors hover:text-muted"
+              >
+                <Plus className="h-3.5 w-3.5" /> New objective
+              </Link>
+              <Button asChild size="sm" className="cursor-pointer shadow-none">
+                <Link href="/pomodoro" className="inline-flex items-center gap-1.5">
+                  <Timer className="h-3.5 w-3.5" />
+                  {timerActive ? "Open timer" : "Start focus"}
+                </Link>
+              </Button>
             </div>
           </div>
         )}
       </div>
     </section>
+  );
+}
+
+function MoreLink({ count, href }: { count: number; href: string }) {
+  if (count <= 0) return null;
+  return (
+    <Link
+      href={href}
+      className="block px-1.5 py-1.5 text-[14px] font-medium text-muted-foreground transition-colors hover:text-foreground sm:px-2"
+    >
+      +{count} more
+    </Link>
   );
 }
 

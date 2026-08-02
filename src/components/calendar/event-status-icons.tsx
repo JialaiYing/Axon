@@ -4,6 +4,7 @@ import { AlertTriangle, Repeat } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { isScheduleOverdue } from "@/lib/kanban-utils";
 import { isPastEvent, type ScheduledEvent } from "@/lib/calendar-utils";
+import { colorForSubject } from "@/lib/subject-colors";
 import type { Objective } from "@/types";
 
 /** Compact glance icons: muted alert (missed/overdue) + recurring loop. */
@@ -47,7 +48,7 @@ export function EventStatusIcons({
 }
 
 export function eventAccentColor(objective: Objective): string {
-  return objective.color ?? "var(--color-accent)";
+  return colorForSubject(objective.subject);
 }
 
 export function hasExpandableDetails(objective: Objective): boolean {

@@ -25,6 +25,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { FolderCoverTile } from "@/components/flashcards/folder-cover-tile";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,6 +33,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { FlashcardFolder, FlashcardSet } from "@/types";
+import { countDueCards } from "@/lib/flashcards/leitner";
 import { cn } from "@/lib/utils";
 
 export type GridLayoutMode = "icons" | "list";
@@ -264,19 +266,16 @@ export function FlashcardsGridLibrary({
       >
         <div className="min-h-0 flex-1 overflow-y-auto py-4">
           {empty ? (
-            <div className="flex h-full min-h-[280px] flex-col items-center justify-center gap-3 text-center">
-              <Layers className="h-8 w-8 text-muted-foreground" strokeWidth={1.5} />
-              <div>
-                <p className="text-[18px] font-semibold tracking-tight text-foreground sm:text-[20px]">
-                  {folder ? "No sets in this folder" : "No folders or sets yet"}
-                </p>
-                <p className="mt-1.5 max-w-xs text-[14px] leading-relaxed text-muted-foreground">
-                  {folder
-                    ? "Use Create below to add a set, or drag one here from another folder."
-                    : "Use Create below to add a folder or an unfiled set."}
-                </p>
-              </div>
-            </div>
+            <EmptyState
+              icon={<Layers strokeWidth={1.5} />}
+              title={folder ? "No sets in this folder" : "No folders or sets yet"}
+              description={
+                folder
+                  ? "Use Create below to add a set, or drag one here from another folder."
+                  : "Use Create below to add a folder or an unfiled set."
+              }
+              className="min-h-[min(50vh,28rem)]"
+            />
           ) : layout === "icons" ? (
             <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
               {folder
@@ -602,6 +601,7 @@ function SetItem({
     id: setDragId(set.id),
     data: { kind: "set", setId: set.id, folderId: set.folderId },
   });
+  const due = countDueCards([set]);
 
   const style: React.CSSProperties = {
     opacity: isDragging ? 0.4 : 1,
@@ -624,6 +624,11 @@ function SetItem({
           >
             <Layers className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
             <span className="truncate text-[15px] font-medium text-foreground">{set.title}</span>
+            {due > 0 && (
+              <span className="shrink-0 font-mono text-[12px] tabular-nums text-muted-foreground">
+                {due} due
+              </span>
+            )}
           </button>
           <div className={itemActionsClass}>
             <MiniPinButton pinned={set.pinned} label={set.title} onClick={onTogglePin} />
@@ -655,6 +660,7 @@ function SetItem({
         <p className="mt-1 text-[14px] text-muted-foreground">
           {set.subject || "General"} · {set.cards.length} card
           {set.cards.length === 1 ? "" : "s"}
+          {due > 0 ? ` · ${due} due` : ""}
         </p>
         <span className="mt-2 inline-flex items-center gap-1 text-[14px] text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
           Open <ArrowRight className="h-3 w-3" />

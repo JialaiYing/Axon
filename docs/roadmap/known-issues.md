@@ -24,10 +24,13 @@ Update this file as items get resolved instead of letting it silently rot — se
 - **[Subsumed]** Hardcoded indigo glow (`rgba(94,106,210,…)`) — the dashboard page itself was already cleaned up; remnants live in Calendar/`xp-burst`/`tilt-card`/Tabs (see Calendar entry below).
 - **[Subsumed]** "Recent" column had no footer strip while Goals/Rank did (uneven baseline) — moot once Personal goals/Recent are removed from the dashboard per the new PRD scope.
 - **[Resolved — M1]** Dashboard trim (§9): removed Up next, Focus this week chart, Personal goals / Recent bottom trio, and agenda inline goal-progress bars. Stats strip + Rank preview remain; Rank strip now links to `/rank`.
+- **[Resolved — post-M2]** Dashboard re-coupling (`dashboard-improvements.md`): due-cards cue, daily `n/3` on Rank strip, Clear day CTAs, New objective → `?new=1`, Open today stats (replacing all-time intervals), active timer chip, agenda `+N more` overflow.
+- **[Resolved — M2 sweep]** Due cue deep-links to `/flashcards?study=due`; scheduled focus/calendar capped separately so overflow isn't silent; agenda + Open today refresh after midnight; empty-state timer CTA matches header.
 
 ## Kanban
 
-- **[Subsumed]** `priorityDotClass`/`priorityTextClass` map "medium" priority to accent color, conflicting with "accent = action only" — the new subject-owned-color rework in `product-requirements.md` replaces this color system anyway.
+- **[Resolved — M2]** Subject-owned colors: board card accent, Calendar event accents/dots, Dashboard today agenda, and Analytics focus-by-subject bars all use `colorForSubject()` (`src/lib/subject-colors.ts`). Per-objective color swatch removed from create/edit forms. Legacy `objective.color` may still exist in storage but is ignored in UI.
+- **[Resolved — M2 sweep]** Analytics aggregates subjects case-insensitively; subject palette hexes no longer collide with accent/danger tokens; new objectives no longer write `color`.
 - **[Independent]** Hardcoded indigo glow debt (same root cause as Calendar/Dashboard below) — one sweep still needed across `xp-burst`, `tilt-card`, Tabs regardless of the M2 color rework.
 - **[By design]** Objective form / recycle-bin dialog polish was intentionally deferred in the original audit; still not urgent.
 - **[Resolved — M1]** Page/copy still said "Kanban" throughout ("Kanban" title, empty-state icon/copy, Calendar's "Pick an existing Kanban objective" / "Add to Kanban board?" strings) — renamed the page to "Board" and swapped the leftover Calendar copy to match, since the feature is objective management, not a specific board-software brand.
@@ -54,6 +57,7 @@ Update this file as items get resolved instead of letting it silently rot — se
 
 - **[Resolved — M2]** Leitner spaced repetition shipped — cards carry `box` / `dueAt`; Library **Study** queues due cards across sets; Know/Forgot (and Test) advance the schedule. Specs live in code (`src/lib/flashcards/leitner.ts`).
 - **[Resolved — M2]** Flashcards review UX polish (`flashcards-improvements.md`): schedule-visible overview, honest caught-up Study, set context in due Study, edit cards/set metadata without resetting schedule, session end summary.
+- **[Resolved — M2 sweep]** Session-complete empty flash fixed; summary copy for remaining Forgot cards; library set tiles show due counts; Dashboard due link opens Study via `?study=due`; Test chrome says Library not Study.
 - **[Independent]** Legacy folders may still store old purple hex colors in `localStorage` from before the token migration — self-healing (users can recolor via Edit), low priority.
 - **[Resolved — M1]** Home left-rail duplication ("Continue studying" / "Recent folders" sections) and the "Visual gallery" tab (lazy-loaded Three.js dome view) removed — the plain grid library is now the only view, cutting the duplicate entry points and the extra bundle weight the dome pulled in on every page load.
 
@@ -61,6 +65,7 @@ Update this file as items get resolved instead of letting it silently rot — se
 
 - **[Resolved — M1]** Every setting block carried a full explanatory paragraph (Profile, Appearance, Dashboard backgrounds, Data & privacy, Focus Mode, Notifications, Feature tips, Homepage) — cut down to essentials or removed outright where the control was self-explanatory; section/block headings bumped up a size for scannability now that the body copy is gone.
 - **[Resolved — M2]** Level-gated ambient Dashboard backgrounds retired; replaced by unlockable dark-only app-wide palettes (starters: Axon / Tokyo Night / Nord; gated: Everforest / Gruvbox / Catppuccin Mocha). Specs in `theme-palettes.md`. City/skyline page was considered and **dropped** (not scheduled).
+- **[Resolved — M2 sweep]** FOUC no longer applies gated palettes before unlock proof (`axon:paletteEffective` + starter allowlist); ThemeProvider waits for stats before painting locked ids; palette unlock notify keys clear on account switch.
 
 ## Rank / progress
 

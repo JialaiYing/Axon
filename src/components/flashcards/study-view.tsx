@@ -18,6 +18,7 @@ import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { AnimatedList } from "@/components/ui/animated-list";
 import type { Flashcard, FlashcardSet } from "@/types";
 import {
+  applyLeitnerReview,
   clampLeitnerBox,
   intervalDaysForBox,
 } from "@/lib/flashcards/leitner";
@@ -101,6 +102,15 @@ export function StudyView({
   }, [set.id]);
 
   React.useEffect(() => {
+    // Keep in-flight queue text/ids in sync with live set edits/deletes.
+    if (!reviewMode) return;
+    const byId = new Map(set.cards.map((c) => [c.id, c]));
+    setQueue((prev) =>
+      prev.map((c) => byId.get(c.id) ?? c).filter((c) => byId.has(c.id))
+    );
+  }, [set.cards, reviewMode]);
+
+  React.useEffect(() => {
     if (
       reviewMode &&
       queue.length === 0 &&
@@ -144,11 +154,8 @@ export function StudyView({
   const grade = React.useCallback(
     (knew: boolean) => {
       if (!reviewMode || !card || !onReview) return;
-      const currentBox = clampLeitnerBox(card.box);
-      const nextBox = knew
-        ? Math.min(5, currentBox + 1)
-        : 1;
-      const days = intervalDaysForBox(nextBox);
+      const preview = applyLeitnerReview(card, knew);
+      const days = intervalDaysForBox(preview.box);
       setLastGradeCue(
         days === 0 ? "Back in box 1 · due again soon" : `Next review in ${days} day${days === 1 ? "" : "s"}`
       );
@@ -160,6 +167,9 @@ export function StudyView({
         setFlipped(false);
         setDirection(1);
         setIndex(0);
+        if (next.length === 0 && sessionTotal.current > 0) {
+          setShowSummary(true);
+        }
         return next;
       });
     },
@@ -202,10 +212,10 @@ export function StudyView({
       ? `${Math.max(0, sessionTotal.current - reviewedCount)} remaining`
       : `${set.subject} · ${cards.length} card${cards.length === 1 ? "" : "s"}`);
 
-  if (showSummary) {
+  if (showSummary || (reviewMode && queue.length === 0 && sessionTotal.current > 0)) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-5 px-4 text-center">
-        <div>
+      <div className="flex min-h-[min(70vh,36rem)] w-full flex-col items-center justify-center gap-5 px-4 text-center">
+        <div className="mx-auto max-w-sm">
           <h2 className="text-2xl font-medium tracking-tight text-foreground sm:text-[28px]">
             Session complete
           </h2>
@@ -213,7 +223,7 @@ export function StudyView({
             {sessionTotal.current} card{sessionTotal.current === 1 ? "" : "s"} reviewed
           </p>
         </div>
-        <div className="grid w-full max-w-xs grid-cols-2 gap-2">
+        <div className="mx-auto grid w-full max-w-xs grid-cols-2 gap-2">
           <div className="rounded-md border border-border/50 px-3 py-2.5 light:border-border">
             <p className="font-mono text-2xl font-medium tabular-nums text-foreground">
               {knewCount}
@@ -228,9 +238,9 @@ export function StudyView({
           </div>
         </div>
         {summaryNextHint ? (
-          <p className="max-w-sm text-[14px] text-muted-foreground">{summaryNextHint}</p>
+          <p className="mx-auto max-w-sm text-[14px] text-muted-foreground">{summaryNextHint}</p>
         ) : (
-          <p className="max-w-sm text-[14px] text-muted-foreground">Caught up for now</p>
+          <p className="mx-auto max-w-sm text-[14px] text-muted-foreground">Caught up for now</p>
         )}
         <Button size="sm" className="cursor-pointer" onClick={onBack}>
           Back to library
@@ -316,7 +326,9 @@ export function StudyView({
                 </span>
               )}
               {lastGradeCue && !flipped && (
-                <span className="truncate text-muted-foreground/80">{lastGradeCue}</span>
+                <span className="truncate text-muted-foreground/80" aria-live="polite">
+                  {lastGradeCue}
+                </span>
               )}
             </div>
           )}
@@ -397,6 +409,7 @@ export function StudyView({
                     type="button"
                     variant="outline"
                     className="h-11 flex-1 cursor-pointer shadow-none"
+                    aria-keyshortcuts="2"
                     onClick={() => grade(false)}
                   >
                     <X className="h-4 w-4" /> Forgot
@@ -405,6 +418,7 @@ export function StudyView({
                   <Button
                     type="button"
                     className="h-11 flex-1 cursor-pointer"
+                    aria-keyshortcuts="1"
                     onClick={() => grade(true)}
                   >
                     <Check className="h-4 w-4" /> Knew it
@@ -413,7 +427,7 @@ export function StudyView({
                 </div>
               ) : (
                 <p className="text-[13px] text-muted-foreground">
-                  Flip the card, then mark Knew it or Forgot
+                  Flip the card, then mark Knew it (1) or Forgot (2)
                 </p>
               )}
               <div className="w-full">

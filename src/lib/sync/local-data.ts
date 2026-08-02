@@ -8,6 +8,8 @@ export const LAST_USER_KEY = "axon:sync:lastUserId";
 const DEVICE_DEDUP_KEYS = [
   "axon:notifications:backgroundUnlocks:seeded",
   "axon:notifications:backgroundUnlocks:notified",
+  "axon:notifications:paletteUnlocks:seeded",
+  "axon:notifications:paletteUnlocks:notified",
   "axon:notifications:dueSoon:firedDay",
   "axon:notifications:missedSchedule:notified",
 ] as const;

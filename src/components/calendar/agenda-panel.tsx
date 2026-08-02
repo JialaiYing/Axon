@@ -16,6 +16,7 @@ import { formatDueDate, isOverdue, isScheduleOverdue } from "@/lib/kanban-utils"
 import { addDays, formatTimeLabel, getScheduledEvent, isSameDay, type ScheduledEvent } from "@/lib/calendar-utils";
 import { formatClock } from "@/lib/pomodoro-utils";
 import { remainingSecondsOf } from "@/hooks/use-pomodoro-timers";
+import { colorForSubject } from "@/lib/subject-colors";
 import type { Objective, PomodoroTimerInstance } from "@/types";
 
 interface AgendaPanelProps {
@@ -76,8 +77,8 @@ function AgendaRow({
               : "bg-muted-foreground"
         )}
         style={
-          tone === "default" && objective.color
-            ? { backgroundColor: objective.color }
+          tone === "default"
+            ? { backgroundColor: colorForSubject(objective.subject) }
             : undefined
         }
       />

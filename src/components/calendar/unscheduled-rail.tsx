@@ -7,6 +7,7 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { ChevronDown, Inbox } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SchedulePopover, type ScheduleInput } from "@/components/calendar/schedule-popover";
+import { colorForSubject } from "@/lib/subject-colors";
 import type { Objective } from "@/types";
 
 interface UnscheduledRailProps {
@@ -57,10 +58,8 @@ function UnscheduledRow({
       >
         <span
           aria-hidden
-          className="h-1.5 w-1.5 shrink-0 rounded-full bg-muted-foreground"
-          style={
-            objective.color ? { backgroundColor: objective.color } : undefined
-          }
+          className="h-1.5 w-1.5 shrink-0 rounded-full"
+          style={{ backgroundColor: colorForSubject(objective.subject) }}
         />
         <p className="min-w-0 flex-1 truncate text-[14px] font-medium text-foreground">
           {objective.title}

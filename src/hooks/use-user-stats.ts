@@ -13,7 +13,6 @@ import {
 import { levelFromTotalXp, type LevelProgress } from "@/lib/progress/xp-curve";
 import { rankInfoForLevel, type RankInfo } from "@/lib/progress/ranks";
 import { computeCurrentStreak } from "@/lib/progress/streak";
-import { computeProductivityIndex } from "@/lib/progress/productivity";
 import { computeTodayXp } from "@/lib/progress/today";
 import type { UserStats } from "@/types";
 
@@ -28,9 +27,9 @@ export interface UseUserStatsResult {
 
 /**
  * The single read model for the dashboard's identity layer. Combines the
- * persisted lifetime XP total with live-derived streak and productivity
- * numbers, so the rest of the app never has to know XP is stored
- * separately from the objectives/sessions it's computed from.
+ * persisted lifetime XP total with a live-derived streak, so the rest of
+ * the app never has to know XP is stored separately from the
+ * objectives/sessions it's computed from.
  */
 export function useUserStats(): UseUserStatsResult {
   const [rawState, , progressHydrated] = useLocalStorage<ProgressState>(
@@ -49,11 +48,6 @@ export function useUserStats(): UseUserStatsResult {
   const progression = React.useMemo(() => levelFromTotalXp(state.xp), [state.xp]);
   const rank = React.useMemo(() => rankInfoForLevel(progression.level), [progression.level]);
 
-  const productivityIndex = React.useMemo(
-    () => computeProductivityIndex({ objectives, sessions, currentStreak }),
-    [objectives, sessions, currentStreak]
-  );
-
   const todayXp = React.useMemo(
     () => computeTodayXp(objectives, sessions, currentStreak),
     [objectives, sessions, currentStreak]
@@ -67,9 +61,8 @@ export function useUserStats(): UseUserStatsResult {
       currentStreak,
       longestStreak,
       intervalsCompleted: state.intervalsCompleted,
-      productivityIndex,
     }),
-    [state.xp, progression.level, rank.label, currentStreak, longestStreak, state.intervalsCompleted, productivityIndex]
+    [state.xp, progression.level, rank.label, currentStreak, longestStreak, state.intervalsCompleted]
   );
 
   return { stats, progression, rank, todayXp, hydrated };

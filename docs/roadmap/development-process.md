@@ -21,13 +21,15 @@ Work in this order unless new evidence (real usage, user feedback) says otherwis
 
 ### M2 — Positioning-dependent features
 - [x] Flashcards spaced repetition scheduler (§7) — Flashcards-only Leitner boxes; Library Study surfaces due cards without set pick first.
-- Flashcards UX follow-through — `flashcards-improvements.md` (schedule-visible UI, caught-up Study, set context in due Study, edit cards/set metadata, session end summary). Do after Leitner; do not expand into SM-2 or card media.
-- Kanban subject-owned color system (§9) — card accent + Analytics subject colors share one mapping (Kanban copy rename already shipped in M1).
+- [x] Flashcards UX follow-through — `flashcards-improvements.md` (schedule-visible UI, caught-up Study, set context in due Study, edit cards/set metadata, session end summary). Do after Leitner; do not expand into SM-2 or card media.
+- [x] Kanban subject-owned color system (§9) — `colorForSubject()` in `src/lib/subject-colors.ts`; board card accent, Calendar dots/chips, Dashboard agenda, and Analytics focus-by-subject bars share one mapping; per-objective color swatch removed from create/edit forms.
 - [x] Unlockable dark-only app palettes (§4) — ambient Dashboard backgrounds retired; starters at L1 (Axon / Tokyo Night / Nord); gated Everforest L3 / Gruvbox L7 / Catppuccin Mocha L13; **never auto-equip**; Appearance is the picker; chrome follows accent so swaps are visible. Specs: `theme-palettes.md`.
 
 **Skills to use:** `.cursor/skills/design-system/SKILL.md` for tokenized palette swaps (same CSS variables per theme); `.cursor/skills/premium-frontend/SKILL.md` to keep unlocked palettes quiet and non-distracting; `.cursor/skills/nextjs-react-patterns/SKILL.md` for Flashcards scheduler state.
 
 **Definition of done:** ambient Dashboard backgrounds are gone; at least three unlockable dark palettes can be unlocked by rank and manually equipped app-wide without auto-apply on level-up; Flashcards "Study" surfaces due cards without the user picking a set first; subject colors on the board match Analytics.
+
+**Post-M2 follow-through (optional, not a new milestone):** Dashboard re-coupling — `dashboard-improvements.md`. Do not pull M3–M5 items into that pass.
 
 ### M3 — Trust pass (do after M1/M2, not before)
 - Rewrite landing page copy to reflect the *new* positioning from `product-requirements.md` §2 — not just an auth-accuracy fix, since the product story itself changed.
