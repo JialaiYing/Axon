@@ -13,11 +13,11 @@ Update this file as items get resolved instead of letting it silently rot — se
 
 ## Landing / marketing page
 
-- **[Independent]** No mobile nav menu. Below 768px, "How it works" / "Progress" / "Principles" / "FAQ" links are completely unreachable — `landing-nav.tsx` hides them with no hamburger/disclosure.
-- **[Independent]** How It Works section breaks on mobile: the shared visual sits above all four step rows; tapping step 3/4 changes a visual already scrolled past, with no feedback.
-- **[Subsumed]** Homepage copy contradicts mandatory auth ("Works offline. Syncs when you want." in hero/trust/footer) — this needed a rewrite already, and now needs a *second* rewrite once the differentiation positioning in `product-requirements.md` lands, since the product story itself is changing, not just the auth framing.
-- **[Independent]** `/faq` page uses raw `bg-black`/`text-white`/`border-white/10` instead of the shared token system — the one page the dark-mode sweep missed.
-- **[Independent]** No risk-reversal microcopy under Hero/Final CTA buttons (e.g. "free account, sync included").
+- **[Resolved — M3]** Mobile section nav — `LandingMobileNav` drawer: section anchors + Sign in + Get started below `md`.
+- **[Resolved — M3]** How It Works mobile — open step includes its product visual (`lg:hidden` chrome inside the accordion panel); desktop keeps sticky visual.
+- **[Resolved — M3]** Homepage / FAQ / footer / login copy aligned to `landing-spec.md` must-say / must-not-say (account required, sync, free, no AI, Board + Leitner loop; no offline-first lead).
+- **[Resolved — M3]** `/faq` uses shared `bg-background` / foreground tokens (same forced-dark marketing shell as `/`).
+- **[Resolved — M3]** Risk-reversal under Hero + Final CTA: “Free account · no credit card · sync included.” FAQ preview links to `/faq`.
 
 ## Dashboard
 

@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import { DashboardPreview } from "@/components/landing/dashboard-preview";
-import { AxonLogo } from "@/components/brand/axon-logo";
 import { Button } from "@/components/ui/button";
 import {
   LandingContainer,
@@ -37,44 +36,29 @@ export function Hero() {
               transition: { staggerChildren: STAGGER.base },
             },
           }}
-          className="max-w-2xl"
+          className="mx-auto flex max-w-2xl flex-col items-center text-center"
         >
           <motion.div
-            variants={enterVariants(8)}
+            variants={enterVariants(10)}
             transition={{ duration: DURATION.section, ease: EASE }}
           >
-            <AxonLogo
-              withWordmark
-              priority
-              iconClassName="h-10 w-10 md:h-11 md:w-11"
-              wordmarkClassName="text-xl font-semibold tracking-tight text-foreground md:text-2xl"
-              className="gap-2.5"
-            />
+            <LandingHeading as="h1">Study without the noise.</LandingHeading>
           </motion.div>
 
           <motion.div
             variants={enterVariants(10)}
             transition={{ duration: DURATION.section, ease: EASE }}
           >
-            <LandingHeading as="h1" className="mt-8 md:mt-10">
-              Study without the noise.
-            </LandingHeading>
-          </motion.div>
-
-          <motion.div
-            variants={enterVariants(10)}
-            transition={{ duration: DURATION.section, ease: EASE }}
-          >
-            <LandingLead className="mt-5 max-w-md">
-              A quiet command center for studying. Tasks, focus, and progress in one
-              place. Free to start — synced automatically once you sign in.
+            <LandingLead className="mx-auto mt-5 max-w-md">
+              One signed-in place to plan objectives, focus, and review with spaced
+              flashcards. Free account required — syncs across your devices.
             </LandingLead>
           </motion.div>
 
           <motion.div
             variants={enterVariants(8)}
             transition={{ duration: DURATION.section, ease: EASE }}
-            className="mt-9 flex flex-wrap items-center gap-x-5 gap-y-3"
+            className="mt-9 flex flex-wrap items-center justify-center gap-x-5 gap-y-3"
           >
             <Button
               size="lg"
@@ -101,7 +85,7 @@ export function Hero() {
             transition={{ duration: DURATION.section, ease: EASE }}
             className="mt-3 text-xs text-muted-foreground"
           >
-            Free account · no credit card required.
+            Free account · no credit card · sync included.
           </motion.p>
         </motion.div>
 

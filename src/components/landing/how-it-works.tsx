@@ -17,27 +17,27 @@ import { DURATION, EASE } from "@/lib/motion";
 const STEPS = [
   {
     id: "capture",
-    title: "Capture objectives",
+    title: "Capture on the Board",
     description:
-      "Put assignments on a to-do board. Priorities stay visible so nothing disappears into a notebook.",
+      "Add objectives with subjects and priorities. The board is your to-do list — nothing disappears into a notebook.",
   },
   {
     id: "schedule",
     title: "Schedule the week",
     description:
-      "Drop work onto the calendar so the day has a real plan, not a vague hope to study later.",
+      "Drop work onto the calendar so each day has a real plan, not a vague hope to study later.",
   },
   {
     id: "focus",
     title: "Protect the session",
     description:
-      "Run a Pomodoro against an objective. The timer keeps the block honest when distractions show up.",
+      "Run a Pomodoro tied to an objective. The timer keeps the block honest when distractions show up.",
   },
   {
     id: "review",
-    title: "Review what stuck",
+    title: "Review what's due",
     description:
-      "Turn material into flashcards and track mastery from finished work, not guesswork.",
+      "Flashcards use Leitner spaced repetition. Study surfaces cards that are due — no set pick required.",
   },
 ];
 
@@ -66,7 +66,7 @@ export function HowItWorks() {
           <LandingHeader
             eyebrow="The loop"
             title="One system for the whole session."
-            description="Capture, schedule, focus, review. No rebuilding your setup every time you sit down."
+            description="Board → calendar → focus → spaced review. Rebuild your setup once, then run the loop."
           />
         </ScrollReveal>
 

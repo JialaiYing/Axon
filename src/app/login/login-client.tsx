@@ -69,7 +69,7 @@ export default function LoginClient() {
                 Create your account
               </h1>
               <p className="max-w-[280px] text-[13px] leading-relaxed text-muted-foreground">
-                Free to start — your workspace syncs on any device.
+                Free account required — then your workspace syncs on any device. No credit card.
               </p>
             </>
           )}

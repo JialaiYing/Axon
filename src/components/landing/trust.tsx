@@ -10,28 +10,26 @@ import {
 const PRINCIPLES = [
   {
     n: "01",
-    title: "Local-first storage",
+    title: "Free account required",
     description:
-      "Your workspace lives on the device first, then syncs to your account — no lag waiting on a network for every click.",
+      "Sign in to use the app — there is no guest mode. Once you’re signed in, the same board, timers, flashcards, and progress sync across your devices.",
   },
   {
     n: "02",
-    title: "One free account",
+    title: "Fast after you sign in",
     description:
-      "Sign in once and the same board, timers, and sessions follow you to every device automatically.",
+      "Study data stays local for a responsive feel, with cloud sync in the background. Not an offline-first product — an account is the door.",
   },
   {
     n: "03",
     title: "Built for deep work",
     description:
-      "Quiet chrome, honest timers, and progress from finished work. No notification theater.",
+      "Quiet chrome, honest timers, and progress from finished work. No AI coaching, no notification theater — instead of juggling a task app, calendar, timer, and flashcard app.",
   },
 ];
 
 /**
- * Calm-by-default principles — a quieter, typographic beat deliberately
- * distinct from Progress's icon-list + product-chrome recipe: one editorial
- * statement paired with a hairline-divided list, no card grid, no panel.
+ * Calm-by-default principles — typographic beat, no card grid.
  */
 export function Trust() {
   return (
@@ -41,8 +39,8 @@ export function Trust() {
           <ScrollReveal>
             <LandingEyebrow>Principles</LandingEyebrow>
             <h2 className="mt-3 text-balance font-display text-3xl font-semibold leading-[1.15] tracking-tight text-foreground md:text-4xl">
-              Calm by default. Designed around how students study — not how
-              apps chase engagement.
+              Calm by default. Designed around how students study — not how apps
+              chase engagement.
             </h2>
           </ScrollReveal>
 

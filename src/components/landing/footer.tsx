@@ -34,8 +34,8 @@ export function Footer() {
               />
             </Link>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-              A distraction-free study command center. Free account required —
-              synced automatically across your devices.
+              A distraction-free study command center. Free account required to use
+              the app — data syncs across your devices once you’re signed in.
             </p>
           </div>
 
@@ -108,7 +108,7 @@ export function Footer() {
 
         <div className="mt-10 flex flex-col gap-2 border-t border-border/60 pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <p>© {year} Axon. Built for focus.</p>
-          <p>Free account · synced automatically</p>
+          <p>Free account · sync included</p>
         </div>
       </LandingContainer>
     </footer>

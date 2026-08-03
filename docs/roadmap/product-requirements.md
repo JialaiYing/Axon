@@ -20,7 +20,9 @@ See `opinions.md` for a direct, unhedged take on how much of this is realistic t
 2. **A reward system tied to real completed work**, not check-ins or vanity streaks.
 3. **Fewer tab-switches during a focus session** — the calendar and (eventually) audio live inside the app instead of requiring two more tabs.
 
-**Target audience (unchanged, sharpened):** a self-directed student who has already tried and abandoned some combination of Notion, Google Tasks/Calendar, Quizlet/Anki, and a bare Pomodoro timer. Skeptical of "another productivity app." The homepage's job is to answer the "why not just use what I already have" objection directly — it currently doesn't (see `known-issues.md`).
+**Target audience (unchanged, sharpened):** a self-directed student who has already tried and abandoned some combination of Notion, Google Tasks/Calendar, Quizlet/Anki, and a bare Pomodoro timer. Skeptical of "another productivity app."
+
+**Homepage job (locked for M3 — see `landing-spec.md`):** explain the signed-in product accurately and get the visitor to create an account. The “why not four other apps?” objection is secondary proof only, not the hero’s primary job.
 
 **Why not just use the obvious alternatives — the honest comparison:**
 - **Google Tasks + Calendar:** fine for scheduling, has zero concept of focus sessions, streaks, or spaced review. Axon's answer: one dataset drives the to-do list, the calendar, and the focus timer together.
@@ -102,7 +104,7 @@ Current state: users configure their own daily/weekly targets, and target types 
 ## 10. Trust & infra work carried forward from the first draft
 
 Still valid, now sequenced later (see §11):
-- Landing page copy accuracy pass — now needs to happen **after** positioning changes above, since the homepage promise is changing twice otherwise. Also fix the still-open, redesign-independent bugs: mobile nav menu missing, How It Works breaking on mobile, `/faq` off-token styling.
+- Landing page pass — build from **`landing-spec.md`** (accurate signed-in product story + signup; competitive comparison secondary). Also: How It Works mobile behavior, `/faq` tokens, CTA risk-reversal; mobile nav already exists — verify completeness rather than assuming missing.
 - Production infra hardening: real deploy against `docs/deploy-checklist.md`, Supabase's own Auth rate limits turned on, self-serve account deletion verified end-to-end, JSON data export from Settings.
 - Accessibility pass (no full audit has been run yet, despite a skill existing for it) and a reliability/error-state pass (Supabase outage during sync, failed auth messaging, corrupted localStorage, expired session mid-edit) — neither has ever been done.
 
@@ -113,7 +115,7 @@ Full detail on these carries over unchanged from the git history of this documen
 See `development-process.md` for the executable version of this. At a high level:
 1. Cheap, real, low-risk: Pomodoro work/break cycling, goals simplification, per-page decluttering, Settings copy cuts.
 2. Positioning-dependent: unlockable dark-only app palettes (§4 — replace ambient Dashboard backgrounds; no City), Flashcards spaced repetition, Kanban subject-owned colors.
-3. Trust pass: rewritten landing copy (now reflecting the new positioning, not just the auth correction), mobile nav fix, How It Works mobile fix.
+3. Trust pass: execute `landing-spec.md` (homepage job = accurate product + signup), How It Works mobile, `/faq` tokens.
 4. Infra + launch: deploy checklist, rate limiting, account deletion, data export, accessibility pass.
 5. Evidence-gated, not scheduled yet: calendar sync, any real third-party audio integration — revisit based on actual usage once there is any.
 

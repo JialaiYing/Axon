@@ -1,44 +1,95 @@
 "use client";
 
-import {
-  Circle,
-  Plus,
-  Repeat,
-  Target,
-  Timer,
-} from "lucide-react";
+import { AlertTriangle, ListTodo, Plus, Sparkles, Timer, Trophy } from "lucide-react";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { StreakFlame } from "@/components/ui/streak-flame";
 import { ProductChrome } from "@/components/landing/landing-primitives";
+import { colorForSubject } from "@/lib/subject-colors";
 import { cn } from "@/lib/utils";
 
 /**
- * Hero product shot — one focused composition, not a full dashboard dump.
- * Mirrors live dashboard density without the clutter that reads as template.
+ * Hero product shot — mirrors the live Dashboard composition:
+ * greeting → Today agenda → stats (streak / focus / open today) → Rank + daily n/3.
  */
-
-const UP_NEXT = [
-  { title: "Read ch. 6 thermodynamics", color: "#5b8def" },
-  { title: "Review flashcard deck", color: "#22c55e" },
-  { title: "Office hours prep", color: "#f59e0b" },
-];
 
 const DEMO_STREAK = 12;
 
+const AGENDA = {
+  overdue: [
+    { title: "Org chem problem set", meta: "Due Jul 19", subject: "Chemistry" },
+  ],
+  dueToday: [
+    { title: "Read ch. 6 thermodynamics", meta: "Due today", subject: "Physics" },
+  ],
+  focus: [
+    {
+      title: "Calc II problem set",
+      meta: "9:30 · 30m",
+      subject: "Math",
+    },
+  ],
+} as const;
+
+function AgendaRow({
+  title,
+  meta,
+  subject,
+  tone,
+}: {
+  title: string;
+  meta: string;
+  subject: string;
+  tone?: "danger";
+}) {
+  return (
+    <div className="flex items-center gap-2.5 px-1 py-1.5">
+      <span
+        aria-hidden
+        className={cn(
+          "h-1.5 w-1.5 shrink-0 rounded-full",
+          tone === "danger" && "bg-danger"
+        )}
+        style={
+          tone === "danger" ? undefined : { backgroundColor: colorForSubject(subject) }
+        }
+      />
+      <div className="min-w-0 flex-1">
+        <p
+          className={cn(
+            "truncate text-[13px] font-medium",
+            tone === "danger" ? "text-danger" : "text-foreground"
+          )}
+        >
+          {title}
+        </p>
+        <p
+          className={cn(
+            "mt-0.5 text-[11px]",
+            tone === "danger" ? "text-danger/80" : "text-muted-foreground"
+          )}
+        >
+          {meta}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function PreviewBody() {
   return (
-    <div className="space-y-4 bg-background p-3 sm:p-5">
+    <div className="flex flex-col gap-5 bg-background p-3 sm:gap-6 sm:p-5">
+      {/* Greeting + CTAs — matches dashboard-overview header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted">
+          <p className="text-[12px] font-medium text-muted sm:text-[13px]">
             Tuesday, July 21
           </p>
-          <p className="mt-1.5 text-lg font-semibold tracking-tight text-foreground sm:text-xl">
+          <p className="mt-1 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
             Good morning, Alex
           </p>
         </div>
         <div className="hidden items-center gap-3 sm:flex">
-          <span className="inline-flex items-center gap-1 text-[13px] font-medium text-muted-foreground">
+          <span className="inline-flex items-center gap-1 text-[13px] font-medium text-foreground">
             <Plus className="h-3.5 w-3.5" aria-hidden /> New objective
           </span>
           <span className="inline-flex items-center gap-1.5 rounded-md bg-accent px-2.5 py-1 text-[12px] font-medium text-accent-foreground">
@@ -47,125 +98,153 @@ function PreviewBody() {
         </div>
       </div>
 
+      {/* Today agenda — matches TodayAgendaPanel */}
       <section className="rounded-md border border-border/50 p-3.5 sm:p-4">
-        <div className="mb-3.5">
-          <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted">
-            Today
-          </p>
-          <p className="mt-1 text-[15px] font-semibold tracking-tight text-foreground">
-            Your agenda
-          </p>
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <div>
+            <p className="text-[12px] font-medium text-muted sm:text-[13px]">Today</p>
+            <p className="mt-0.5 text-lg font-medium tracking-tight text-foreground sm:text-xl">
+              Your agenda
+            </p>
+          </div>
+          <span className="mt-1 shrink-0 text-[12px] font-medium text-muted-foreground sm:text-[13px]">
+            5 cards due
+          </span>
         </div>
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1.45fr_minmax(0,0.9fr)] lg:gap-6">
-          <div className="space-y-3.5">
-            <div>
-              <p className="mb-1.5 flex items-center gap-1.5 text-[11px] font-medium text-danger">
-                Overdue
-                <span className="font-mono tabular-nums text-danger/80">1</span>
-              </p>
-              <div className="flex items-center justify-between gap-2 rounded-md px-1 py-1.5">
-                <p className="min-w-0 truncate text-[13px] font-medium text-danger">
-                  Org chem problem set
-                </p>
-                <span className="shrink-0 text-[11px] text-danger/80">Due Jul 19</span>
-              </div>
+
+        <div className="space-y-4">
+          <div>
+            <div className="mb-1 flex items-center gap-1.5">
+              <AlertTriangle className="h-3.5 w-3.5 text-danger" aria-hidden />
+              <p className="text-[12px] font-medium text-danger">Overdue</p>
+              <span className="font-mono text-[12px] tabular-nums text-danger">
+                · {AGENDA.overdue.length}
+              </span>
             </div>
-            <div>
-              <p className="mb-1.5 flex items-center gap-1.5 text-[11px] font-medium text-muted">
-                <Timer className="h-3 w-3" aria-hidden /> Scheduled focus
-                <span className="font-mono tabular-nums">1</span>
-              </p>
-              <div className="flex items-center justify-between gap-2 rounded-md px-1 py-1.5">
-                <p className="min-w-0 truncate text-[13px] font-medium text-foreground">
-                  Focus session, Calc II
-                </p>
-                <span className="shrink-0 font-mono text-[11px] text-muted-foreground">
-                  9:30–10:00
-                </span>
-              </div>
+            <div className="-mx-1 divide-y divide-border/50">
+              {AGENDA.overdue.map((row) => (
+                <AgendaRow key={row.title} {...row} tone="danger" />
+              ))}
             </div>
           </div>
-          <div className="space-y-3">
-            <p className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.12em] text-muted">
-              <Target className="h-3 w-3" aria-hidden /> Goals
-            </p>
-            <div>
-              <div className="mb-1 flex justify-between text-[11px] text-muted-foreground">
-                <span>Focus time</span>
-                <span className="font-mono tabular-nums text-foreground/70">96/120 min</span>
-              </div>
-              <ProgressBar value={80} size="sm" />
+
+          <div>
+            <div className="mb-1 flex items-center gap-1.5">
+              <ListTodo className="h-3.5 w-3.5 text-muted" aria-hidden />
+              <p className="text-[12px] font-medium text-muted">Due today</p>
+              <span className="font-mono text-[12px] tabular-nums text-muted">
+                · {AGENDA.dueToday.length}
+              </span>
             </div>
-            <div>
-              <div className="mb-1 flex justify-between text-[11px] text-muted-foreground">
-                <span>Objectives</span>
-                <span className="font-mono tabular-nums text-foreground/70">2/5</span>
-              </div>
-              <ProgressBar value={40} size="sm" />
+            <div className="-mx-1 divide-y divide-border/50">
+              {AGENDA.dueToday.map((row) => (
+                <AgendaRow key={row.title} {...row} />
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <div className="mb-1 flex items-center gap-1.5">
+              <Timer className="h-3.5 w-3.5 text-muted" aria-hidden />
+              <p className="text-[12px] font-medium text-muted">Scheduled focus</p>
+              <span className="font-mono text-[12px] tabular-nums text-muted">
+                · {AGENDA.focus.length}
+              </span>
+            </div>
+            <div className="-mx-1 divide-y divide-border/50">
+              {AGENDA.focus.map((row) => (
+                <AgendaRow key={row.title} {...row} />
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      <div>
-        <p className="mb-1 text-[11px] font-medium uppercase tracking-[0.12em] text-muted">
-          Up next
-        </p>
-        <ul className="divide-y divide-border/50 border-y border-border/50">
-          {UP_NEXT.map((item) => (
-            <li key={item.title} className="flex items-center gap-2.5 px-0.5 py-2">
-              <span
-                aria-hidden
-                className="h-1.5 w-1.5 shrink-0 rounded-full"
-                style={{ backgroundColor: item.color }}
-              />
-              <p className="min-w-0 flex-1 truncate text-[13px] font-medium text-foreground">
-                {item.title}
-              </p>
-              <Circle className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden />
-            </li>
-          ))}
-        </ul>
-      </div>
-
+      {/* Stats — streak / focus today / open today */}
       <div className="grid grid-cols-3 border-y border-border/50">
         {[
           {
             label: "Streak",
             value: `${DEMO_STREAK}`,
             suffix: " days",
+            hint: "Keep it going",
             icon: <StreakFlame days={DEMO_STREAK} size="sm" animated={false} />,
           },
           {
             label: "Focus today",
             value: "96",
             suffix: " min",
-            icon: <Timer className="h-3.5 w-3.5 text-accent" aria-hidden />,
+            hint: "2 sessions · vs yesterday",
+            icon: <Timer className="h-3.5 w-3.5 text-muted" aria-hidden />,
           },
           {
-            label: "Intervals",
-            value: "34",
+            label: "Open today",
+            value: "2",
             suffix: "",
-            icon: <Repeat className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />,
+            hint: "Overdue + due today",
+            icon: <ListTodo className="h-3.5 w-3.5 text-muted" aria-hidden />,
           },
         ].map((stat, i) => (
           <div
             key={stat.label}
-            className={cn(
-              "flex flex-col gap-1.5 p-3",
-              i > 0 && "border-l border-border/50"
-            )}
+            className={cn("flex flex-col justify-between p-3", i > 0 && "border-l border-border/50")}
           >
             <div className="flex items-center justify-between gap-1">
-              <p className="text-[11px] font-medium text-muted">{stat.label}</p>
+              <p className="text-[12px] font-medium text-muted">{stat.label}</p>
               {stat.icon}
             </div>
-            <p className="font-mono text-xl font-semibold tabular-nums tracking-tight text-foreground">
-              {stat.value}
-              <span className="text-sm font-medium text-muted-foreground">{stat.suffix}</span>
-            </p>
+            <div className="mt-2">
+              <p className="font-mono text-xl font-medium tabular-nums tracking-tight text-foreground sm:text-2xl">
+                {stat.value}
+                <span className="text-sm font-medium text-muted-foreground">{stat.suffix}</span>
+              </p>
+              <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{stat.hint}</p>
+            </div>
           </div>
         ))}
+      </div>
+
+      {/* Rank strip + daily goal glance */}
+      <div className="flex overflow-hidden rounded-md border border-border/50">
+        <div className="min-w-0 flex-1 p-3.5 sm:p-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-5">
+            <div className="flex shrink-0 items-center gap-2.5">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-wash text-warning">
+                <Trophy className="h-3.5 w-3.5 fill-current" aria-hidden />
+              </span>
+              <div>
+                <p className="text-[12px] font-medium text-muted">Rank</p>
+                <div className="mt-0.5 flex flex-wrap items-center gap-x-2">
+                  <p className="text-lg font-medium tracking-tight text-foreground sm:text-xl">
+                    Scholar II
+                  </p>
+                  <span className="font-mono text-[12px] tabular-nums text-muted-foreground">
+                    Level 8
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="mb-1.5 flex items-center justify-between gap-2 text-[12px] text-muted-foreground">
+                <span className="inline-flex items-center gap-1">
+                  XP to next level
+                  <span className="inline-flex items-center gap-0.5 font-medium text-foreground">
+                    <Sparkles className="h-3 w-3" aria-hidden />
+                    +42 today
+                  </span>
+                </span>
+                <span className="font-mono tabular-nums text-foreground/70">640 / 940</span>
+              </div>
+              <ProgressBar value={68} size="sm" />
+            </div>
+          </div>
+        </div>
+        <div className="flex w-[4.75rem] shrink-0 flex-col justify-center border-l border-border/50 px-2 py-3 text-center sm:w-24 sm:px-3">
+          <p className="text-[11px] font-medium text-muted sm:text-[12px]">Daily</p>
+          <p className="mt-1 font-mono text-lg font-medium tabular-nums tracking-tight text-foreground sm:text-xl">
+            2<span className="text-muted-foreground">/3</span>
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -175,7 +254,7 @@ interface DashboardPreviewProps {
   className?: string;
 }
 
-/** Static, tilt-free product frame for the hero — motion lives on the page, not the chrome. */
+/** Static product frame for the hero — motion lives on the page, not the chrome. */
 export function DashboardPreview({ className }: DashboardPreviewProps) {
   return (
     <div className={cn("relative", className)}>

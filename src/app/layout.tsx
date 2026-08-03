@@ -43,7 +43,7 @@ const jetbrainsMono = JetBrains_Mono({
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 const TITLE = "Axon — Study smarter, stay consistent";
 const DESCRIPTION =
-  "Axon is a productivity dashboard for students who struggle with distraction and consistency. To-do board, Pomodoro, flashcards, calendar, analytics, and gamified progress — create a free account to get started.";
+  "Axon is a signed-in study command center for students: Board, calendar, Pomodoro, Leitner flashcards, goals, and rank — create a free account to get started.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

@@ -32,10 +32,13 @@ Work in this order unless new evidence (real usage, user feedback) says otherwis
 **Post-M2 follow-through (optional, not a new milestone):** Dashboard re-coupling — `dashboard-improvements.md`. Do not pull M3–M5 items into that pass.
 
 ### M3 — Trust pass (do after M1/M2, not before)
-- Rewrite landing page copy to reflect the *new* positioning from `product-requirements.md` §2 — not just an auth-accuracy fix, since the product story itself changed.
-- Fix the landing bugs in `known-issues.md` tagged `[Independent]`: mobile nav menu, How It Works mobile behavior, `/faq` token migration.
+- [x] Execute **`landing-spec.md`** (source of truth): primary job is explain the signed-in product accurately and convert to signup; competitive bake-off is secondary only.
+- [x] Rewrite `/` (and align `/faq` + footer + login microcopy) to the must-say / must-not-say list in that spec — post-M2 truth, not the old offline/optional-auth story.
+- [x] How It Works mobile: active step and visual stay related (see spec §5).
+- [x] Confirm mobile nav completeness; FAQ preview links to `/faq`; `/faq` token migration.
+- [x] Risk-reversal under Hero + Final CTA.
 
-**Definition of done:** a new visitor reading only the homepage is never surprised by the signup wall or by what the product actually does; nav and How It Works both work at 375/768/1024px.
+**Definition of done:** matches `landing-spec.md` §9 — a new visitor reading only the homepage is never surprised by the signup wall or by what the product actually does; nav and How It Works both work at 375/768/1024px; spec updated if shipped structure/copy diverges.
 
 ### M4 — Infra + launch
 - Execute `docs/deploy-checklist.md` against a real host.

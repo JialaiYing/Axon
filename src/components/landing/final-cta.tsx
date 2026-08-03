@@ -25,7 +25,7 @@ export function FinalCTA() {
             Open your command center.
           </LandingHeading>
           <LandingLead className="mt-4 max-w-md">
-            Create a free account and run your next session in one calm workspace.
+            Create a free account and run plan → focus → review in one calm workspace.
           </LandingLead>
           <div className="mt-9">
             <Button
@@ -38,7 +38,7 @@ export function FinalCTA() {
             </Button>
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
-            Free account · no credit card required.
+            Free account · no credit card · sync included.
           </p>
         </ScrollReveal>
       </LandingContainer>

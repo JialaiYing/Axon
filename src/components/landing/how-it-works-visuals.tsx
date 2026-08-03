@@ -1,4 +1,4 @@
-import { Gauge, History, Layers, Maximize2, Pause, Plus, Search, Square, Target } from "lucide-react";
+import { Layers, Maximize2, Pause, Plus, Search, Square, Target } from "lucide-react";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { TimerRing } from "@/components/pomodoro/timer-ring";
 import { priorityDotClass } from "@/lib/kanban-utils";
@@ -286,95 +286,56 @@ function PomodoroVisual() {
   );
 }
 
-/** Real flashcards home: sidebar stats + rounded-md library tiles. */
+/** Library + due Study — Leitner-facing, not the retired Home rail. */
 function FlashcardsVisual() {
-  const glance = [
-    { label: "Sets", value: "8" },
-    { label: "Cards", value: "142" },
-    { label: "Mastery", value: "64%" },
-  ];
   const libraryItems = [
-    { kind: "folder" as const, title: "Organic Chem", meta: "3 sets", color: "#3b82f6" },
-    { kind: "folder" as const, title: "Calc II", meta: "2 sets", color: "#22c55e" },
-    { kind: "set" as const, title: "Thermodynamics", meta: "24 cards · 68%" },
-    { kind: "set" as const, title: "Derivatives", meta: "18 cards · 81%" },
+    { kind: "folder" as const, title: "Organic Chem", meta: "3 sets", color: "#6b9ef5", due: 0 },
+    { kind: "folder" as const, title: "Calc II", meta: "2 sets", color: "#3dba6e", due: 0 },
+    { kind: "set" as const, title: "Thermodynamics", meta: "24 cards · 5 due", color: "#e0a03a", due: 5 },
+    { kind: "set" as const, title: "Derivatives", meta: "18 cards · caught up", color: "#8b7ec8", due: 0 },
   ];
 
   return (
     <div className={cn(FRAME, "gap-2")}>
-      <div className="grid min-h-0 flex-1 grid-cols-[0.9fr_1.4fr] gap-2">
-        <div className="flex min-h-0 flex-col gap-3 overflow-hidden px-0.5">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-foreground">
-            Home
-          </p>
-          <div>
-            <div className="mb-1.5 flex items-center gap-1.5">
-              <Gauge className="h-3 w-3 text-muted-foreground" aria-hidden />
-              <p className="text-[11px] font-medium text-muted">At a glance</p>
+      <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border/50 px-1 pb-2">
+        <div>
+          <p className="text-[12px] font-semibold tracking-tight text-foreground">Flashcards</p>
+          <p className="text-[10px] text-muted-foreground">Leitner review</p>
+        </div>
+        <span className="rounded-md border border-border/50 bg-card px-2 py-1 font-mono text-[11px] font-medium tabular-nums text-foreground">
+          Study · 12
+        </span>
+      </div>
+      <div className="grid min-h-0 flex-1 grid-cols-2 gap-1.5 overflow-hidden">
+        {libraryItems.map((item) => (
+          <div
+            key={item.title}
+            className="flex flex-col justify-between rounded-md border border-border/50 bg-card p-2.5"
+          >
+            <div className="flex items-start justify-between gap-1">
+              {item.kind === "folder" ? (
+                <span
+                  className="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-[2px] border border-border/50"
+                  style={{ backgroundColor: item.color }}
+                  aria-hidden
+                />
+              ) : (
+                <Layers className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden />
+              )}
+              {item.due > 0 && (
+                <span className="font-mono text-[10px] tabular-nums text-muted-foreground">
+                  {item.due} due
+                </span>
+              )}
             </div>
-            <ul className="divide-y divide-border/50">
-              {glance.map((stat) => (
-                <li
-                  key={stat.label}
-                  className="flex items-center justify-between gap-2 py-1.5"
-                >
-                  <span className="text-[11px] text-muted-foreground">{stat.label}</span>
-                  <span className="font-mono text-[11px] font-semibold tabular-nums text-foreground">
-                    {stat.value}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <div className="mb-1.5 flex items-center gap-1.5">
-              <History className="h-3 w-3 text-muted-foreground" aria-hidden />
-              <p className="text-[11px] font-medium text-muted">Recent</p>
-            </div>
-            <div className="py-1.5">
-              <p className="truncate text-[13px] font-medium text-foreground">
-                Organic Chem · Deck A
+            <div className="mt-2 min-w-0">
+              <p className="truncate text-[12px] font-semibold tracking-tight text-foreground">
+                {item.title}
               </p>
-              <p className="mt-0.5 text-[11px] text-muted-foreground">Opened just now</p>
+              <p className="mt-0.5 text-[10px] text-muted-foreground">{item.meta}</p>
             </div>
           </div>
-        </div>
-
-        <div className="flex min-h-0 flex-col overflow-hidden rounded-md border border-border/50">
-          <div className="flex items-center justify-between border-b border-border/50 px-2.5 py-1.5">
-            <p className="text-[11px] font-medium text-muted">Library</p>
-            <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
-              <Layers className="h-3 w-3" aria-hidden />
-              Icons
-            </span>
-          </div>
-          <div className="grid min-h-0 flex-1 grid-cols-2 gap-1.5 overflow-hidden p-2">
-            {libraryItems.map((item) => (
-              <div
-                key={item.title}
-                className="flex flex-col justify-between rounded-md border border-border/50 bg-card p-2.5"
-              >
-                <div className="flex items-start justify-between gap-1">
-                  {item.kind === "folder" ? (
-                    <span
-                      className="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-[2px] border border-border/50"
-                      style={{ backgroundColor: item.color }}
-                      aria-hidden
-                    />
-                  ) : (
-                    <Layers className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden />
-                  )}
-                </div>
-                <div className="mt-2 min-w-0">
-                  <p className="truncate text-[12px] font-semibold tracking-tight text-foreground">
-                    {item.title}
-                  </p>
-                  <p className="mt-0.5 text-[10px] text-muted-foreground">{item.meta}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );

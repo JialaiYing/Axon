@@ -13,7 +13,8 @@ This folder is the current single source of truth for where Axon is and where it
 5. **`development-process.md`** — the executable version of the PRD: milestone order, which skills to use, definition of done per milestone, and the rule for keeping these docs from going stale again.
 6. **`flashcards-improvements.md`** — post-Leitner Flashcards UX brief (schedule visibility, caught-up Study, edit, session summary). Implement from here; not a substitute for `current-state.md`.
 7. **`dashboard-improvements.md`** — post-M2 Dashboard brief (due-cards cue, daily goal glance, empty CTAs, create deep-link, stats/timer/overflow). No M3–M5 work; no restoring trimmed widgets.
-8. **`opinions.md`** — a direct, deliberately unhedged take on what's realistic here and where I'd push back on the plan above. Read this before treating `product-requirements.md` as a literal, fully-committed build order.
+8. **`landing-spec.md`** — M3 source of truth: what `/` (and related marketing) must feature, claim, and behave like. Primary job = accurate signed-in product story + signup. Build M3 from this file.
+9. **`opinions.md`** — a direct, deliberately unhedged take on what's realistic here and where I'd push back on the plan above. Read this before treating `product-requirements.md` as a literal, fully-committed build order.
 
 ## One correction made alongside this folder
 

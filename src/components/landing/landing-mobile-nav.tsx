@@ -104,7 +104,7 @@ export function LandingMobileNav({
             })}
           </nav>
 
-          <div className="mt-auto border-t border-border pt-5">
+          <div className="mt-auto space-y-1 border-t border-border pt-5">
             <DialogPrimitive.Close asChild>
               <Link
                 href="/login"
@@ -114,6 +114,17 @@ export function LandingMobileNav({
                 )}
               >
                 Sign in
+              </Link>
+            </DialogPrimitive.Close>
+            <DialogPrimitive.Close asChild>
+              <Link
+                href="/login?mode=signup"
+                className={cn(
+                  "block rounded-md bg-accent px-3 py-2.5 text-center text-[15px] font-medium text-accent-foreground transition-opacity hover:opacity-90",
+                  landingFocusRingClassName
+                )}
+              >
+                Get started
               </Link>
             </DialogPrimitive.Close>
           </div>
