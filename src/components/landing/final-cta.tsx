@@ -9,6 +9,7 @@ import {
   LandingLead,
   LandingSection,
   landingPrimaryCtaClassName,
+  landingSecondaryCtaClassName,
 } from "@/components/landing/landing-primitives";
 import { cn } from "@/lib/utils";
 
@@ -27,7 +28,7 @@ export function FinalCTA() {
           <LandingLead className="mt-4 max-w-md">
             Create a free account and run plan → focus → review in one calm workspace.
           </LandingLead>
-          <div className="mt-9">
+          <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
             <Button
               size="lg"
               asChild
@@ -36,8 +37,17 @@ export function FinalCTA() {
             >
               <Link href="/login?mode=signup">Get started</Link>
             </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              asChild
+              ripple={false}
+              className={landingSecondaryCtaClassName}
+            >
+              <Link href="/login">Sign in</Link>
+            </Button>
           </div>
-          <p className="mt-3 text-xs text-muted-foreground">
+          <p className="mt-4 font-mono text-[11px] text-muted-foreground">
             Free account · no credit card · sync included.
           </p>
         </ScrollReveal>

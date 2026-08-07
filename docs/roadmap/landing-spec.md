@@ -55,14 +55,16 @@ Read first: `current-state.md` (auth model, feature inventory), then this. `prod
 
 Keep the existing marketing character unless a change is required for truth or mobile:
 
-- Forced dark on `/`, `/login`, `/faq` (and legal as today)
+- Forced dark on `/`, `/login`, `/faq` (and legal as today) — **same `axon` palette as the signed-in app**; the landing page borrows no separate hue or new color tokens, only structural refinements (see below)
 - Quiet product-chrome mocks (no stock photography, no purple-glow theater)
-- Brand (Axon) lives in the sticky nav (top-left); hero copy is centered — headline, lead, CTAs — without a second logo mark in the first viewport
-- First viewport budget: one headline, one short supporting line, one CTA group, one dominant product visual — no logo duplicate, no competitive bake-off, no promo chips in the hero
-- No cards in the hero; section cards only where interaction needs a container (e.g. FAQ items)
+- Brand (Axon) lives in the sticky nav (top-left); hero copy is centered — eyebrow, headline, lead, CTAs — without a second logo mark in the first viewport
+- First viewport budget: one eyebrow, one headline, one short supporting line, one CTA group, one dominant product visual — no logo duplicate, no competitive bake-off, no promo chips in the hero
+- **Hairline-grid motif:** How it works, Principles, and the Progress stat row use a shared seamless grid — a bordered container with 1px gaps (`bg-white/[0.06]` over `bg-background` cells) reading as dividers, rather than individually bordered/rounded cards. Mono (`font-mono`) eyebrows and step/item numbering (`01`, `02`, …) throughout, in place of sans-serif uppercase labels.
+- Secondary CTAs ("Sign in" beside "Get started" in Hero and Final CTA) are a bordered outline button, not a plain text link
+- No cards in the hero; section cards only where interaction needs a container (e.g. `/faq`'s accordion)
 - Respect `prefers-reduced-motion`
 
-Do **not** turn M3 into a visual identity overhaul or new illustration system.
+Do **not** turn M3 into a visual identity overhaul or new illustration system — no new palette, no new fonts, no new hue.
 
 ---
 
@@ -85,12 +87,12 @@ Keep six beats unless implementation proves a merge is clearer. Each section has
 
 | # | Section | Job | Must include | Must not |
 |---|---|---|---|---|
-| 1 | **Hero** | Name the product and the ask | Brand; one headline; one line that states signed-in study command center; Get started → `/login?mode=signup`; Sign in → `/login`; risk-reversal line; product visual (dashboard-style mock OK) | Competitive bake-off; offline lead; feature laundry list |
-| 2 | **How it works** (`#how-it-works`) | Show the loop | Four steps: Capture (Board) → Schedule (Calendar) → Focus (Pomodoro tied to objective) → Review (**Leitner / due study**, not vague “mastery only”) | Kanban jargon if Board is the product name; review step that ignores spaced repetition |
-| 3 | **Progress** (`#progress`) | Explain motivation honestly | Streaks, fixed daily goal (3 objectives), rank/XP from real completions; unlockable quiet dark palettes (manual equip) as optional one-liner | City/skyline; “personal goals you set”; ambient background unlocks |
-| 4 | **Principles** (`#trust`) | Build trust | Account required + sync across devices; local-fast storage **after** sign-in (not offline-first marketing); deep work / no engagement theater; no AI | “Local-first” as if no account needed |
-| 5 | **FAQ preview** (`#faq`) | Clear signup objections | Account / free / no-AI (or equivalent); **visible link to `/faq`** | Orphan “see full FAQ” with no link |
-| 6 | **Final CTA** | Convert | Same primary CTA + risk-reversal as hero | New claims not introduced above |
+| 1 | **Hero** | Name the product and the ask | Eyebrow; brand (in nav); one headline; one line that states signed-in study command center; Get started → `/login?mode=signup`; Sign in → `/login` (bordered secondary button); risk-reversal line; product visual (dashboard-style mock OK) | Competitive bake-off; offline lead; feature laundry list |
+| 2 | **How it works** (`#how-it-works`) | Show the loop | Four steps in a 2×2 hairline grid, each with its own visual: Capture (Board) → Schedule (Calendar) → Focus (Pomodoro tied to objective) → Review (**Leitner / due study**, not vague “mastery only”) | Kanban jargon if Board is the product name; review step that ignores spaced repetition |
+| 3 | **Progress** (`#progress`) | Explain motivation honestly | Fixed stat grid (objectives completed, focus sessions, streak, rank) + a focus-time/subject breakdown panel; unlockable quiet dark palettes (manual equip) shown as real catalog swatches, one-liner only | City/skyline; “personal goals you set”; ambient background unlocks; invented palette colors |
+| 4 | **Principles** (`#trust`) | Build trust | 2×2 hairline grid: one connected system; account required + sync across devices; no AI; deep work / no engagement theater | “Local-first” as if no account needed |
+| 5 | **FAQ preview** (`#faq`) | Clear signup objections | Account / free / no-AI (or equivalent) as a plain always-visible list (not an accordion — short enough to just read); **visible link to `/faq`** | Orphan “see full FAQ” with no link |
+| 6 | **Final CTA** | Convert | Same primary + secondary CTA pairing and risk-reversal as hero | New claims not introduced above |
 
 ### Hero copy direction (requirements, not final wordsmithing)
 
@@ -100,20 +102,18 @@ Keep six beats unless implementation proves a merge is clearer. Each section has
 
 ### How it works — behavior requirements
 
-- Desktop: current accordion + sticky visual pattern may stay.
-- **Mobile (required):** the active step’s visual must be visible with the step the user just opened (visual inside the open panel, or equivalent). Tapping step 3/4 must not only change a mock already scrolled off-screen.
+- All four steps are always visible in a 2×2 hairline grid (1 column below `sm`, 2 columns at `sm`+) — each tile carries its own real product visual, so there is no active/expanded state and nothing to keep in sync across breakpoints.
 - Step copy must match post-M2 product names (Board not “Kanban”; Review = spaced flashcards / due study).
 
 ### Progress — content requirements
 
 - Replace or rewrite any “Personal goals” bullet that implies user-tuned study targets.
-- Rank/XP stay; mention unlockable IDE-style dark palettes only as cosmetics tied to level (equip in Settings) — do not make palettes the section hero.
+- Rank/XP stay; palette swatches shown must be the real catalog entries (`src/lib/palettes/catalog.ts`) with real hex previews — starter vs. level-gated shown visually (e.g. a lock mark), not invented colors. Palettes remain a quiet one-liner, not the section hero.
 
 ### Principles — content requirements
 
+- Four tiles, not three: one connected system (Board/Calendar/Focus/Flashcards share objectives) is new; the other three carry forward the required must-say facts — free account + sync, no AI, and deep work / no engagement theater.
 - Reframe storage: fast on-device use **with** an account and cloud sync — not optional sync.
-- Keep “one free account” and “built for deep work.”
-- Optional short proof point: “Instead of juggling a task app, calendar, timer, and flashcard app…” — secondary to clarity.
 
 ### Nav & footer
 
@@ -179,6 +179,7 @@ Matches `development-process.md` M3 DoD: *never surprised by the signup wall or 
 
 ## 10. Open copy choices (decided in M3 ship)
 
-- Hero headline: kept “Study without the noise.” Lead states signed-in plan → focus → review + account/sync.
-- Unlockable palettes: one quiet line under Rank/XP on Progress (not the section hero).
-- Principles: three columns — Account required, Fast after sign-in, Deep work (storage folded into the first two).
+- Hero headline: kept “Study without the noise.” Mono eyebrow (“The study system”) added above it; lead shortened to plan → focus → review, with account/free/sync moved to the mono risk-reversal line beneath the CTAs.
+- Unlockable palettes: shown as a real swatch row (from the catalog) under the Progress panel, one quiet line, not the section hero.
+- Principles: 2×2 hairline grid — One connected system, Free account/always synced, No AI gimmicks, Designed for focus.
+- Palette/hue: unchanged. The redesign is structural (hairline grids, mono labels, restrained heading weight) on top of the existing `axon` color tokens — not a new color identity.

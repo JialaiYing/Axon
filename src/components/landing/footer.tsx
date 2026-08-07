@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AxonLogo } from "@/components/brand/axon-logo";
 import {
   LandingContainer,
+  LandingEyebrow,
   landingFocusRingClassName,
 } from "@/components/landing/landing-primitives";
 import { cn } from "@/lib/utils";
@@ -41,9 +42,7 @@ export function Footer() {
 
           <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 sm:gap-10">
             <div>
-              <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted">
-                Product
-              </p>
+              <LandingEyebrow>Product</LandingEyebrow>
               <ul className="mt-3 space-y-2.5">
                 <li>
                   <Link href="/#how-it-works" className={linkClass}>
@@ -64,9 +63,7 @@ export function Footer() {
             </div>
 
             <div>
-              <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted">
-                Account
-              </p>
+              <LandingEyebrow>Account</LandingEyebrow>
               <ul className="mt-3 space-y-2.5">
                 <li>
                   <Link href="/login" className={linkClass}>
@@ -87,9 +84,7 @@ export function Footer() {
             </div>
 
             <div>
-              <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted">
-                Legal
-              </p>
+              <LandingEyebrow>Legal</LandingEyebrow>
               <ul className="mt-3 space-y-2.5">
                 <li>
                   <Link href="/terms" className={linkClass}>
@@ -106,7 +101,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 flex flex-col gap-2 border-t border-border/60 pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-10 flex flex-col gap-2 border-t border-border/60 pt-6 font-mono text-[11px] text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <p>© {year} Axon. Built for focus.</p>
           <p>Free account · sync included</p>
         </div>

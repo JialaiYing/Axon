@@ -43,8 +43,15 @@ export function FAQContent({ items = FAQS }: { items?: typeof FAQS }) {
     <Accordion type="single" collapsible className="mx-auto w-full">
       {items.map((faq, i) => (
         <AccordionItem key={faq.id} value={`item-${i}`}>
-          <AccordionTrigger>{faq.question}</AccordionTrigger>
-          <AccordionContent>{faq.answer}</AccordionContent>
+          <AccordionTrigger className="hover:text-foreground">
+            <span className="flex items-center gap-3">
+              <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              {faq.question}
+            </span>
+          </AccordionTrigger>
+          <AccordionContent className="pl-[1.9rem]">{faq.answer}</AccordionContent>
         </AccordionItem>
       ))}
     </Accordion>

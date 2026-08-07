@@ -65,7 +65,7 @@ export function LandingEyebrow({
   return (
     <p
       className={cn(
-        "text-[11px] font-medium uppercase tracking-[0.14em] text-muted",
+        "font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground",
         className
       )}
     >
@@ -86,10 +86,10 @@ export function LandingHeading({
   return (
     <Tag
       className={cn(
-        "font-display font-semibold tracking-tight text-foreground text-balance",
-        Tag === "h1" && "text-4xl leading-[1.05] md:text-6xl",
-        Tag === "h2" && "text-3xl leading-[1.1] md:text-4xl",
-        Tag === "h3" && "text-xl leading-snug md:text-2xl",
+        "font-display font-medium text-foreground text-balance",
+        Tag === "h1" && "text-4xl leading-[1.05] tracking-[-0.035em] md:text-6xl",
+        Tag === "h2" && "text-3xl leading-[1.1] tracking-[-0.03em] md:text-4xl",
+        Tag === "h3" && "text-xl leading-snug tracking-[-0.025em] md:text-2xl",
         className
       )}
     >
@@ -181,9 +181,43 @@ export function ProductChrome({
   );
 }
 
+/**
+ * Seamless hairline-divided grid — a border-and-background sandwich where the
+ * 1px gaps between cells read as dividers. Children supply their own
+ * `bg-background`/`bg-surface` fill and padding so density can vary per use
+ * (product tiles vs. stat tiles vs. principle tiles).
+ */
+export function HairlineGrid({
+  children,
+  className,
+  cols = 2,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  cols?: 2 | 3 | 4;
+}) {
+  return (
+    <div
+      className={cn(
+        "grid gap-px overflow-hidden rounded-lg border border-border bg-white/[0.06]",
+        cols === 2 && "grid-cols-1 sm:grid-cols-2",
+        cols === 3 && "grid-cols-1 sm:grid-cols-3",
+        cols === 4 && "grid-cols-2 sm:grid-cols-4",
+        className
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
 /** Primary marketing CTA — flat accent, no lift/scale (Linear/Vercel style). */
 export const landingPrimaryCtaClassName =
   "h-10 rounded-md border-0 bg-accent px-5 text-sm font-medium text-accent-foreground shadow-none hover:translate-y-0 hover:scale-100 hover:bg-accent/90 hover:shadow-none active:scale-[0.98]";
+
+/** Secondary marketing CTA — bordered, pairs with the primary in Hero/Final CTA. Use with `variant="outline"`. */
+export const landingSecondaryCtaClassName =
+  "h-10 rounded-md px-5 text-sm font-medium shadow-none hover:translate-y-0 hover:scale-100 hover:shadow-none active:scale-[0.98]";
 
 export const landingNavCtaClassName =
   "h-8 rounded-md border-0 bg-accent px-3 text-[13px] font-medium text-accent-foreground shadow-none hover:translate-y-0 hover:scale-100 hover:bg-accent/90 hover:shadow-none active:scale-[0.98]";

@@ -2,68 +2,71 @@
 
 import { ScrollReveal, ScrollRevealGroup, ScrollRevealItem } from "@/components/ui/scroll-reveal";
 import {
+  HairlineGrid,
   LandingContainer,
-  LandingEyebrow,
+  LandingHeader,
   LandingSection,
 } from "@/components/landing/landing-primitives";
 
 const PRINCIPLES = [
   {
     n: "01",
-    title: "Free account required",
+    title: "One connected system",
     description:
-      "Sign in to use the app — there is no guest mode. Once you’re signed in, the same board, timers, flashcards, and progress sync across your devices.",
+      "Board, calendar, focus timer, and flashcards all share the same objectives — nothing to re-enter across separate apps.",
   },
   {
     n: "02",
-    title: "Fast after you sign in",
+    title: "Free account, always synced",
     description:
-      "Study data stays local for a responsive feel, with cloud sync in the background. Not an offline-first product — an account is the door.",
+      "No guest mode and no paid tier — just a free account. Once you’re signed in, everything syncs across your devices.",
   },
   {
     n: "03",
-    title: "Built for deep work",
+    title: "No AI gimmicks",
     description:
-      "Quiet chrome, honest timers, and progress from finished work. No AI coaching, no notification theater — instead of juggling a task app, calendar, timer, and flashcard app.",
+      "Streaks, XP, and review schedules come from rules applied to your own activity — not a model coaching or planning for you.",
+  },
+  {
+    n: "04",
+    title: "Designed for focus",
+    description:
+      "Quiet chrome and honest timers. No notification theater competing for your attention while you study.",
   },
 ];
 
 /**
- * Calm-by-default principles — typographic beat, no card grid.
+ * Calm-by-default principles — hairline-divided 2x2 grid.
  */
 export function Trust() {
   return (
     <LandingSection id="trust" className="bg-surface">
       <LandingContainer>
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
-          <ScrollReveal>
-            <LandingEyebrow>Principles</LandingEyebrow>
-            <h2 className="mt-3 text-balance font-display text-3xl font-semibold leading-[1.15] tracking-tight text-foreground md:text-4xl">
-              Calm by default. Designed around how students study — not how apps
-              chase engagement.
-            </h2>
-          </ScrollReveal>
+        <ScrollReveal className="mb-10 md:mb-14">
+          <LandingHeader
+            eyebrow="Principles"
+            title="Calm by default."
+            description="Designed around how students study — not how apps chase engagement."
+          />
+        </ScrollReveal>
 
-          <ScrollRevealGroup className="divide-y divide-border/60 border-y border-border/60">
-            {PRINCIPLES.map((step) => (
-              <ScrollRevealItem key={step.title}>
-                <div className="flex items-baseline gap-5 py-5">
-                  <span className="w-6 shrink-0 font-mono text-[11px] tabular-nums text-muted-foreground">
-                    {step.n}
-                  </span>
-                  <div>
-                    <h3 className="text-[15px] font-semibold tracking-tight text-foreground">
-                      {step.title}
-                    </h3>
-                    <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-                      {step.description}
-                    </p>
-                  </div>
-                </div>
+        <ScrollRevealGroup>
+          <HairlineGrid cols={2}>
+            {PRINCIPLES.map((principle) => (
+              <ScrollRevealItem key={principle.title} className="bg-background p-6 sm:p-7">
+                <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
+                  {principle.n}
+                </span>
+                <h3 className="mt-1.5 text-[15px] font-semibold tracking-tight text-foreground">
+                  {principle.title}
+                </h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                  {principle.description}
+                </p>
               </ScrollRevealItem>
             ))}
-          </ScrollRevealGroup>
-        </div>
+          </HairlineGrid>
+        </ScrollRevealGroup>
       </LandingContainer>
     </LandingSection>
   );

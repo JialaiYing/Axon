@@ -14,5 +14,9 @@ docs/demo/work
 docs/demo/*.mp4
 docs/demo/*.gif
 
+# Playwright screenshots from scripts/capture-redesign-check.mjs — the
+# capture script stays in the repo, its output doesn't.
+docs/landing-screenshots
+
 .vercel
 .env*

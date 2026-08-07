@@ -6,13 +6,13 @@ import { DashboardPreview } from "@/components/landing/dashboard-preview";
 import { Button } from "@/components/ui/button";
 import {
   LandingContainer,
+  LandingEyebrow,
   LandingHeading,
   LandingLead,
-  landingFocusRingClassName,
   landingPrimaryCtaClassName,
+  landingSecondaryCtaClassName,
 } from "@/components/landing/landing-primitives";
 import { DURATION, EASE, STAGGER, enterVariants } from "@/lib/motion";
-import { cn } from "@/lib/utils";
 
 export function Hero() {
   const prefersReducedMotion = useReducedMotion();
@@ -42,6 +42,14 @@ export function Hero() {
             variants={enterVariants(10)}
             transition={{ duration: DURATION.section, ease: EASE }}
           >
+            <LandingEyebrow>The study system</LandingEyebrow>
+          </motion.div>
+
+          <motion.div
+            variants={enterVariants(10)}
+            transition={{ duration: DURATION.section, ease: EASE }}
+            className="mt-3"
+          >
             <LandingHeading as="h1">Study without the noise.</LandingHeading>
           </motion.div>
 
@@ -50,15 +58,15 @@ export function Hero() {
             transition={{ duration: DURATION.section, ease: EASE }}
           >
             <LandingLead className="mx-auto mt-5 max-w-md">
-              One signed-in place to plan objectives, focus, and review with spaced
-              flashcards. Free account required — syncs across your devices.
+              One place to plan objectives, focus deeply, and review with spaced
+              flashcards.
             </LandingLead>
           </motion.div>
 
           <motion.div
             variants={enterVariants(8)}
             transition={{ duration: DURATION.section, ease: EASE }}
-            className="mt-9 flex flex-wrap items-center justify-center gap-x-5 gap-y-3"
+            className="mt-9 flex flex-wrap items-center justify-center gap-3"
           >
             <Button
               size="lg"
@@ -68,22 +76,21 @@ export function Hero() {
             >
               <Link href="/login?mode=signup">Get started</Link>
             </Button>
-            <Link
-              href="/login"
-              className={cn(
-                "text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
-                landingFocusRingClassName,
-                "rounded-md"
-              )}
+            <Button
+              size="lg"
+              variant="outline"
+              asChild
+              ripple={false}
+              className={landingSecondaryCtaClassName}
             >
-              Sign in
-            </Link>
+              <Link href="/login">Sign in</Link>
+            </Button>
           </motion.div>
 
           <motion.p
             variants={enterVariants(6)}
             transition={{ duration: DURATION.section, ease: EASE }}
-            className="mt-3 text-xs text-muted-foreground"
+            className="mt-4 font-mono text-[11px] text-muted-foreground"
           >
             Free account · no credit card · sync included.
           </motion.p>

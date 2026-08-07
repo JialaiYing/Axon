@@ -50,7 +50,7 @@ function PreviewCard({
 }
 
 /** Real Kanban: bare columns, mono counts, flat cards with priority dots. */
-function KanbanCaptureVisual() {
+export function KanbanCaptureVisual() {
   const columns: {
     title: string;
     count: number;
@@ -151,7 +151,7 @@ function KanbanCaptureVisual() {
 }
 
 /** Real calendar week grid: border-border/50, left-accent events, wash fills. */
-function CalendarScheduleVisual() {
+export function CalendarScheduleVisual() {
   const days = [
     { label: "Mon", date: "20" },
     { label: "Tue", date: "21" },
@@ -246,7 +246,7 @@ function CalendarScheduleVisual() {
 }
 
 /** Real timer card: wash chip, TimerRing, flat controls. */
-function PomodoroVisual() {
+export function PomodoroVisual() {
   const remaining = 18 * 60 + 42;
   const total = 25 * 60;
 
@@ -287,7 +287,7 @@ function PomodoroVisual() {
 }
 
 /** Library + due Study — Leitner-facing, not the retired Home rail. */
-function FlashcardsVisual() {
+export function FlashcardsVisual() {
   const libraryItems = [
     { kind: "folder" as const, title: "Organic Chem", meta: "3 sets", color: "#6b9ef5", due: 0 },
     { kind: "folder" as const, title: "Calc II", meta: "2 sets", color: "#3dba6e", due: 0 },
@@ -341,18 +341,3 @@ function FlashcardsVisual() {
   );
 }
 
-const VISUALS = [
-  KanbanCaptureVisual,
-  CalendarScheduleVisual,
-  PomodoroVisual,
-  FlashcardsVisual,
-] as const;
-
-export function HowItWorksVisual({ index }: { index: number }) {
-  const Visual = VISUALS[index] ?? KanbanCaptureVisual;
-  return (
-    <div data-theme="dark" className="h-full w-full">
-      <Visual />
-    </div>
-  );
-}
