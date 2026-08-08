@@ -66,7 +66,7 @@ Copper / bronze / gold use `warning` opacities; emerald uses `success`.
 
 ### Attribute contract
 - `html[data-theme="dark"|"light"]` — mode
-- `html[data-palette="axon"|"tokyo-night"|"nord"|"everforest"|"gruvbox"|"catppuccin-mocha"]` — dark palette id (meaningful only when dark)
+- `html[data-palette="axon"|"tokyo-night"|"nord"|"everforest"|"gruvbox"|"rose-pine"]` — dark palette id (meaningful only when dark)
 
 Marketing routes (`/`, `/login`, `/privacy`, `/terms`, `/faq`) always force dark + `axon`.
 
@@ -81,9 +81,9 @@ Marketing routes (`/`, `/login`, `/privacy`, `/terms`, `/faq`) always force dark
 | `nord` | Nord | **1** | Starter — personalization from day one |
 | `everforest` | Everforest Dark | **3** | First gated unlock |
 | `gruvbox` | Gruvbox Dark | **7** | Second gated unlock |
-| `catppuccin-mocha` | Catppuccin Mocha | **13** | Third gated unlock |
+| `rose-pine` | Rosé Pine | **13** | Third gated unlock |
 
-Unlock notifications fire only for gated unlocks (`everforest`, `gruvbox`, `catppuccin-mocha`) — not starters.
+Unlock notifications fire only for gated unlocks (`everforest`, `gruvbox`, `rose-pine`) — not starters.
 
 ---
 
@@ -229,31 +229,31 @@ Preview swatch: background `#1d2021` + accent `#fe8019`.
 
 ---
 
-### Catppuccin Mocha — `catppuccin-mocha`
+### Rosé Pine — `rose-pine`
 
-Upstream: [Catppuccin Mocha](https://catppuccin.com/palette/). Signature = Blue; secondary = Mauve. Stronger mauve cast on chrome.
+Upstream: [Rosé Pine](https://rosepinetheme.com/palette/) (main variant). Signature = Iris (muted lavender/purple); secondary = Gold for warm/cool contrast. Deliberately soft and desaturated — quieter than the other unlocks, not a neon purple.
 
 | Token | Hex | Upstream |
 |-------|-----|----------|
-| background | `#11111b` | Crust |
-| surface | `#181825` | Mantle |
-| card | `#1e1e2e` | Base |
-| card-hover | `#313244` | Surface0 |
-| border | `#45475a` | Surface1 |
-| border-strong | `#585b70` | Surface2 |
-| foreground | `#cdd6f4` | Text |
-| muted | `#a6adc8` | Subtext0 |
-| muted-foreground | `#7f849c` | Overlay1 |
-| accent | `#89b4fa` | Blue |
-| accent-foreground | `#11111b` | |
-| accent-muted | `#1a2238` | |
-| secondary | `#cba6f7` | Mauve |
-| secondary-foreground | `#11111b` | |
-| secondary-muted | `#2a2139` | |
-| wash | `rgba(137, 180, 250, 0.14)` | |
-| wash-strong | `rgba(137, 180, 250, 0.22)` | |
+| background | `#191724` | Base |
+| surface | `#1f1d2e` | Surface |
+| card | `#26233a` | Overlay |
+| card-hover | `#403d52` | Highlight Med |
+| border | `#524f67` | Highlight High |
+| border-strong | `#6e6a86` | Muted |
+| foreground | `#e0def4` | Text |
+| muted | `#908caa` | Subtle |
+| muted-foreground | `#6e6a86` | Muted |
+| accent | `#c4a7e7` | Iris |
+| accent-foreground | `#191724` | |
+| accent-muted | `#2a2340` | |
+| secondary | `#f6c177` | Gold |
+| secondary-foreground | `#191724` | |
+| secondary-muted | `#33291c` | |
+| wash | `rgba(196, 167, 231, 0.14)` | |
+| wash-strong | `rgba(196, 167, 231, 0.22)` | |
 
-Preview swatch: background `#11111b` + accent `#89b4fa`.
+Preview swatch: background `#191724` + accent `#c4a7e7`.
 
 ---
 

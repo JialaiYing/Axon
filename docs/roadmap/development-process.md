@@ -23,7 +23,7 @@ Work in this order unless new evidence (real usage, user feedback) says otherwis
 - [x] Flashcards spaced repetition scheduler (§7) — Flashcards-only Leitner boxes; Library Study surfaces due cards without set pick first.
 - [x] Flashcards UX follow-through — `flashcards-improvements.md` (schedule-visible UI, caught-up Study, set context in due Study, edit cards/set metadata, session end summary). Do after Leitner; do not expand into SM-2 or card media.
 - [x] Kanban subject-owned color system (§9) — `colorForSubject()` in `src/lib/subject-colors.ts`; board card accent, Calendar dots/chips, Dashboard agenda, and Analytics focus-by-subject bars share one mapping; per-objective color swatch removed from create/edit forms.
-- [x] Unlockable dark-only app palettes (§4) — ambient Dashboard backgrounds retired; starters at L1 (Axon / Tokyo Night / Nord); gated Everforest L3 / Gruvbox L7 / Catppuccin Mocha L13; **never auto-equip**; Appearance is the picker; chrome follows accent so swaps are visible. Specs: `theme-palettes.md`.
+- [x] Unlockable dark-only app palettes (§4) — ambient Dashboard backgrounds retired; starters at L1 (Axon / Tokyo Night / Nord); gated Everforest L3 / Gruvbox L7 / Rosé Pine L13; **never auto-equip**; Appearance is the picker; chrome follows accent so swaps are visible. Specs: `theme-palettes.md`.
 
 **Skills to use:** `.cursor/skills/design-system/SKILL.md` for tokenized palette swaps (same CSS variables per theme); `.cursor/skills/premium-frontend/SKILL.md` to keep unlocked palettes quiet and non-distracting; `.cursor/skills/nextjs-react-patterns/SKILL.md` for Flashcards scheduler state.
 

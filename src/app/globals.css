@@ -281,24 +281,24 @@
     --color-wash-strong: rgba(254, 128, 25, 0.22);
   }
 
-  [data-theme="dark"][data-palette="catppuccin-mocha"] {
-    --color-background: #11111b;
-    --color-surface: #181825;
-    --color-card: #1e1e2e;
-    --color-card-hover: #313244;
-    --color-border: #45475a;
-    --color-border-strong: #585b70;
-    --color-foreground: #cdd6f4;
-    --color-muted: #a6adc8;
-    --color-muted-foreground: #7f849c;
-    --color-accent: #89b4fa;
-    --color-accent-foreground: #11111b;
-    --color-accent-muted: #1a2238;
-    --color-secondary: #cba6f7;
-    --color-secondary-foreground: #11111b;
-    --color-secondary-muted: #2a2139;
-    --color-wash: rgba(137, 180, 250, 0.14);
-    --color-wash-strong: rgba(137, 180, 250, 0.22);
+  [data-theme="dark"][data-palette="rose-pine"] {
+    --color-background: #191724;
+    --color-surface: #1f1d2e;
+    --color-card: #26233a;
+    --color-card-hover: #403d52;
+    --color-border: #524f67;
+    --color-border-strong: #6e6a86;
+    --color-foreground: #e0def4;
+    --color-muted: #908caa;
+    --color-muted-foreground: #6e6a86;
+    --color-accent: #c4a7e7;
+    --color-accent-foreground: #191724;
+    --color-accent-muted: #2a2340;
+    --color-secondary: #f6c177;
+    --color-secondary-foreground: #191724;
+    --color-secondary-muted: #33291c;
+    --color-wash: rgba(196, 167, 231, 0.14);
+    --color-wash-strong: rgba(196, 167, 231, 0.22);
   }
 
   /* Dashboard-only design scope — set on <html> (see app/layout.tsx's inline

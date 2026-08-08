@@ -64,7 +64,7 @@ Update this file as items get resolved instead of letting it silently rot — se
 ## Settings
 
 - **[Resolved — M1]** Every setting block carried a full explanatory paragraph (Profile, Appearance, Dashboard backgrounds, Data & privacy, Focus Mode, Notifications, Feature tips, Homepage) — cut down to essentials or removed outright where the control was self-explanatory; section/block headings bumped up a size for scannability now that the body copy is gone.
-- **[Resolved — M2]** Level-gated ambient Dashboard backgrounds retired; replaced by unlockable dark-only app-wide palettes (starters: Axon / Tokyo Night / Nord; gated: Everforest / Gruvbox / Catppuccin Mocha). Specs in `theme-palettes.md`. City/skyline page was considered and **dropped** (not scheduled).
+- **[Resolved — M2]** Level-gated ambient Dashboard backgrounds retired; replaced by unlockable dark-only app-wide palettes (starters: Axon / Tokyo Night / Nord; gated: Everforest / Gruvbox / Rosé Pine). Specs in `theme-palettes.md`. City/skyline page was considered and **dropped** (not scheduled).
 - **[Resolved — M2 sweep]** FOUC no longer applies gated palettes before unlock proof (`axon:paletteEffective` + starter allowlist); ThemeProvider waits for stats before painting locked ids; palette unlock notify keys clear on account switch.
 
 ## Rank / progress

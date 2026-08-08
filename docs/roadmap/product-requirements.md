@@ -42,7 +42,7 @@ This comparison is a draft to validate, not a finished claim — see `opinions.m
 
 ## 4. Gamification rework — unlockable dark palettes
 
-Current state (see `current-state.md` §6): a rank ladder (10 ranks × 3 tiers, Novice→Polymath) is the primary progress visual, plus dark-only app palettes — starters (Axon, Tokyo Night, Nord) available from day one; Everforest, Gruvbox, and Catppuccin Mocha gated by level and equipped manually in Settings → Appearance.
+Current state (see `current-state.md` §6): a rank ladder (10 ranks × 3 tiers, Novice→Polymath) is the primary progress visual, plus dark-only app palettes — starters (Axon, Tokyo Night, Nord) available from day one; Everforest, Gruvbox, and Rosé Pine gated by level and equipped manually in Settings → Appearance.
 
 **City / skyline dropped.** An earlier draft proposed replacing the rank page with a growing night-skyline ("City") metaphor. That was cut before implementation: too much art/production cost for a solo build, and a new visual metaphor does not by itself make the reward loop more motivating (see `opinions.md`). Rank stays.
 
@@ -55,7 +55,7 @@ Current state (see `current-state.md` §6): a rank ladder (10 ranks × 3 tiers, 
 
 **Palette set (cosmetic progression track):**
 - **Theme zero (default):** current Axon dark — always available, never locked.
-- **Unlock candidates** (ship default + starters immediately; gate ~3 more by level): **Tokyo Night + Nord** (starters at L1), then **Everforest Dark**, **Gruvbox Dark**, **Catppuccin Mocha**. Optional later: Rosé Pine.
+- **Unlock candidates** (ship default + starters immediately; gate ~3 more by level): **Tokyo Night + Nord** (starters at L1), then **Everforest Dark**, **Gruvbox Dark**, **Rosé Pine**.
 - Implementation constraint: each palette remaps the **same CSS variables** (surfaces, borders, muted text, primary accent). Semantic success/warning/danger and **subject-owned board colors** stay independent of the palette so Kanban/Analytics accents do not fight the theme.
 
 **Action → reward split (keep this honest):**

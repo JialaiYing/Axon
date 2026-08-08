@@ -11,7 +11,7 @@ export type PaletteId =
   | "nord"
   | "everforest"
   | "gruvbox"
-  | "catppuccin-mocha";
+  | "rose-pine";
 
 export interface PaletteVariant {
   id: PaletteId;
@@ -69,11 +69,11 @@ export const PALETTES: PaletteVariant[] = [
     preview: { background: "#1d2021", accent: "#fe8019" },
   },
   {
-    id: "catppuccin-mocha",
-    name: "Catppuccin Mocha",
-    description: "Warm mocha base with pastel blue accent.",
+    id: "rose-pine",
+    name: "Rosé Pine",
+    description: "Muted plum surfaces with soft iris accent.",
     unlockLevel: 13,
-    preview: { background: "#11111b", accent: "#89b4fa" },
+    preview: { background: "#191724", accent: "#c4a7e7" },
   },
 ];
 
