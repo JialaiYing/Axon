@@ -3,7 +3,10 @@
 import { AlertTriangle, ListTodo, Plus, Sparkles, Timer, Trophy } from "lucide-react";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { StreakFlame } from "@/components/ui/streak-flame";
-import { ProductChrome } from "@/components/landing/landing-primitives";
+import {
+  landingPreviewHaloStyle,
+  ProductChrome,
+} from "@/components/landing/landing-primitives";
 import { colorForSubject } from "@/lib/subject-colors";
 import { cn } from "@/lib/utils";
 
@@ -257,8 +260,8 @@ interface DashboardPreviewProps {
 /** Static product frame for the hero — motion lives on the page, not the chrome. */
 export function DashboardPreview({ className }: DashboardPreviewProps) {
   return (
-    <div className={cn("relative", className)}>
-      <ProductChrome title="Dashboard" className="shadow-[var(--shadow-elevation-3)]">
+    <div className={cn("relative rounded-md", className)} style={landingPreviewHaloStyle}>
+      <ProductChrome title="Dashboard" className="shadow-none">
         <PreviewBody />
       </ProductChrome>
     </div>

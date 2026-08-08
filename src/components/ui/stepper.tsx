@@ -88,7 +88,8 @@ interface HorizontalStepperProps {
 /**
  * Horizontal timeline in the spirit of Linear's changelog strip:
  * a continuous rail with numbered nodes, titles, and short copy —
- * scrollable on smaller viewports.
+ * scrollable on smaller viewports. Uses theme tokens so it sits cleanly
+ * on both marketing and in-app surfaces.
  */
 export function HorizontalStepper({ steps, className }: HorizontalStepperProps) {
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -103,11 +104,14 @@ export function HorizontalStepper({ steps, className }: HorizontalStepperProps) 
     <div ref={containerRef} className={cn("relative", className)}>
       <div className="-mx-6 overflow-x-auto px-6 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div className="relative min-w-[44rem] md:min-w-0">
-          <div className="absolute left-6 right-6 top-6 h-px bg-white/20" aria-hidden />
+          <div
+            className="absolute left-6 right-6 top-6 h-px bg-border"
+            aria-hidden
+          />
           <motion.div
             aria-hidden
             style={prefersReducedMotion ? { scaleX: 1 } : { scaleX: fillScale }}
-            className="absolute left-6 right-6 top-6 h-px origin-left bg-white"
+            className="absolute left-6 right-6 top-6 h-px origin-left bg-foreground"
           />
 
           <ol className="relative grid grid-cols-4 gap-6">
@@ -125,16 +129,18 @@ export function HorizontalStepper({ steps, className }: HorizontalStepperProps) 
                 }}
                 className="flex flex-col"
               >
-                <span className="relative z-10 flex h-12 w-12 items-center justify-center rounded-full border border-white/40 bg-black text-white shadow-[0_0_0_4px_rgba(0,0,0,1)]">
+                <span className="relative z-10 flex h-12 w-12 items-center justify-center rounded-full border border-border-strong bg-background text-foreground shadow-[0_0_0_4px_var(--color-surface)]">
                   {step.icon}
                 </span>
-                <p className="mt-6 font-mono text-[11px] tracking-[0.15em] text-white/45">
+                <p className="mt-6 font-mono text-[11px] tracking-[0.15em] text-muted-foreground">
                   {String(index + 1).padStart(2, "0")}
                 </p>
-                <h3 className="mt-1 font-display text-base font-semibold tracking-tight text-white md:text-lg">
+                <h3 className="mt-1 font-display text-base font-medium tracking-tight text-foreground md:text-lg">
                   {step.title}
                 </h3>
-                <p className="mt-2 text-sm leading-relaxed text-white/55">{step.description}</p>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  {step.description}
+                </p>
               </motion.li>
             ))}
           </ol>

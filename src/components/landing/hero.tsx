@@ -19,7 +19,7 @@ export function Hero() {
   const initial = prefersReducedMotion ? false : "hidden";
 
   return (
-    <section className="relative overflow-hidden bg-background pb-16 pt-20 md:pb-24 md:pt-24">
+    <section className="relative bg-background pb-16 pt-20 md:pb-24 md:pt-24">
       {/* Quiet atmospheric wash — value only, no accent glow theater */}
       <div
         aria-hidden

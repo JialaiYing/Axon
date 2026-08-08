@@ -147,6 +147,12 @@ export function LandingHeader({
   );
 }
 
+/** Soft light lift for marketing product mocks against the near-black page. */
+export const landingPreviewHaloStyle: React.CSSProperties = {
+  boxShadow:
+    "0 0 0 1px rgba(255,255,255,0.12), 0 0 40px 6px rgba(255,255,255,0.16), 0 0 100px 28px rgba(255,255,255,0.08)",
+};
+
 /** Traffic-light chrome used on product frames — one pattern, every shot. */
 export function ProductChrome({
   title,

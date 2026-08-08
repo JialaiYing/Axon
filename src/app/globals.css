@@ -198,8 +198,10 @@
    * Unlockable dark palettes — source of truth: docs/roadmap/theme-palettes.md
    * Only apply when dark. Semantics (success/warning/danger) + trophy metals stay Axon-stable.
    * Axon (`data-palette="axon"` or unset) uses the [data-theme="dark"] block above.
+   * Selectors are not html-scoped so marketing product mocks can preview a palette
+   * locally via data-palette without flipping the whole page.
    */
-  html[data-theme="dark"][data-palette="tokyo-night"] {
+  [data-theme="dark"][data-palette="tokyo-night"] {
     --color-background: #16161e;
     --color-surface: #1a1b26;
     --color-card: #24283b;
@@ -219,7 +221,7 @@
     --color-wash-strong: rgba(122, 162, 247, 0.2);
   }
 
-  html[data-theme="dark"][data-palette="nord"] {
+  [data-theme="dark"][data-palette="nord"] {
     --color-background: #2e3440;
     --color-surface: #3b4252;
     --color-card: #434c5e;
@@ -239,7 +241,7 @@
     --color-wash-strong: rgba(136, 192, 208, 0.22);
   }
 
-  html[data-theme="dark"][data-palette="everforest"] {
+  [data-theme="dark"][data-palette="everforest"] {
     --color-background: #232a2e;
     --color-surface: #2d353b;
     --color-card: #343f44;
@@ -259,7 +261,7 @@
     --color-wash-strong: rgba(167, 192, 128, 0.22);
   }
 
-  html[data-theme="dark"][data-palette="gruvbox"] {
+  [data-theme="dark"][data-palette="gruvbox"] {
     --color-background: #1d2021;
     --color-surface: #282828;
     --color-card: #3c3836;
@@ -279,7 +281,7 @@
     --color-wash-strong: rgba(254, 128, 25, 0.22);
   }
 
-  html[data-theme="dark"][data-palette="catppuccin-mocha"] {
+  [data-theme="dark"][data-palette="catppuccin-mocha"] {
     --color-background: #11111b;
     --color-surface: #181825;
     --color-card: #1e1e2e;
