@@ -25,7 +25,6 @@ import { useDisplayName } from "@/hooks/use-display-name";
 import { useFlashcards } from "@/hooks/use-flashcards";
 import { useGoals, DAILY_OBJECTIVES_TARGET } from "@/hooks/use-goals";
 import {
-  remainingSecondsOf,
   usePomodoroTimers,
 } from "@/hooks/use-pomodoro-timers";
 import { DURATION, EASE } from "@/lib/motion";
@@ -33,7 +32,6 @@ import { percentTrend, type Trend } from "@/lib/percent-trend";
 import { computeCurrentStreak } from "@/lib/progress/streak";
 import { rankTrophyClass } from "@/lib/progress/ranks";
 import { buildTodayAgenda } from "@/lib/dashboard-agenda";
-import { formatClock } from "@/lib/pomodoro-utils";
 import type { PomodoroSession } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -155,7 +153,7 @@ function RankStrip({
                 metal
               )}
             >
-              <Trophy className="h-4 w-4 fill-current" aria-hidden />
+              <Trophy className="h-4 w-4" aria-hidden />
             </span>
             <div>
               <p className="text-[14px] font-medium text-muted">Rank</p>
@@ -243,13 +241,6 @@ export function DashboardOverview() {
     [timers]
   );
 
-  const [, setTick] = React.useState(0);
-  React.useEffect(() => {
-    if (!activeTimer || activeTimer.status !== "running") return;
-    const id = window.setInterval(() => setTick((n) => n + 1), 1000);
-    return () => window.clearInterval(id);
-  }, [activeTimer]);
-
   const [dayKey, setDayKey] = React.useState(() => new Date().toDateString());
   React.useEffect(() => {
     const refreshDay = () => setDayKey(new Date().toDateString());
@@ -286,9 +277,6 @@ export function DashboardOverview() {
         ? "Good afternoon"
         : "Good evening";
   const greeting = displayName ? `${greetingBase}, ${displayName}` : greetingBase;
-
-  const timerRemaining = activeTimer ? remainingSecondsOf(activeTimer) : 0;
-  const timerLabel = activeTimer?.label?.trim() || "Focus";
 
   if (!hydrated) return <LoadingState />;
 
@@ -329,29 +317,6 @@ export function DashboardOverview() {
             </Button>
           </div>
         </div>
-
-        {activeTimer && (
-          <Link
-            href="/pomodoro"
-            aria-label={`${activeTimer.status === "paused" ? "Paused" : "Running"} timer: ${timerLabel}, ${formatClock(timerRemaining)} remaining`}
-            className="inline-flex max-w-full items-center gap-2.5 self-start rounded-md border border-border/50 bg-wash/40 px-3 py-2 text-[14px] transition-colors hover:border-border hover:bg-wash light:border-border light:bg-card"
-          >
-            <span
-              className={cn(
-                "h-1.5 w-1.5 shrink-0 rounded-full",
-                activeTimer.status === "running" ? "bg-success" : "bg-warning"
-              )}
-              aria-hidden
-            />
-            <span className="min-w-0 truncate font-medium text-foreground">{timerLabel}</span>
-            <span className="shrink-0 font-mono tabular-nums text-muted-foreground">
-              {formatClock(timerRemaining)}
-            </span>
-            {activeTimer.status === "paused" && (
-              <span className="shrink-0 text-muted-foreground">Paused</span>
-            )}
-          </Link>
-        )}
 
         <TodayAgendaPanel
           objectives={objectives}

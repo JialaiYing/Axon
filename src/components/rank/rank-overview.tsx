@@ -100,7 +100,7 @@ function RankLadder({ level }: { level: number }) {
               <div className="flex items-center gap-3">
                 <Trophy
                   className={cn(
-                    "h-5 w-5 shrink-0 fill-current transition-opacity duration-200",
+                    "h-5 w-5 shrink-0 transition-opacity duration-200",
                     metal,
                     isCurrentRank
                       ? "opacity-100"
@@ -157,9 +157,10 @@ export function RankOverview() {
   const prefersReducedMotion = useReducedMotion();
   const { stats, progression, rank, todayXp, hydrated } = useUserStats();
   useDevUnlockAll(); // re-render when developer unlock-all flips
-  const { paletteId } = useTheme();
+  const { theme, paletteId, setPaletteId } = useTheme();
   const [xpOpen, setXpOpen] = React.useState(false);
   const trophyMetal = rankTrophyClass(rank.rankIndex);
+  const palettesInteractive = theme === "dark";
 
   if (!hydrated) {
     return (
@@ -191,11 +192,11 @@ export function RankOverview() {
                   trophyMetal
                 )}
               >
-                <Trophy className="h-4 w-4 fill-current" aria-hidden />
+                <Trophy className="h-4 w-4" aria-hidden />
               </span>
               <div>
                 <p className="text-[14px] font-medium text-muted">Current rank</p>
-                <p className="mt-0.5 text-2xl font-medium tracking-tight text-foreground sm:text-[28px]">
+                <p className="mt-0.5 text-3xl font-medium tracking-tight text-foreground sm:text-4xl">
                   {rank.label}
                 </p>
                 <p className="mt-1 font-mono text-[14px] tabular-nums text-muted-foreground">
@@ -222,23 +223,32 @@ export function RankOverview() {
           </div>
 
           <p className="mt-3 text-[14px] text-muted-foreground">
-            {stats.xp.toLocaleString()} lifetime XP · unlock dark palettes as you rank up in{" "}
-            <Link
-              href="/settings#appearance"
-              className="text-muted-foreground underline decoration-border underline-offset-2 transition-colors hover:text-foreground hover:decoration-foreground"
-            >
-              Settings
-            </Link>
-            .
+            {stats.xp.toLocaleString()} lifetime XP · equip a dark palette below
+            {!palettesInteractive ? " · switch to Dark to change" : ""}.
           </p>
 
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div
+            className="mt-4 flex flex-wrap items-center gap-2"
+            role="radiogroup"
+            aria-label="Dark color palette"
+          >
             {PALETTES.map((palette) => {
               const unlocked = isPaletteUnlocked(palette.id, progression.level);
               const equipped = palette.id === paletteId;
+              const canSelect = unlocked && palettesInteractive;
               return (
-                <div
+                <button
                   key={palette.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={equipped}
+                  aria-label={
+                    unlocked
+                      ? equipped
+                        ? `${palette.name} · equipped`
+                        : `Equip ${palette.name}`
+                      : `${palette.name} · unlocks at level ${palette.unlockLevel}`
+                  }
                   title={
                     unlocked
                       ? equipped
@@ -246,12 +256,14 @@ export function RankOverview() {
                         : palette.name
                       : `${palette.name} · unlocks at level ${palette.unlockLevel}`
                   }
+                  disabled={!canSelect}
+                  onClick={() => setPaletteId(palette.id)}
                   className={cn(
-                    "flex items-center gap-2 rounded-md border px-2.5 py-1.5",
+                    "inline-flex items-center gap-2 rounded-md border transition-colors",
                     equipped
-                      ? "border-foreground/40 light:border-foreground/30"
-                      : "border-border/50 light:border-border",
-                    !unlocked && "opacity-45"
+                      ? "border-foreground/40 bg-wash px-2.5 py-1.5 light:border-foreground/30"
+                      : "border-border/50 p-1.5 hover:border-border-strong hover:bg-wash/60 light:border-border",
+                    !canSelect && "cursor-not-allowed opacity-45 hover:border-border/50 hover:bg-transparent"
                   )}
                 >
                   <span
@@ -267,15 +279,10 @@ export function RankOverview() {
                       style={{ backgroundColor: palette.preview.accent }}
                     />
                   </span>
-                  <span className="text-[12px] text-foreground">{palette.name}</span>
-                  {equipped ? (
-                    <span className="text-[11px] text-muted-foreground">Active</span>
-                  ) : !unlocked ? (
-                    <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
-                      L{palette.unlockLevel}
-                    </span>
-                  ) : null}
-                </div>
+                  {equipped && (
+                    <span className="text-[12px] font-medium text-foreground">{palette.name}</span>
+                  )}
+                </button>
               );
             })}
           </div>
@@ -356,7 +363,7 @@ export function RankOverview() {
                 <li className="flex items-center gap-2.5">
                   <span className="flex h-4 w-4 shrink-0 items-center justify-center">
                     <Trophy
-                      className={cn("h-3.5 w-3.5 fill-current", trophyMetal)}
+                      className={cn("h-3.5 w-3.5", trophyMetal)}
                       aria-hidden
                     />
                   </span>

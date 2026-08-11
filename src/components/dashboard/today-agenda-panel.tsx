@@ -30,7 +30,7 @@ interface TodayAgendaPanelProps {
 
 /**
  * Glance-and-go "Today" section for the Dashboard.
- * Linear-inspired: flat bordered module; light uses card on cool page canvas.
+ * Flat bordered module; items wrap horizontally within each bucket.
  * Backup: today-agenda-panel.pre-light-dashboard.bak
  */
 export function TodayAgendaPanel({
@@ -255,7 +255,7 @@ function MoreLink({ count, href }: { count: number; href: string }) {
   return (
     <Link
       href={href}
-      className="block px-1.5 py-1.5 text-[14px] font-medium text-muted-foreground transition-colors hover:text-foreground sm:px-2"
+      className="inline-flex items-center self-center px-2.5 py-2 text-[14px] font-medium text-muted-foreground transition-colors hover:text-foreground"
     >
       +{count} more
     </Link>
@@ -277,7 +277,7 @@ function AgendaSection({
 }) {
   return (
     <div>
-      <div className="mb-1.5 flex items-center gap-1.5">
+      <div className="mb-2 flex items-center gap-1.5">
         <Icon
           className={cn(
             "h-3.5 w-3.5",
@@ -294,9 +294,8 @@ function AgendaSection({
         </p>
         <span className="font-mono text-[14px] font-medium tabular-nums text-muted">· {count}</span>
       </div>
-      {/* Negative horizontal margin so the hover wash and dividers reach the
-          panel content width. */}
-      <div className="-mx-2 divide-y divide-border/50 light:divide-border sm:-mx-3">{children}</div>
+      {/* Wrap like text: items fill the row left→right, then spill to the next. */}
+      <div className="flex flex-wrap gap-2">{children}</div>
     </div>
   );
 }
@@ -320,7 +319,7 @@ function AgendaLink({
     <Link
       href={href}
       className={cn(
-        "flex items-center gap-2.5 px-1.5 py-1.5 transition-colors duration-150 sm:px-2",
+        "flex min-w-[10.5rem] max-w-full flex-[1_1_10.5rem] items-start gap-2 rounded-md border border-border/50 px-2.5 py-2 transition-colors duration-150 light:border-border sm:min-w-[12rem] sm:flex-[1_1_12rem]",
         done
           ? "bg-success-muted/10 hover:bg-success-muted/20"
           : tone === "danger"
@@ -329,11 +328,11 @@ function AgendaLink({
       )}
     >
       {done ? (
-        <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-success" />
+        <CheckCircle2 className="mt-1 h-3.5 w-3.5 shrink-0 text-success" />
       ) : (
         <span
           aria-hidden
-          className="h-1.5 w-1.5 shrink-0 rounded-full bg-muted-foreground"
+          className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-muted-foreground"
           style={color ? { backgroundColor: color } : undefined}
         />
       )}
@@ -346,7 +345,7 @@ function AgendaLink({
         >
           {title}
         </p>
-        <p className="mt-0.5 text-[14px] text-muted-foreground">{meta}</p>
+        <p className="mt-0.5 truncate text-[13px] text-muted-foreground">{meta}</p>
       </div>
     </Link>
   );

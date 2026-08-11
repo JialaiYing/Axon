@@ -217,7 +217,8 @@ export function useObjectives() {
         description: input.description,
         subject: input.subject,
         priority: input.priority,
-        dueDate: input.dueDate,
+        // No due date on create → due today (day of creation).
+        dueDate: input.dueDate ?? now,
         estimatedStudyTime: input.estimatedStudyTime,
         progress: derivedProgress !== null ? derivedProgress : input.progress,
         labels: input.labels,

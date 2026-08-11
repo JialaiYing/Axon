@@ -31,6 +31,7 @@ import {
   PRIORITY_OPTIONS,
 } from "@/constants/kanban";
 import { progressFromSubtasks, type ObjectiveInput } from "@/hooks/use-objectives";
+import { localDateKey } from "@/lib/goals-utils";
 import type { Attachment, KanbanStatus, Objective, Recurrence, Subtask } from "@/types";
 
 const objectiveSchema = z.object({
@@ -103,7 +104,11 @@ export function ObjectiveForm({
         initialValues?.status && initialValues.status !== "recycled"
           ? initialValues.status
           : defaultStatus,
-      dueDate: initialValues?.dueDate?.slice(0, 10) ?? "",
+      // New objectives default to due today; edits keep whatever is stored
+      // (including empty — don't invent a due date on open).
+      dueDate: initialValues
+        ? (initialValues.dueDate?.slice(0, 10) ?? "")
+        : localDateKey(),
       estimatedStudyTime: initialValues?.estimatedStudyTime,
       progress: initialValues?.progress ?? 0,
       labels: initialValues?.labels?.join(", ") ?? "",

@@ -92,11 +92,11 @@ function RankPreview() {
               trophyMetal
             )}
           >
-            <Trophy className="h-4 w-4 fill-current" aria-hidden />
+            <Trophy className="h-4 w-4" aria-hidden />
           </span>
           <div>
             <p className="text-[13px] font-medium text-muted">Current rank</p>
-            <p className="mt-0.5 text-xl font-medium tracking-tight text-foreground sm:text-2xl">
+            <p className="mt-0.5 text-2xl font-medium tracking-tight text-foreground sm:text-3xl">
               {DEMO.rankLabel}
             </p>
             <p className="mt-1 font-mono text-[13px] tabular-nums text-muted-foreground">
@@ -121,7 +121,7 @@ function RankPreview() {
         </p>
 
         <div
-          className="mt-4 flex flex-wrap gap-2"
+          className="mt-4 flex flex-wrap items-center gap-2"
           role="radiogroup"
           aria-label="Preview a dark palette"
         >
@@ -135,6 +135,13 @@ function RankPreview() {
                 role="radio"
                 aria-checked={selected}
                 onClick={() => setPreviewPalette(palette.id)}
+                aria-label={
+                  unlocked
+                    ? selected
+                      ? `${palette.name} · previewing`
+                      : `Preview ${palette.name}`
+                    : `${palette.name} · unlocks at level ${palette.unlockLevel} · click to preview`
+                }
                 title={
                   unlocked
                     ? selected
@@ -143,11 +150,11 @@ function RankPreview() {
                     : `${palette.name} · unlocks at level ${palette.unlockLevel} · click to preview`
                 }
                 className={cn(
-                  "flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-left transition-colors",
+                  "inline-flex items-center gap-2 rounded-md border text-left transition-colors",
                   landingFocusRingClassName,
                   selected
-                    ? "border-foreground/40 bg-wash"
-                    : "border-border/50 hover:border-border-strong hover:bg-wash/60",
+                    ? "border-foreground/40 bg-wash px-2.5 py-1.5"
+                    : "border-border/50 p-1.5 hover:border-border-strong hover:bg-wash/60",
                   !unlocked && !selected && "opacity-55"
                 )}
               >
@@ -164,14 +171,9 @@ function RankPreview() {
                     style={{ backgroundColor: palette.preview.accent }}
                   />
                 </span>
-                <span className="text-[12px] text-foreground">{palette.name}</span>
-                {selected ? (
-                  <span className="text-[11px] text-muted-foreground">Active</span>
-                ) : !unlocked ? (
-                  <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
-                    L{palette.unlockLevel}
-                  </span>
-                ) : null}
+                {selected && (
+                  <span className="text-[12px] font-medium text-foreground">{palette.name}</span>
+                )}
               </button>
             );
           })}
@@ -249,7 +251,7 @@ function RankPreview() {
                 <div className="flex items-center gap-3">
                   <Trophy
                     className={cn(
-                      "h-4 w-4 shrink-0 fill-current",
+                      "h-4 w-4 shrink-0",
                       metal,
                       isCurrentRank
                         ? "opacity-100"

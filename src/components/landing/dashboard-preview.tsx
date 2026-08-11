@@ -20,20 +20,19 @@ const DEMO_STREAK = 12;
 const AGENDA = {
   overdue: [
     { title: "Org chem problem set", meta: "Due Jul 19", subject: "Chemistry" },
+    { title: "Lab report draft", meta: "Due Jul 18", subject: "Biology" },
   ],
   dueToday: [
     { title: "Read ch. 6 thermodynamics", meta: "Due today", subject: "Physics" },
   ],
   focus: [
-    {
-      title: "Calc II problem set",
-      meta: "9:30 · 30m",
-      subject: "Math",
-    },
+    { title: "Calc II problem set", meta: "9:30 · 30m", subject: "Math" },
+    { title: "Anki deck: neurons", meta: "11:00 · 25m", subject: "Biology" },
+    { title: "Essay outline", meta: "14:00 · 45m", subject: "History" },
   ],
 } as const;
 
-function AgendaRow({
+function AgendaTile({
   title,
   meta,
   subject,
@@ -45,34 +44,26 @@ function AgendaRow({
   tone?: "danger";
 }) {
   return (
-    <div className="flex items-center gap-2.5 px-1 py-1.5">
+    <div
+      className={cn(
+        "flex min-w-[9rem] max-w-full flex-[1_1_9rem] items-start gap-2 rounded-md border border-border/50 px-2 py-1.5 sm:min-w-[10rem] sm:flex-[1_1_10rem]",
+        tone === "danger" && "bg-danger-muted/10"
+      )}
+    >
       <span
         aria-hidden
-        className={cn(
-          "h-1.5 w-1.5 shrink-0 rounded-full",
-          tone === "danger" && "bg-danger"
-        )}
+        className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-muted-foreground"
         style={
-          tone === "danger" ? undefined : { backgroundColor: colorForSubject(subject) }
+          tone === "danger"
+            ? { backgroundColor: "var(--color-danger)" }
+            : { backgroundColor: colorForSubject(subject) }
         }
       />
       <div className="min-w-0 flex-1">
-        <p
-          className={cn(
-            "truncate text-[13px] font-medium",
-            tone === "danger" ? "text-danger" : "text-foreground"
-          )}
-        >
+        <p className="truncate text-[12px] font-medium text-foreground sm:text-[13px]">
           {title}
         </p>
-        <p
-          className={cn(
-            "mt-0.5 text-[11px]",
-            tone === "danger" ? "text-danger/80" : "text-muted-foreground"
-          )}
-        >
-          {meta}
-        </p>
+        <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{meta}</p>
       </div>
     </div>
   );
@@ -117,46 +108,46 @@ function PreviewBody() {
 
         <div className="space-y-4">
           <div>
-            <div className="mb-1 flex items-center gap-1.5">
+            <div className="mb-1.5 flex items-center gap-1.5">
               <AlertTriangle className="h-3.5 w-3.5 text-danger" aria-hidden />
               <p className="text-[12px] font-medium text-danger">Overdue</p>
               <span className="font-mono text-[12px] tabular-nums text-danger">
                 · {AGENDA.overdue.length}
               </span>
             </div>
-            <div className="-mx-1 divide-y divide-border/50">
+            <div className="flex flex-wrap gap-1.5">
               {AGENDA.overdue.map((row) => (
-                <AgendaRow key={row.title} {...row} tone="danger" />
+                <AgendaTile key={row.title} {...row} tone="danger" />
               ))}
             </div>
           </div>
 
           <div>
-            <div className="mb-1 flex items-center gap-1.5">
+            <div className="mb-1.5 flex items-center gap-1.5">
               <ListTodo className="h-3.5 w-3.5 text-muted" aria-hidden />
               <p className="text-[12px] font-medium text-muted">Due today</p>
               <span className="font-mono text-[12px] tabular-nums text-muted">
                 · {AGENDA.dueToday.length}
               </span>
             </div>
-            <div className="-mx-1 divide-y divide-border/50">
+            <div className="flex flex-wrap gap-1.5">
               {AGENDA.dueToday.map((row) => (
-                <AgendaRow key={row.title} {...row} />
+                <AgendaTile key={row.title} {...row} />
               ))}
             </div>
           </div>
 
           <div>
-            <div className="mb-1 flex items-center gap-1.5">
+            <div className="mb-1.5 flex items-center gap-1.5">
               <Timer className="h-3.5 w-3.5 text-muted" aria-hidden />
               <p className="text-[12px] font-medium text-muted">Scheduled focus</p>
               <span className="font-mono text-[12px] tabular-nums text-muted">
                 · {AGENDA.focus.length}
               </span>
             </div>
-            <div className="-mx-1 divide-y divide-border/50">
+            <div className="flex flex-wrap gap-1.5">
               {AGENDA.focus.map((row) => (
-                <AgendaRow key={row.title} {...row} />
+                <AgendaTile key={row.title} {...row} />
               ))}
             </div>
           </div>
@@ -182,7 +173,7 @@ function PreviewBody() {
           },
           {
             label: "Open today",
-            value: "2",
+            value: "3",
             suffix: "",
             hint: "Overdue + due today",
             icon: <ListTodo className="h-3.5 w-3.5 text-muted" aria-hidden />,
@@ -213,7 +204,7 @@ function PreviewBody() {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-5">
             <div className="flex shrink-0 items-center gap-2.5">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-wash text-warning">
-                <Trophy className="h-3.5 w-3.5 fill-current" aria-hidden />
+                <Trophy className="h-3.5 w-3.5" aria-hidden />
               </span>
               <div>
                 <p className="text-[12px] font-medium text-muted">Rank</p>
