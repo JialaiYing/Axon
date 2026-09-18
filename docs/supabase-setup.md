@@ -362,6 +362,7 @@ Do this only when you have a live URL. Full checklist: [`deploy-checklist.md`](.
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `NEXT_PUBLIC_SITE_URL` = `https://your-production-domain.com` (no trailing slash)
    - `SUPABASE_SERVICE_ROLE_KEY` = service role key from Project Settings → API (server-only; enables Settings → Delete account)
+   - `CRON_SECRET` = random 16+ character string (server-only; Vercel Cron keep-alive for free-tier pause prevention)
 
    Apply to Production (and Preview if you want). Redeploy after saving.
 
