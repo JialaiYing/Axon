@@ -17,7 +17,7 @@ Run through this before pointing a public URL at Axon. Skipping any of these bre
 4. **Google OAuth** (if enabled) — consent screen + Supabase provider redirect URIs match production.
 5. **Auth rate limits** — turn on Supabase dashboard Auth rate limits (in-memory app limits are weak on serverless).
 6. **Email confirmation** — decide on/off in Supabase Auth settings and match signup UX.
-7. **Keep-alive cron** — after deploy, confirm Vercel → Settings → Cron Jobs lists `/api/cron/keep-alive` daily. Restore a paused Supabase project from the dashboard first; the cron only prevents future pauses.
+7. **Keep-alive cron** — after deploy, confirm Vercel → Settings → Cron Jobs lists `/api/cron/keep-alive` twice (midnight and noon UTC). Hobby can only run each cron once a day, so these are two separate daily jobs. Each run sends several anon-key database reads; one query a day is not enough to keep a free Supabase project from pausing. Restore a paused project from the Supabase dashboard first; the cron cannot wake a paused database.
 
 ## Smoke test after deploy
 
@@ -29,6 +29,6 @@ Run through this before pointing a public URL at Axon. Skipping any of these bre
 - [ ] Settings → Delete account (only if service role key is set) — confirm flashcard images are gone from Storage
 - [ ] `/sitemap.xml` and OG tags use the production host, not localhost
 - [ ] `/login` stays dark even if the dashboard theme is light
-- [ ] Cron keep-alive: Vercel → Cron Jobs shows `/api/cron/keep-alive`; Run Now returns `{ ok: true }` once the project is restored
+- [ ] Cron keep-alive: Vercel → Cron Jobs shows `/api/cron/keep-alive` at `0 0 * * *` and `0 12 * * *`. Run Now returns `{ ok: true, queries: 6 }` once the project is restored, and Supabase → Logs → API shows those REST reads
 
 Full walkthrough: [`supabase-setup.md`](./supabase-setup.md).
